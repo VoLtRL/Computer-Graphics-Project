@@ -12,7 +12,12 @@ Voici un bloc complet en **anglais**, formaté en Markdown, que tu peux copier-c
 J'ai inclus une section sur les **prérequis Linux** (car même si tu as GLFW dans ton dossier, GLFW a besoin des librairies graphiques de Linux pour se compiler).
 
 ---
+## Contribution Guidelines
 
+* **No direct pushes to `main`**: All changes must be submitted via a Pull Request.
+* **Conventions**: Pull Request titles must follow the [Conventional Commits](https://www.conventionalcommits.org/) format (e.g., `feat:`, `fix:`, `docs:`), otherwise the merge will be automatically blocked.
+
+---
 ## Build and Run
 
 This project uses **CMake** to handle the build process. It includes all necessary libraries (GLFW, GLEW, GLM) in the `external/` folder, but you need to ensure your system has the base development tools and OpenGL drivers.
