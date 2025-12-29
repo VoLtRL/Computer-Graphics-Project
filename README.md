@@ -5,12 +5,6 @@ Core Features :
 - Implementation of a moving character and map exploration.
 - Stretch Goals: Add a combat system with various monsters and an inventory system to enhance player statistics.
 
-C'est une excellente idée. Un bon README est essentiel pour que n'importe qui (y compris tes profs) puisse lancer ton projet sans douleur.
-
-Voici un bloc complet en **anglais**, formaté en Markdown, que tu peux copier-coller directement dans ton fichier `README.md`.
-
-J'ai inclus une section sur les **prérequis Linux** (car même si tu as GLFW dans ton dossier, GLFW a besoin des librairies graphiques de Linux pour se compiler).
-
 ---
 ## Contribution Guidelines
 
