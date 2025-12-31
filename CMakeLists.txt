@@ -8,6 +8,8 @@ set(OpenGL_GL_PREFERENCE GLVND)
 
 find_package(OpenGL REQUIRED)
 
+add_compile_definitions(SHADER_DIR="${CMAKE_CURRENT_SOURCE_DIR}/shaders/")
+
 # On compile GLFW depuis le dossier
 add_subdirectory(external/glfw)
 
@@ -17,8 +19,9 @@ add_subdirectory(external/glm)
 # On compile GLEW
 add_subdirectory(external/glew-cmake) 
 
+file(GLOB SOURCES "src/*.cpp")
 
-add_executable(opengl_program src/main.cpp)
+add_executable(opengl_program ${SOURCES})
 
 target_include_directories(opengl_program PRIVATE include)
 
