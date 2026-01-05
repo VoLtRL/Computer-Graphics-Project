@@ -1,23 +1,25 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 project(OpenGLProgram)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(OpenGL_GL_PREFERENCE GLVND)
-
-find_package(OpenGL REQUIRED)
+if(WIN32)
+    add_compile_definitions(GLEW_STATIC)
+endif()
 
 add_compile_definitions(SHADER_DIR="${CMAKE_CURRENT_SOURCE_DIR}/shaders/")
 
-# On compile GLFW depuis le dossier
+set(OpenGL_GL_PREFERENCE GLVND)
+find_package(OpenGL REQUIRED)
+
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+
 add_subdirectory(external/glfw)
-
-# On inclut GLM (c'est une librairie de headers, souvent pas besoin de compiler)
 add_subdirectory(external/glm)
-
-# On compile GLEW
-add_subdirectory(external/glew-cmake) 
+add_subdirectory(external/glew-cmake)
 
 file(GLOB SOURCES "src/*.cpp")
 
@@ -25,16 +27,14 @@ add_executable(opengl_program ${SOURCES})
 
 target_include_directories(opengl_program PRIVATE include)
 
-
 target_link_libraries(opengl_program
     PRIVATE
-    glfw             # La cible définie par external/glfw
-    libglew_static   # La cible définie par glew 
-    glm::glm         # La cible définie par glm
-    OpenGL::GL       # Le driver OpenGL de la carte graphique
+    glfw
+    libglew_static
+    glm::glm
+    OpenGL::GL
 )
 
-# Configuration Linux (toujours nécessaire si tu bouges le projet)
 if (UNIX AND NOT APPLE)
     target_link_libraries(opengl_program PRIVATE ${CMAKE_DL_LIBS} pthread)
 endif()
