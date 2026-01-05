@@ -1,9 +1,11 @@
 #include "viewer.h"
+#include "camera.h"
 
 #include <iostream>
 #include <glm/glm.hpp>
 #include "glm/ext.hpp"
 #include <glm/gtc/matrix_transform.hpp>
+
 
 Viewer::Viewer(int width, int height)
 {
@@ -42,6 +44,11 @@ Viewer::Viewer(int width, int height)
     // register event handlers
     glfwSetKeyCallback(win, key_callback_static);
 
+    // Mouse movement callback
+    glfwSetCursorPosCallback(win, mouse_callback);
+    // tell GLFW to capture our mouse
+    glfwSetInputMode(win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
     // useful message to check OpenGL renderer characteristics
     std::cout << glGetString(GL_VERSION) << ", GLSL "
               << glGetString(GL_SHADING_LANGUAGE_VERSION) << ", Renderer "
@@ -56,6 +63,13 @@ Viewer::Viewer(int width, int height)
     /* with LESS depth-testing interprets a smaller depth value as meaning "closer" */
     glDepthFunc( GL_LESS );
 
+
+    // Initialize camera
+    camera = new Camera(glm::vec3(0.0f, 3.0f, 5.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, -20.0f);
+    lastX = width / 2.0f;
+    lastY = height / 2.0f;
+    firstMouse = true; 
+
     // initialize our scene_root
     scene_root = new Node();
 }
@@ -65,6 +79,12 @@ void Viewer::run()
     // Main render loop for this OpenGL window
     while (!glfwWindowShouldClose(win))
     {
+
+        float currentFrame = (float)glfwGetTime();
+
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
         // clear draw buffer
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -75,12 +95,12 @@ void Viewer::run()
 
         glm::mat4 model = glm::mat4(1.0f);
 
-        glm::mat4 rot_mat = glm::mat4(1.0f);
-        glm::mat4 tra_mat = glm::mat4(1.0f);
-        glm::mat4 sca_mat = glm::mat4(1.0f);
-        glm::mat4 view = tra_mat * rot_mat * sca_mat;
+        glm::mat4 view = camera->GetViewMatrix();
 
-        glm::mat4 projection = glm::perspective(glm::radians(45.0f), 1.0f, 0.1f, 50.0f);
+        float aspectRatio = (float) SCR_WIDTH / (float) SCR_HEIGHT;
+        glm::mat4 projection = camera->GetProjectionMatrix(aspectRatio);
+
+        camera->UpdatePhysics(deltaTime);
 
         scene_root->draw(model, view, projection);
 
@@ -102,11 +122,55 @@ void Viewer::key_callback_static(GLFWwindow* window, int key, int scancode, int 
     viewer->on_key(key);
 }
 
+// glfw: whenever the mouse moves, this callback is called
+// -------------------------------------------------------
+void Viewer::mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
+{
+    Viewer* viewer = static_cast<Viewer*>(glfwGetWindowUserPointer(window));
+
+    float xpos = static_cast<float>(xposIn);
+    float ypos = static_cast<float>(yposIn);
+
+    // Si c'est le premier mouvement détecté, on réinitialise lastX/lastY
+    // à la position ACTUELLE de la souris pour éviter le saut.
+    if (viewer->firstMouse)
+    {
+        viewer->lastX = xpos;
+        viewer->lastY = ypos;
+        viewer->firstMouse = false;
+    }
+
+    float xoffset = xpos - viewer->lastX;
+    float yoffset = viewer->lastY - ypos; 
+
+    viewer->lastX = xpos;
+    viewer->lastY = ypos;
+
+    // PROTECTION : Si le saut est trop grand (bug GLFW), on l'ignore
+    if (std::abs(xoffset) > 50.0f || std::abs(yoffset) > 50.0f) {
+        return; 
+    }
+
+    viewer->camera->ProcessMouseMovement(xoffset, yoffset);
+}
+
 void Viewer::on_key(int key)
 {
     // 'Q' or 'Escape' quits
     if (key == GLFW_KEY_ESCAPE || key == GLFW_KEY_Q)
     {
         glfwSetWindowShouldClose(win, GLFW_TRUE);
+
     }
+    
+    // Camera movement (ZQSD keys)
+    if (key == GLFW_KEY_W)
+        camera->ProcessKeyboard(FORWARD, deltaTime);
+    if (key == GLFW_KEY_S)
+        camera->ProcessKeyboard(BACKWARD, deltaTime);
+    if (key == GLFW_KEY_A)
+        camera->ProcessKeyboard(LEFT, deltaTime);
+    if (key == GLFW_KEY_D)
+        camera->ProcessKeyboard(RIGHT, deltaTime);
 }
+
