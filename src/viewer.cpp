@@ -42,7 +42,7 @@ Viewer::Viewer(int width, int height)
     glfwSetWindowUserPointer(win, this);
 
     // register event handlers
-    glfwSetKeyCallback(win, key_callback_static);
+    glfwSetKeyCallback(win, key_callback);
 
     // Mouse movement callback
     glfwSetCursorPosCallback(win, mouse_callback);
@@ -85,13 +85,14 @@ void Viewer::run()
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        // clear draw buffer
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Appelle la fonction de mise à jour si elle est définie
         if (update_callback) {
             update_callback();
         }
+        // Process input
+        this->process_input(deltaTime);
+        
 
         glm::mat4 model = glm::mat4(1.0f);
 
@@ -116,14 +117,49 @@ void Viewer::run()
     glfwTerminate();
 }
 
-void Viewer::key_callback_static(GLFWwindow* window, int key, int scancode, int action, int mods)
+// keyboard handler
+void Viewer::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     Viewer* viewer = static_cast<Viewer*>(glfwGetWindowUserPointer(window));
-    viewer->on_key(key);
+
+    // update the keymap based on key action
+    if (action == GLFW_PRESS) {
+        viewer->keymap[key] = true;
+    } else if (action == GLFW_RELEASE) {
+        viewer->keymap[key] = false;
+    }
 }
 
-// glfw: whenever the mouse moves, this callback is called
-// -------------------------------------------------------
+void Viewer::process_input(float deltaTime)
+{
+    for(const auto& [key, is_pressed] : keymap)
+    {
+        if(is_pressed)
+        {
+            switch(key){
+                case GLFW_KEY_W:
+                    camera->ProcessKeyboard(FORWARD, deltaTime);
+                    break;
+                case GLFW_KEY_S:
+                    camera->ProcessKeyboard(BACKWARD, deltaTime);
+                    break;
+                case GLFW_KEY_A:
+                    camera->ProcessKeyboard(LEFT, deltaTime);
+                    break;
+                case GLFW_KEY_D:
+                    camera->ProcessKeyboard(RIGHT, deltaTime);
+                    break;
+                case GLFW_KEY_ESCAPE:
+                    glfwSetWindowShouldClose(win, GLFW_TRUE);
+                    break;
+            }
+        }
+    }
+    
+}
+
+// mouse movement handler
+
 void Viewer::mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 {
     Viewer* viewer = static_cast<Viewer*>(glfwGetWindowUserPointer(window));
@@ -131,8 +167,6 @@ void Viewer::mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
     float xpos = static_cast<float>(xposIn);
     float ypos = static_cast<float>(yposIn);
 
-    // Si c'est le premier mouvement détecté, on réinitialise lastX/lastY
-    // à la position ACTUELLE de la souris pour éviter le saut.
     if (viewer->firstMouse)
     {
         viewer->lastX = xpos;
@@ -146,31 +180,10 @@ void Viewer::mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
     viewer->lastX = xpos;
     viewer->lastY = ypos;
 
-    // PROTECTION : Si le saut est trop grand (bug GLFW), on l'ignore
     if (std::abs(xoffset) > 50.0f || std::abs(yoffset) > 50.0f) {
         return; 
     }
 
     viewer->camera->ProcessMouseMovement(xoffset, yoffset);
-}
-
-void Viewer::on_key(int key)
-{
-    // 'Q' or 'Escape' quits
-    if (key == GLFW_KEY_ESCAPE || key == GLFW_KEY_Q)
-    {
-        glfwSetWindowShouldClose(win, GLFW_TRUE);
-
-    }
-    
-    // Camera movement (ZQSD keys)
-    if (key == GLFW_KEY_W)
-        camera->ProcessKeyboard(FORWARD, deltaTime);
-    if (key == GLFW_KEY_S)
-        camera->ProcessKeyboard(BACKWARD, deltaTime);
-    if (key == GLFW_KEY_A)
-        camera->ProcessKeyboard(LEFT, deltaTime);
-    if (key == GLFW_KEY_D)
-        camera->ProcessKeyboard(RIGHT, deltaTime);
 }
 

@@ -7,7 +7,7 @@ Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
       Zoom(45.0f),
       Velocity(glm::vec3(0.0f)), 
       Acceleration(40.0f), 
-      Damping(5.0f)
+      Damping(4.0f)
 {
     Position = position;
     WorldUp = up;
