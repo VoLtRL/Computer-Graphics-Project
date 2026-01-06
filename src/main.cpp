@@ -5,16 +5,22 @@
 #include "shader.h"
 #include <string>
 #include <GLFW/glfw3.h> // Nécessaire pour glfwGetTime
+#include <camera.h>
 
 #ifndef SHADER_DIR
 #error "SHADER_DIR not defined"
 #endif
 
 
+
+
 int main()
 {
-    Viewer viewer(1920, 1200);
+    Viewer viewer(SCR_WIDTH, SCR_HEIGHT);
     std::string shader_dir = SHADER_DIR;
+
+
+
     Shader *color_shader = new Shader(shader_dir + "node.vert", shader_dir + "node.frag");
 
     // Root setup
