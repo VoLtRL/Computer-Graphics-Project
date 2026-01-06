@@ -2,7 +2,7 @@
 
 #include "shape.h"
 #include "shader.h"
-#include <GL/glew.h>
+#include <glad/glad.h>
 
 class Triangle : public Shape {
 public:

@@ -1,7 +1,7 @@
 build/
 bin/
 out/
-
+.vs/
 
 CMakeCache.txt
 CMakeFiles/
@@ -10,7 +10,6 @@ Makefile
 *.cmake
 install_manifest.txt
 !CMakeLists.txt
-
 
 *.o
 *.obj
@@ -22,10 +21,9 @@ install_manifest.txt
 *.lib
 *.pdb
 *.ilk
+*.user
 
 .vscode/
-
-
 *.code-workspace
 
 .DS_Store

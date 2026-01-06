@@ -32,10 +32,12 @@ Viewer::Viewer(int width, int height)
     // make win's OpenGL context current; no OpenGL calls can happen before
     glfwMakeContextCurrent(win);
 
-    if (glewInit() != GLEW_OK)
+    // Initialisation de GLAD 
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
-        std::cerr << "Failed to initialize GLEW" << std::endl;
+        std::cerr << "Failed to initialize GLAD" << std::endl;
         glfwTerminate();
+        return;
     }
 
     // Set user pointer for GLFW window to this Viewer instance
