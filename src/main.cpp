@@ -6,12 +6,11 @@
 #include <string>
 #include <GLFW/glfw3.h> // Nécessaire pour glfwGetTime
 #include <camera.h>
+#include <physicShapeObject.h>
 
 #ifndef SHADER_DIR
 #error "SHADER_DIR not defined"
 #endif
-
-
 
 
 int main()
@@ -102,6 +101,14 @@ int main()
 
     // Animation function
 
+    Shape* testCylinder = new Cylinder(color_shader, 2.0f, 0.5f, 50);
+    PhysicShapeObject* testPhysicObject = new PhysicShapeObject(testCylinder, glm::vec3(0.0f, 5.0f, -5.0f));
+	testPhysicObject->Mass = 1.0f;
+    viewer.scene_root->add(testPhysicObject);
+
+	std::vector<PhysicObject*> physicObjects;
+	physicObjects.push_back(testPhysicObject);
+
     viewer.update_callback = [&]() {
         float t = (float)glfwGetTime(); // Temps écoulé depuis le début du programme en secondes
 
@@ -125,8 +132,19 @@ int main()
             * glm::rotate(glm::mat4(1.0f), right_angle, glm::vec3(0.0f, -1.0f, 0.0f)); 
             
         right_upper_arm_node->set_transform(right_upper_transform); // Met à jour la transformation du bras droit
+
+        // Met à jour la physique des objets
+        float deltaTime = viewer.deltaTime;
+        for (PhysicObject* obj : physicObjects) {
+            obj->UpdatePhysics(deltaTime);
+        }
+        if (testPhysicObject->Position.y <= 0.0f) {
+            testPhysicObject->Velocity = glm::vec3(0.0f, 5.0f, 0.0f);
+		}
     };
 
     viewer.scene_root->add(human); // Ajoute à la scène
+
     viewer.run(); // Lancer la boucle principale du viewer
+
 }

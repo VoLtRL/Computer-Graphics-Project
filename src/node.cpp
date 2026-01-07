@@ -1,5 +1,6 @@
 #include "node.h"
 #include "shape.h"
+#include "physicShapeObject.h"
 #include <iostream>
 
 Node::Node(const glm::mat4& transform) :
@@ -16,6 +17,10 @@ void Node::add(Shape* shape) {
     children_shape_.push_back(shape);
 }
 
+void Node::add(PhysicShapeObject* pso) {
+	children_physic_shape_.push_back(pso);  
+}
+
 void Node::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection) {
     glm::mat4 updatedModel = model * transform_;
 
@@ -26,6 +31,11 @@ void Node::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection) {
     for (auto child : children_shape_) {
         child->draw(updatedModel, view, projection);
     }
+
+    for (auto child : children_physic_shape_) {
+        child->draw(view, projection);
+    }
+
 }
 
 // Met à jour la matrice de transformation du noeud
