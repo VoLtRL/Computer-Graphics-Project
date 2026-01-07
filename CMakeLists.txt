@@ -17,7 +17,7 @@ add_subdirectory(external/glfw)
 
 add_subdirectory(external/glm)
 
-add_library(glad STATIC external/glad/src/glad.c)
+add_library(glad STATIC external/glad/src/glad.c "include/projectile.h" "include/physicObject.h" "src/physicObject.cpp")
 target_include_directories(glad PUBLIC external/glad/include)
 
 if (UNIX AND NOT APPLE)
@@ -28,7 +28,7 @@ endif()
 
 file(GLOB SOURCES "src/*.cpp")
 
-add_executable(opengl_program ${SOURCES})
+add_executable(opengl_program ${SOURCES} "include/projectile.h" "include/physicObject.h" "src/physicObject.cpp")
 
 target_include_directories(opengl_program PRIVATE 
     include
