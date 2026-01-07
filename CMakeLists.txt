@@ -16,8 +16,7 @@ set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 add_subdirectory(external/glfw)
 
 add_subdirectory(external/glm)
-
-add_library(glad STATIC external/glad/src/glad.c "include/projectile.h" "include/physicObject.h" "src/physicObject.cpp")
+add_library(glad STATIC external/glad/src/glad.c)
 target_include_directories(glad PUBLIC external/glad/include)
 
 if (UNIX AND NOT APPLE)
@@ -28,8 +27,7 @@ endif()
 
 file(GLOB SOURCES "src/*.cpp")
 
-add_executable(opengl_program ${SOURCES} "include/projectile.h" "include/physicObject.h" "src/physicObject.cpp")
-
+add_executable(opengl_program ${SOURCES})
 target_include_directories(opengl_program PRIVATE 
     include
 

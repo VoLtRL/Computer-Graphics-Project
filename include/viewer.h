@@ -17,7 +17,6 @@
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 1080;
 
-
 class Viewer {
 public:
     Viewer(int width=640, int height=480);

@@ -1,4 +1,5 @@
-#include "physicObject.h"
+#include "../include/physicObject.h"
+
 
 PhysicObject::PhysicObject(glm::vec3 position)
 	: WorldUpVector(0.0f, 1.0f, 0.0f),	// TO BE MOVED TO A GLOBAL CONSTANT

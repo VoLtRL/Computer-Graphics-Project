@@ -1,11 +1,16 @@
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#pragma once
+
+#include <../external/glm/glm/glm.hpp>
+#include <../external/glm/glm/gtc/matrix_transform.hpp>
 #include <vector>
+#include <iostream>
+
+class physicShapeObject; // Forward declaration
 
 class PhysicObject {
 
 public:
-	PhysicObject(glm::vec3 position = glm::vec3(0.0f));
+	PhysicObject(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f));
 
 	// Position and movement
 	glm::vec3 Position;			// The object's world position.
