@@ -114,7 +114,7 @@ int main()
 
     // Animation function
 
-    Shape* testCylinder = new Cylinder(color_shader, 2.0f, 0.5f, 50);
+    Shape* testCylinder = new Cylinder(shader, 2.0f, 0.5f, 50);
     PhysicShapeObject* testPhysicObject = new PhysicShapeObject(testCylinder, glm::vec3(0.0f, 5.0f, -5.0f));
 	testPhysicObject->Mass = 1.0f;
     viewer.scene_root->add(testPhysicObject);

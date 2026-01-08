@@ -1,7 +1,7 @@
 #include "../include/physicShapeObject.h"
 #include "../include/shape.h"
 
-#include <C:\Users\ethan\Desktop\ProjetOpengl\external\glm\glm\glm.hpp>
+#include <glm/glm.hpp>
 #include <../external/glm/glm/gtc/matrix_transform.hpp>
 #include <vector>
 #include <iostream>
