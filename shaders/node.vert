@@ -8,12 +8,21 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
-// color given to the fragment shader
+uniform float fogStart;
+uniform float fogEnd;
+
 out vec3 fragColor;
+out float visibility;
 
 void main() {
-    // On passe la position locale comme couleur (utile pour le debug)
     fragColor = position * vec3(2,2,2);
 
-    gl_Position = projection * view * model * vec4(position, 1.0);
+    vec4 relativeToCam = view * model * vec4(position, 1.0);
+    
+    float distance = length(relativeToCam.xyz);
+
+    visibility = (fogEnd - distance) / (fogEnd - fogStart);
+    visibility = clamp(visibility, 0.0, 1.0);
+
+    gl_Position = projection * relativeToCam;
 }

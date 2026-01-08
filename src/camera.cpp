@@ -22,7 +22,7 @@ glm::mat4 Camera::GetViewMatrix()
 
 glm::mat4 Camera::GetProjectionMatrix(float aspectRatio)
     {
-        return glm::perspective(glm::radians(Zoom), aspectRatio, 0.1f, 100.0f);
+        return glm::perspective(glm::radians(Zoom), aspectRatio, 0.1f, 200.0f);
     }
 
 void Camera::updateCameraVectors()
