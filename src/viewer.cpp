@@ -57,7 +57,7 @@ Viewer::Viewer(int width, int height)
               << glGetString(GL_RENDERER) << std::endl;
 
     // initialize GL by setting viewport and default render characteristics
-    glClearColor(0.1f, 0.1f, 0.1f, 0.1f);
+    glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
     /* tell GL to only draw onto a pixel if the shape is closer to the viewer
     than anything already drawn at that pixel */

@@ -20,7 +20,20 @@ int main()
 
 
 
-    Shader *color_shader = new Shader(shader_dir + "node.vert", shader_dir + "node.frag");
+    Shader *shader = new Shader(shader_dir + "node.vert", shader_dir + "node.frag");
+    int shaderId = shader->get_id();
+    glUseProgram(shaderId);
+
+
+    //fog parameters
+    glm::vec4 fogColor(0.2f, 0.2f, 0.2f, 1.0f);
+    float fogStart = 20.0f;
+    float fogEnd = 100.0f;
+    glUniform4fv(glGetUniformLocation(shaderId, "fogColor"), 1, &fogColor[0]);
+    glUniform1f(glGetUniformLocation(shaderId, "fogStart"), fogStart);
+    glUniform1f(glGetUniformLocation(shaderId, "fogEnd"), fogEnd);  
+
+
 
     // Root setup
     glm::mat4 human_mat = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -10.0f))
@@ -31,14 +44,14 @@ int main()
 
     // Torse
 
-    Shape* torso_shape = new Cylinder(color_shader, 2.5f, 0.5f, 50);
+    Shape* torso_shape = new Cylinder(shader, 2.5f, 0.5f, 50);
     Node* torso_node = new Node(glm::mat4(1.0f)); 
     torso_node->add(torso_shape);
     human->add(torso_node);
 
     // Tête
 
-    Shape* head_shape = new Cylinder(color_shader, 1.0f, 0.35f, 50);
+    Shape* head_shape = new Cylinder(shader, 1.0f, 0.35f, 50);
     glm::mat4 head_mat = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -1.7f));
     Node* head_node = new Node(head_mat);
     head_node->add(head_shape);
@@ -49,13 +62,13 @@ int main()
 
     // Bras gauche
 
-    Shape* left_upper_arm_shape = new Cylinder(color_shader, arm_len, 0.25f, 20);
+    Shape* left_upper_arm_shape = new Cylinder(shader, arm_len, 0.25f, 20);
     glm::mat4 left_upper_mat = glm::translate(glm::mat4(1.0f), glm::vec3(-0.80f, 0.0f, -0.45f));
     Node* left_upper_arm_node = new Node(left_upper_mat);
     left_upper_arm_node->add(left_upper_arm_shape);
     torso_node->add(left_upper_arm_node);
 
-    Shape* left_forearm_shape = new Cylinder(color_shader, arm_len, 0.22f, 20);
+    Shape* left_forearm_shape = new Cylinder(shader, arm_len, 0.22f, 20);
     glm::mat4 left_fore_mat = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, arm_len));
     Node* left_forearm_node = new Node(left_fore_mat);
     left_forearm_node->add(left_forearm_shape);
@@ -63,13 +76,13 @@ int main()
 
     // Bras droit
 
-    Shape* right_upper_arm_shape = new Cylinder(color_shader, arm_len, 0.25f, 20);
+    Shape* right_upper_arm_shape = new Cylinder(shader, arm_len, 0.25f, 20);
     glm::mat4 right_upper_mat = glm::translate(glm::mat4(1.0f), glm::vec3(0.80f, 0.0f, -0.45f));
     Node* right_upper_arm_node = new Node(right_upper_mat);
     right_upper_arm_node->add(right_upper_arm_shape);
     torso_node->add(right_upper_arm_node); 
 
-    Shape* right_forearm_shape = new Cylinder(color_shader, arm_len, 0.22f, 20);
+    Shape* right_forearm_shape = new Cylinder(shader, arm_len, 0.22f, 20);
     glm::mat4 right_fore_mat = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, arm_len));
     Node* right_forearm_node = new Node(right_fore_mat);
     right_forearm_node->add(right_forearm_shape);
@@ -77,24 +90,24 @@ int main()
 
     // Jambe gauche
 
-    Shape* left_thigh_shape = new Cylinder(color_shader, leg_len, 0.2f, 20);
+    Shape* left_thigh_shape = new Cylinder(shader, leg_len, 0.2f, 20);
     Node* left_thigh_node = new Node(glm::translate(glm::mat4(1.0f), glm::vec3(-0.3f, 0.0f, 1.75f)));
     left_thigh_node->add(left_thigh_shape);
     torso_node->add(left_thigh_node);
 
-    Shape* left_calf_shape = new Cylinder(color_shader, leg_len, 0.15f, 20);
+    Shape* left_calf_shape = new Cylinder(shader, leg_len, 0.15f, 20);
     Node* left_calf_node = new Node(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, leg_len)));
     left_calf_node->add(left_calf_shape);
     left_thigh_node->add(left_calf_node);
 
     // Jambe droite
 
-    Shape* right_thigh_shape = new Cylinder(color_shader, leg_len, 0.2f, 20);
+    Shape* right_thigh_shape = new Cylinder(shader, leg_len, 0.2f, 20);
     Node* right_thigh_node = new Node(glm::translate(glm::mat4(1.0f), glm::vec3(0.3f, 0.0f, 1.75f)));
     right_thigh_node->add(right_thigh_shape);
     torso_node->add(right_thigh_node);
 
-    Shape* right_calf_shape = new Cylinder(color_shader, leg_len, 0.15f, 20);
+    Shape* right_calf_shape = new Cylinder(shader, leg_len, 0.15f, 20);
     Node* right_calf_node = new Node(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, leg_len)));
     right_calf_node->add(right_calf_shape);
     right_thigh_node->add(right_calf_node); 
