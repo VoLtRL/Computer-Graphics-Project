@@ -1,8 +1,8 @@
-#include "../include/physicShapeObject.h"
-#include "../include/shape.h"
+#include "physicShapeObject.h"
+#include "shape.h"
 
 #include <glm/glm.hpp>
-#include <../external/glm/glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <vector>
 #include <iostream>
 

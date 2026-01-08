@@ -25,7 +25,7 @@ endif()
 
 
 
-file(GLOB SOURCES "src/*.cpp")
+file(GLOB SOURCES "src/*.cpp" "src/*/*.cpp" "src/*/*/*.cpp")
 
 add_executable(opengl_program ${SOURCES})
 target_include_directories(opengl_program PRIVATE 
