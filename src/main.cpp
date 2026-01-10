@@ -9,11 +9,29 @@
 #include <physicShapeObject.h>
 #include "map.h"
 #include <vector>
+#include "player.h"
 
 #ifndef SHADER_DIR
 #error "SHADER_DIR not defined"
 #endif
 
+void handle_input(Viewer& viewer, Player& player, float deltaTime) {
+        if (viewer.keymap[GLFW_KEY_W]) {
+            player.move(glm::vec3(0.0f, 0.0f, -1.0f));
+        }
+        if (viewer.keymap[GLFW_KEY_S]) {
+            player.move(glm::vec3(0.0f, 0.0f, 1.0f));
+        }
+        if (viewer.keymap[GLFW_KEY_A]) {
+            player.move(glm::vec3(-1.0f, 0.0f, 0.0f));
+        }
+        if (viewer.keymap[GLFW_KEY_D]) {
+            player.move(glm::vec3(1.0f, 0.0f, 0.0f));
+        }
+        if (viewer.keymap[GLFW_KEY_SPACE]) {
+            player.jump();
+        }
+    }
 
 int main()
 {
@@ -47,25 +65,32 @@ int main()
 
 
     Shape* testCylinder = new Cylinder(playerShader, 2.0f, 0.5f, 50);
-    PhysicShapeObject* testPhysicObject = new PhysicShapeObject(testCylinder, glm::vec3(0.0f, 10.0f, -5.0f));
-	testPhysicObject->Mass = 1.0f;
-    viewer.scene_root->add(testPhysicObject);
 
-	physicObjects.push_back(testPhysicObject);
+    Player* player = new Player(testCylinder, glm::vec3(0.0f,1.0f,0.0f));
+    player->Mass = 70.0f; // mass in kg
+    
+    viewer.scene_root->add(player);
 
     viewer.update_callback = [&]() {
-        // Met à jour la physique des objets
+        // update physics for all objects
         float deltaTime = viewer.deltaTime;
         for (PhysicObject* obj : physicObjects) {
             obj->UpdatePhysics(deltaTime);
         }
-        if (testPhysicObject->Position.y <= 0.5f) {
-            testPhysicObject->Velocity = glm::vec3(0.0f, 5.0f, 0.0f);
-		}
-
+        // handle player input
+        handle_input(viewer,*player,deltaTime);
+        player->update(deltaTime);
+        // keep player above ground
+        if(player->Position.y <=1.0f){
+            player->Position.y = 0.0f;
+        }
 
     };
+
+
+
 
     viewer.run(); // Lancer la boucle principale du viewer
 
 }
+

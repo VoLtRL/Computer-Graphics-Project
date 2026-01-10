@@ -11,9 +11,6 @@ public:
 
     // game loop update
     void update(float deltaTime); 
-    
-    // rendering
-    void draw(glm::mat4& view, glm::mat4& projection) override;
 
     // actions
     void jump();
@@ -47,6 +44,10 @@ private:
 
     // states
     bool isJumping;
+    float attackCooldown;
+
+    // temp
+    float groundDamping;
 
 
 };

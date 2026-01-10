@@ -10,8 +10,13 @@ Player::Player(Shape* shape, glm::vec3 position)
       attackSpeed(1.0f),
       size(1.0f),
       isJumping(false),
-      attackCooldown(0.0f)
+      attackCooldown(0.0f),
+      groundDamping(8.0f)
 {
+    std::cout << "Player created at position: (" 
+              << position.x << ", " 
+              << position.y << ", " 
+              << position.z << ")" << std::endl;
 }
 
 void Player::update(float deltaTime)
@@ -26,17 +31,17 @@ void Player::update(float deltaTime)
             attackCooldown = 0.0f;
         }
     }
+    // handle ground damping
+    if (Position.y <= 0.0f) {
+        Velocity.x -= Velocity.x * groundDamping * deltaTime;
+        Velocity.z -= Velocity.z * groundDamping * deltaTime;
+    }   
 
     // handle animations
     updateAnimation(deltaTime);
 
     // handle orientation
     updateOrientation();
-}
-
-void Player::draw(glm::mat4& view, glm::mat4& projection)
-{
-    PhysicShapeObject::draw(view, projection);
 }
 
 void Player::jump()
@@ -57,7 +62,8 @@ void Player::attack()
 void Player::move(glm::vec3 direction)
 {
     glm::vec3 normDir = glm::normalize(direction);
-    Position += normDir * movementSpeed;
+    Velocity.x = normDir.x * movementSpeed;
+    Velocity.z = normDir.z * movementSpeed;
 }
 
 void Player::takeDamage(float damage)
