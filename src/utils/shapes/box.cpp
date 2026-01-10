@@ -7,6 +7,7 @@
 Box::Box(Shader *shader_program, float width, float height, float depth)
     : Shape(shader_program)
 {
+    // half dimensions to center the box at origin
     float w = width * 0.5f;
     float h = height * 0.5f;
     float d = depth * 0.5f;
@@ -37,6 +38,7 @@ Box::Box(Shader *shader_program, float width, float height, float depth)
        20,21,22,22,23,20
     };
 
+    // setup OpenGL buffers and arrays
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
 
@@ -56,10 +58,13 @@ Box::Box(Shader *shader_program, float width, float height, float depth)
 
 void Box::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection)
 {
+    // bind shader and vertex array
     glUseProgram(this->shader_program_);
     glBindVertexArray(VAO);
 
+    // call parent draw to set uniforms
     Shape::draw(model, view, projection);
 
+    // draw elements
     glDrawElements(GL_TRIANGLE_STRIP, num_indices, GL_UNSIGNED_INT, nullptr);
 }
