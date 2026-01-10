@@ -17,12 +17,12 @@ Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
 }
 glm::mat4 Camera::GetViewMatrix()
     {
-        return glm::lookAt(Position, Position + Front, Up);
+        return glm::lookAt(Position, Position + Front, Up); // Calculate view matrix using LookAt matrix
     }
 
 glm::mat4 Camera::GetProjectionMatrix(float aspectRatio)
     {
-        return glm::perspective(glm::radians(Zoom), aspectRatio, 0.1f, 200.0f);
+        return glm::perspective(glm::radians(Zoom), aspectRatio, 0.1f, 200.0f); // Perspective projection matrix
     }
 
 void Camera::updateCameraVectors()
@@ -38,8 +38,8 @@ void Camera::updateCameraVectors()
 
 void Camera::ProcessMouseMovement(float xoffset, float yoffset, bool constrainPitch)
 {
-    xoffset *= MouseSensitivity;
-    yoffset *= MouseSensitivity;
+    xoffset *= MouseSensitivity; // Apply sensitivity
+    yoffset *= MouseSensitivity; // Apply sensitivity
 
     Yaw   += xoffset;
     Pitch += yoffset;
