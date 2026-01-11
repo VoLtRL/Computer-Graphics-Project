@@ -28,9 +28,22 @@ void handle_input(Viewer& viewer, Player& player, float deltaTime) {
         if (viewer.keymap[GLFW_KEY_D]) {
             player.move(glm::vec3(1.0f, 0.0f, 0.0f));
         }
+        if (viewer.keymap[GLFW_KEY_W] && viewer.keymap[GLFW_KEY_A]) {
+            player.move(glm::vec3(-sqrt(2), 0.0f, -sqrt(2)));
+        }
+        if (viewer.keymap[GLFW_KEY_W] && viewer.keymap[GLFW_KEY_D]) {
+            player.move(glm::vec3(sqrt(2), 0.0f, -sqrt(2)));
+        }
+        if (viewer.keymap[GLFW_KEY_S] && viewer.keymap[GLFW_KEY_A]) {
+            player.move(glm::vec3(-sqrt(2), 0.0f, sqrt(2)));
+        }
+        if (viewer.keymap[GLFW_KEY_S] && viewer.keymap[GLFW_KEY_D]) {
+            player.move(glm::vec3(sqrt(2), 0.0f, sqrt(2)));
+        }
         if (viewer.keymap[GLFW_KEY_SPACE]) {
             player.jump();
         }
+
     }
 
 int main()

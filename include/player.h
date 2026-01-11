@@ -24,6 +24,8 @@ public:
     // getters
     float getHealth() const { return health; }
     bool isAlive() const { return health > 0.0f; }
+    float getSpeed() const { return movementSpeed; }
+    float getSize() const { return size; }
 
     // resizing
     void resize(float scale);
