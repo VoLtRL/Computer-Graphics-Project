@@ -34,6 +34,9 @@ public:
     void updateAnimation(float deltaTime);
     void updateOrientation();
 
+    // setters
+    void gainJumpStrength(float quantity);
+
 private:
     // stats
     float health;

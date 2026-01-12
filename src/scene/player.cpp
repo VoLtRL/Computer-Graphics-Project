@@ -33,9 +33,17 @@ void Player::update(float deltaTime)
     }
     // handle ground damping
     if (Position.y <= 0.0f) {
-        Velocity.x -= Velocity.x * groundDamping * deltaTime;
-        Velocity.z -= Velocity.z * groundDamping * deltaTime;
+        Velocity.x -= Velocity.x * glm::exp(-groundDamping * deltaTime);
+        Velocity.z -= Velocity.z * glm::exp(-groundDamping * deltaTime);
+        isJumping = false;
     }   
+
+    std::cout << "Player position: (" 
+              << Position.x << ", " 
+              << Position.y << ", " 
+              << Position.z << ")" << std::endl;
+    std::cout << "is Jumping ? " 
+              << isJumping << std::endl;
 
     // handle animations
     updateAnimation(deltaTime);
@@ -44,16 +52,18 @@ void Player::update(float deltaTime)
     updateOrientation();
 }
 
-void Player::jump()
-{
-    if (!isJumping) {
-        Velocity.y += jumpStrength;
+void Player::jump(){
+    if(!isJumping){
+        Velocity.y += jumpStrength; // Impulse based on jump strength and mass
         isJumping = true;
     }
 }
 
-void Player::attack()
-{
+void Player::gainJumpStrength(float quantity){
+    jumpStrength += quantity;
+}
+
+void Player::attack(){
     if (attackCooldown <= 0.0f) {
         attackCooldown = 1.0f / attackSpeed;
     }
@@ -61,9 +71,11 @@ void Player::attack()
 
 void Player::move(glm::vec3 direction)
 {
-    glm::vec3 normDir = glm::normalize(direction);
-    Velocity.x = normDir.x * movementSpeed;
-    Velocity.z = normDir.z * movementSpeed;
+    if(!isJumping){
+        glm::vec3 normDir = glm::normalize(direction);
+        Velocity.x = normDir.x * movementSpeed;
+        Velocity.z = normDir.z * movementSpeed;
+    }
 }
 
 void Player::takeDamage(float damage)
