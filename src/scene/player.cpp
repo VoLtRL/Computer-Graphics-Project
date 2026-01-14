@@ -11,7 +11,8 @@ Player::Player(Shape* shape, glm::vec3 position)
       size(1.0f),
       isJumping(false),
       attackCooldown(0.0f),
-      groundDamping(8.0f)
+      groundDamping(8.0f),
+      projectileSpeed(25.0f)
 {
     std::cout << "Player created at position: (" 
               << position.x << ", " 
@@ -54,8 +55,8 @@ void Player::update(float deltaTime)
 
 void Player::jump(){
     if(!isJumping){
-        Velocity.y += jumpStrength; // Impulse based on jump strength and mass
-        isJumping = true;
+        Velocity.y += jumpStrength; // basic jump impulse
+        isJumping = true; // set jumping state
     }
 }
 
@@ -63,9 +64,14 @@ void Player::gainJumpStrength(float quantity){
     jumpStrength += quantity;
 }
 
-void Player::attack(){
-    if (attackCooldown <= 0.0f) {
-        attackCooldown = 1.0f / attackSpeed;
+void Player::shoot(){
+    if(attackCooldown <= 0.0f){
+        // Create and launch projectile
+        // Projectile* proj = new Projectile(...);
+        // proj->Velocity = FrontVector * projectileSpeed;
+        attackCooldown = 1.0f / attackSpeed; // Reset cooldown
+    }else{
+        std::cout << "Attack on cooldown: " << attackCooldown << " seconds remaining." << std::endl;
     }
 }
 

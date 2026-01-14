@@ -46,6 +46,7 @@ private:
     float attackDamage;
     float attackSpeed; 
     float size;
+    float projectileSpeed;
 
     // states
     bool isJumping;
