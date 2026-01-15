@@ -7,16 +7,15 @@ Projectile::Projectile(Shape* shape, glm::vec3 position, float speed, float dama
       damage(damage),
       range(range),
       traveledDistance(0.0f),
-      active(true),
-      Mass(1.0f),
-      Velocity(glm::normalize(FrontVector) * projectileSpeed),
-      canCollide(true),
-      kinematic(false),
-      gravity(9.81f),
-      Damping(0.0f),
-        
-{
-}
+      active(true)
+      {
+    // Set initial velocity in the forward direction
+    Velocity = FrontVector * projectileSpeed;
+    Mass = 1.0f; // Set a default mass
+    kinematic = false; // Projectiles are affected by physics
+    
+
+      }
 
 void Projectile::update(float deltaTime)
 {

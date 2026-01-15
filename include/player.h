@@ -14,6 +14,7 @@ public:
 
     // game loop update
     void update(float deltaTime); 
+    void draw(glm::mat4& view, glm::mat4& projection) override;
 
     // actions
     void jump();

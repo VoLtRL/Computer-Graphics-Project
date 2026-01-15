@@ -21,5 +21,5 @@ public:
 	Shape* shape; // May be nullptr.
 
 	// Draw the object using its shape.
-	void draw(glm::mat4& view, glm::mat4& projection); // Uses PhysicObject's Position and orientation, doesn't do any physics update.
+	virtual void draw(glm::mat4& view, glm::mat4& projection); // Uses PhysicObject's Position and orientation, doesn't do any physics update.
 };

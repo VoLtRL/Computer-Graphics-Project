@@ -30,13 +30,13 @@ public:
     void on_key(int key);
 
     Node *scene_root;
+    Camera* camera;
 
     std::function<void()> update_callback; // Fonction de rappel pour les mises à jour par frame
 
 private:
     GLFWwindow* win;
 
-    Camera* camera; 
     float lastX;
     float lastY;
     bool firstMouse;

@@ -106,6 +106,9 @@ int main()
             player->Velocity.y = 0.0f;
         }
 
+        glm::vec3 cameraOffset = glm::vec3(0.0f, 5.0f, 10.0f);
+        viewer.camera->Position = player->Position + cameraOffset;
+
     };
 
 

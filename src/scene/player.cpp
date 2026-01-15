@@ -16,7 +16,7 @@ Player::Player(Shape* shape, glm::vec3 position,Shader* projectileShader)
       isJumping(false),
       attackCooldown(0.0f),
       groundDamping(8.0f),
-      projectileSpeed(25.0f),
+      projectileSpeed(15.0f),
       projectileShader(projectileShader)
 {
     std::cout << "Player created at position: (" 
@@ -44,6 +44,7 @@ void Player::update(float deltaTime)
         isJumping = false;
     }   
 
+    // debug info
     std::cout << "Player position: (" 
               << Position.x << ", " 
               << Position.y << ", " 
@@ -60,10 +61,20 @@ void Player::update(float deltaTime)
 
     // handle animations
     updateAnimation(deltaTime);
-
-    // handle orientation
-    updateOrientation();
 }
+
+void Player::draw(glm::mat4& view, glm::mat4& projection)
+{
+    // Draw the player using the PhysicShapeObject's draw method
+    PhysicShapeObject::draw(view, projection);
+    // Draw active projectiles
+    for(Projectile* proj : activeProjectiles){
+        if(proj->isActive()){
+            proj->draw(view, projection);
+        }
+    }
+}
+
 
 void Player::jump(){
     if(!isJumping){
@@ -79,8 +90,15 @@ void Player::gainJumpStrength(float quantity){
 void Player::shoot(){
     if(attackCooldown <= 0.0f){
         // Create and launch projectile
-        Shape* proj_shape = new Sphere(projectileShader, size * 0.2f, 8);
-        Projectile* proj = new Projectile(proj_shape, Position + FrontVector * (size + 0.2f), projectileSpeed, attackDamage, 50.0f);
+        Shape* proj_shape = new Sphere(projectileShader, size * 0.2f, 20);
+        Projectile* proj = new Projectile(proj_shape, Position, projectileSpeed, attackDamage, 50.0f);
+        // Define projectile initial velocity
+        proj->Velocity = FrontVector * projectileSpeed;
+        // Set projectile orientation vectors
+        proj->FrontVector = FrontVector;
+        proj->RightVector = RightVector;
+        proj->UpVector = UpVector;
+        // Add to active projectiles
         activeProjectiles.push_back(proj);
         attackCooldown = 1.0f / attackSpeed; // Reset cooldown
     }else{
@@ -92,8 +110,14 @@ void Player::move(glm::vec3 direction)
 {
     if(!isJumping){
         glm::vec3 normDir = glm::normalize(direction);
+        // Update velocity
         Velocity.x = normDir.x * movementSpeed;
         Velocity.z = normDir.z * movementSpeed;
+        // Update orientation vectors
+        FrontVector = glm::normalize(glm::vec3(normDir.x, 0.0f, normDir.z));
+        RightVector = glm::normalize(glm::cross(FrontVector, WorldUpVector));
+        UpVector = glm::normalize(glm::cross(RightVector, FrontVector));
+        
     }
 }
 
@@ -119,11 +143,6 @@ void Player::resize(float scale)
 }
 
 void Player::updateAnimation(float deltaTime)
-{
-    // TODO
-}
-
-void Player::updateOrientation()
 {
     // TODO
 }
