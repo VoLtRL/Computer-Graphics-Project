@@ -46,6 +46,9 @@ void handle_input(Viewer& viewer, Player& player, float deltaTime) {
         if (viewer.keymap[GLFW_KEY_K]) {
             player.gainJumpStrength(0.25f);
         }
+        if (viewer.keymap[GLFW_KEY_F]) {
+            player.shoot();
+        }
 
     }
 
@@ -82,7 +85,7 @@ int main()
 
     Shape* testCylinder = new Cylinder(playerShader, 2.0f, 0.5f, 50);
 
-    Player* player = new Player(testCylinder, glm::vec3(0.0f,1.0f,0.0f));
+    Player* player = new Player(testCylinder, glm::vec3(0.0f,1.0f,0.0f),playerShader);
     player->Mass = 70.0f; // mass in kg
     player->Damping = 0.1f; // some damping
     

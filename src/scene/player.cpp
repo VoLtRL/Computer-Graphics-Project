@@ -1,6 +1,10 @@
 #include "player.h"
+#include "projectile.h"
+#include "sphere.h"
 
-Player::Player(Shape* shape, glm::vec3 position)
+#include <vector>
+
+Player::Player(Shape* shape, glm::vec3 position,Shader* projectileShader)
     : PhysicShapeObject(shape, position),
       health(100.0f),
       maxHealth(100.0f),
@@ -12,7 +16,8 @@ Player::Player(Shape* shape, glm::vec3 position)
       isJumping(false),
       attackCooldown(0.0f),
       groundDamping(8.0f),
-      projectileSpeed(25.0f)
+      projectileSpeed(25.0f),
+      projectileShader(projectileShader)
 {
     std::cout << "Player created at position: (" 
               << position.x << ", " 
@@ -46,6 +51,13 @@ void Player::update(float deltaTime)
     std::cout << "is Jumping ? " 
               << isJumping << std::endl;
 
+    // projectile handling
+    for(Projectile* proj : activeProjectiles){
+        if(proj->isActive()){
+            proj->update(deltaTime);
+        }
+    }
+
     // handle animations
     updateAnimation(deltaTime);
 
@@ -67,8 +79,9 @@ void Player::gainJumpStrength(float quantity){
 void Player::shoot(){
     if(attackCooldown <= 0.0f){
         // Create and launch projectile
-        // Projectile* proj = new Projectile(...);
-        // proj->Velocity = FrontVector * projectileSpeed;
+        Shape* proj_shape = new Sphere(projectileShader, size * 0.2f, 8);
+        Projectile* proj = new Projectile(proj_shape, Position + FrontVector * (size + 0.2f), projectileSpeed, attackDamage, 50.0f);
+        activeProjectiles.push_back(proj);
         attackCooldown = 1.0f / attackSpeed; // Reset cooldown
     }else{
         std::cout << "Attack on cooldown: " << attackCooldown << " seconds remaining." << std::endl;

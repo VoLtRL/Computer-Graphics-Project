@@ -1,20 +1,23 @@
 #pragma once
+#include "shader.h"
 #include "physicShapeObject.h"
+#include "projectile.h"
 #include <glm/glm.hpp>
+#include <vector>
 
 // Forward declaration pour éviter les inclusions circulaires si nécessaire
 class Weapon; 
 
 class Player : public PhysicShapeObject {
 public:
-    Player(Shape* shape = nullptr, glm::vec3 position = glm::vec3(0.0f));
+    Player(Shape* shape = nullptr, glm::vec3 position = glm::vec3(0.0f), Shader* projectileShader = nullptr);
 
     // game loop update
     void update(float deltaTime); 
 
     // actions
     void jump();
-    void attack();
+    void shoot();
     void move(glm::vec3 direction);
 
     // health management
@@ -54,6 +57,11 @@ private:
 
     // temp
     float groundDamping;
+
+    // projectile shader
+    Shader* projectileShader;
+    // projectile storage
+    std::vector<Projectile*> activeProjectiles;
 
 
 };
