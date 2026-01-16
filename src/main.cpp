@@ -85,7 +85,7 @@ int main()
 
     Shape* testCylinder = new Cylinder(playerShader, 2.0f, 0.5f, 50);
 
-    Player* player = new Player(testCylinder, glm::vec3(0.0f,1.0f,0.0f),playerShader);
+    Player* player = new Player(testCylinder, glm::vec3(0.0f,2.0f,0.0f),playerShader);
     player->Mass = 70.0f; // mass in kg
     player->Damping = 0.1f; // some damping
     
@@ -101,13 +101,13 @@ int main()
         handle_input(viewer,*player,deltaTime);
         player->update(deltaTime);
         // keep player above ground
-        if(player->Position.y <=0.0f){
-            player->Position.y = 0.0f;
+        if(player->Position.y <=0.5f){
+            player->Position.y = 0.5f;
             player->Velocity.y = 0.0f;
         }
 
-        glm::vec3 cameraOffset = glm::vec3(0.0f, 5.0f, 10.0f);
-        viewer.camera->Position = player->Position + cameraOffset;
+        // update camera target to follow player
+        viewer.camera->SetTarget(player->Position);
 
     };
 

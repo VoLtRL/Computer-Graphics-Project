@@ -38,7 +38,7 @@ void Player::update(float deltaTime)
         }
     }
     // handle ground damping
-    if (Position.y <= 0.0f) {
+    if (Position.y <= 0.5f) {
         Velocity.x -= Velocity.x * glm::exp(-groundDamping * deltaTime);
         Velocity.z -= Velocity.z * glm::exp(-groundDamping * deltaTime);
         isJumping = false;
