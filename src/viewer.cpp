@@ -67,7 +67,7 @@ Viewer::Viewer(int width, int height)
 
 
     // Initialize camera
-    camera = new Camera(glm::vec3(0.0f, 3.0f, 5.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, -20.0f);
+    camera = new Camera(glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, -20.0f);
     lastX = width / 2.0f;
     lastY = height / 2.0f;
     firstMouse = true; 
@@ -139,18 +139,6 @@ void Viewer::process_input(float deltaTime)
         if(is_pressed)
         {
             switch(key){
-                case GLFW_KEY_W:
-                    camera->ProcessKeyboard(FORWARD, deltaTime);
-                    break;
-                case GLFW_KEY_S:
-                    camera->ProcessKeyboard(BACKWARD, deltaTime);
-                    break;
-                case GLFW_KEY_A:
-                    camera->ProcessKeyboard(LEFT, deltaTime);
-                    break;
-                case GLFW_KEY_D:
-                    camera->ProcessKeyboard(RIGHT, deltaTime);
-                    break;
                 case GLFW_KEY_ESCAPE:
                     glfwSetWindowShouldClose(win, GLFW_TRUE);
                     break;

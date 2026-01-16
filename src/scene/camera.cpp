@@ -1,15 +1,16 @@
 #include "camera.h"
 
-Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
+Camera::Camera(glm::vec3 center, glm::vec3 up, float yaw, float pitch)
     : Front(glm::vec3(0.0f, 0.0f, -1.0f)), 
       MovementSpeed(10.0f), 
       MouseSensitivity(0.1f), 
       Zoom(45.0f),
       Velocity(glm::vec3(0.0f)), 
       Acceleration(40.0f), 
-      Damping(4.0f)
+      Damping(45.0f),
+      Distance(15.0f)
 {
-    Position = position;
+    Target = center;
     WorldUp = up;
     Yaw = yaw;
     Pitch = pitch;
@@ -17,24 +18,31 @@ Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
 }
 glm::mat4 Camera::GetViewMatrix()
     {
-        return glm::lookAt(Position, Position + Front, Up);
+        return glm::lookAt(Position, Target, Up); // Calculate view matrix using LookAt matrix
     }
 
 glm::mat4 Camera::GetProjectionMatrix(float aspectRatio)
     {
-        return glm::perspective(glm::radians(Zoom), aspectRatio, 0.1f, 200.0f);
+        return glm::perspective(glm::radians(Zoom), aspectRatio, 0.1f, 200.0f); // Perspective projection matrix
     }
 
 void Camera::updateCameraVectors()
-    {
-        glm::vec3 front;
-        front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
-        front.y = sin(glm::radians(Pitch));
-        front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
-        Front = glm::normalize(front);
-        Right = glm::normalize(glm::cross(Front, WorldUp));
-        Up = glm::normalize(glm::cross(Right, Front));
-    }
+{
+    // calculate the new Front vector
+    glm::vec3 direction;
+    direction.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+    direction.y = sin(glm::radians(Pitch));
+    direction.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+    
+    Front = glm::normalize(direction);
+
+    // update Position based on Target and Distance
+    Position = Target - (Front * Distance);
+
+    // also re-calculate the Right and Up vector
+    Right = glm::normalize(glm::cross(Front, WorldUp)); 
+    Up    = glm::normalize(glm::cross(Right, Front));
+}
 
 void Camera::ProcessMouseMovement(float xoffset, float yoffset, bool constrainPitch)
 {
@@ -82,4 +90,10 @@ void Camera::UpdatePhysics(float deltaTime)
              Velocity = glm::normalize(Velocity) * MovementSpeed;
         }
     }
+}
+
+void Camera::SetTarget(glm::vec3 newTarget)
+{
+    Target = newTarget;
+    updateCameraVectors(); // Calculate new Position based on updated Target
 }
