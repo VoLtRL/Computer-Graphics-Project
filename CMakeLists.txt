@@ -19,6 +19,9 @@ add_subdirectory(external/glm)
 add_library(glad STATIC external/glad/src/glad.c)
 target_include_directories(glad PUBLIC external/glad/include)
 
+ADD_SUBDIRECTORY(external/assimp)
+
+
 if (UNIX AND NOT APPLE)
     target_link_libraries(glad PRIVATE ${CMAKE_DL_LIBS})
 endif()
@@ -37,8 +40,9 @@ target_link_libraries(opengl_program
     PRIVATE
     glad
     glfw
-    glm::glm    
-    OpenGL::GL 
+    assimp
+    glm::glm
+    OpenGL::GL
 )
 
 if (UNIX AND NOT APPLE)
