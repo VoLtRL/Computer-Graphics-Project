@@ -11,7 +11,7 @@ Player::Player(Shape* shape, glm::vec3 position,Shader* projectileShader)
       movementSpeed(5.0f),
       jumpStrength(10.0f),
       attackDamage(20.0f),
-      attackSpeed(1.0f),
+      attackSpeed(2.0f),
       size(1.0f),
       isJumping(false),
       attackCooldown(0.0f),
@@ -91,7 +91,7 @@ void Player::shoot(){
     if(attackCooldown <= 0.0f){
         // Create and launch projectile
         Shape* proj_shape = new Sphere(projectileShader, size * 0.2f, 20);
-        Projectile* proj = new Projectile(proj_shape, Position, projectileSpeed, attackDamage, 50.0f);
+        Projectile* proj = new Projectile(proj_shape, Position + glm::vec3(0.0f,2.0f,0.0f), projectileSpeed, attackDamage, 50.0f);
         // Define projectile initial velocity
         proj->Velocity = FrontVector * projectileSpeed;
         // Set projectile orientation vectors

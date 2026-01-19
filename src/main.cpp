@@ -2,6 +2,7 @@
 #include "triangle.h"
 #include "cylinder.h"
 #include "node.h"
+#include "capsule.h"
 #include "shader.h"
 #include <string>
 #include <GLFW/glfw3.h> // Nécessaire pour glfwGetTime
@@ -83,7 +84,7 @@ int main()
     Map* map = new Map(worldShader, viewer.scene_root, physicObjects);
 
 
-    Shape* testCylinder = new Cylinder(playerShader, 2.0f, 0.5f, 50);
+    Shape* testCylinder = new Capsule(playerShader, 0.6f, 1.0f);
 
     Player* player = new Player(testCylinder, glm::vec3(0.0f,2.0f,0.0f),playerShader);
     player->Mass = 70.0f; // mass in kg
