@@ -67,7 +67,7 @@ Viewer::Viewer(int width, int height)
 
 
     // Initialize camera
-    camera = new Camera(glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, -20.0f);
+    camera = new Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, -26.0f);
     lastX = width / 2.0f;
     lastY = height / 2.0f;
     firstMouse = true; 
@@ -107,6 +107,9 @@ void Viewer::run()
 
         scene_root->draw(model, view, projection);
 
+        if (draw_ui_callback) {
+            draw_ui_callback();
+        }
 
         // Poll for and process events
         glfwPollEvents();

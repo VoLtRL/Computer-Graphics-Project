@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_compile_definitions(SHADER_DIR="${CMAKE_CURRENT_SOURCE_DIR}/shaders/")
+add_compile_definitions(IMAGE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/images/")
 
 set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL REQUIRED)
@@ -19,7 +20,11 @@ add_subdirectory(external/glm)
 add_library(glad STATIC external/glad/src/glad.c)
 target_include_directories(glad PUBLIC external/glad/include)
 
+add_library(stb STATIC external/stb/stb_image.cpp)
+target_include_directories(stb PUBLIC external/stb)
+
 ADD_SUBDIRECTORY(external/assimp)
+
 
 
 if (UNIX AND NOT APPLE)
@@ -41,6 +46,7 @@ target_link_libraries(opengl_program
     glad
     glfw
     assimp
+    stb
     glm::glm
     OpenGL::GL
 )

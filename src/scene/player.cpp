@@ -16,7 +16,7 @@ Player::Player(Shape* shape, glm::vec3 position,Shader* projectileShader)
       isJumping(false),
       attackCooldown(0.0f),
       groundDamping(8.0f),
-      projectileSpeed(15.0f),
+      projectileSpeed(30.0f),
       projectileShader(projectileShader)
 {
     std::cout << "Player created at position: (" 
@@ -87,22 +87,26 @@ void Player::gainJumpStrength(float quantity){
     jumpStrength += quantity;
 }
 
-void Player::shoot(){
+void Player::shoot(glm::vec3 shootDirection){
+
     if(attackCooldown <= 0.0f){
-        // Create and launch projectile
+        
+        glm::vec3 shootingOrigin = Position + (UpVector * 1.2f) + (FrontVector * 0.5f);
+
+        float spawnDistance = 0.5f;
+        glm::vec3 spawnPos = shootingOrigin + (shootDirection * spawnDistance);
+
         Shape* proj_shape = new Sphere(projectileShader, size * 0.2f, 20);
-        Projectile* proj = new Projectile(proj_shape, Position + glm::vec3(0.0f,2.0f,0.0f), projectileSpeed, attackDamage, 50.0f);
-        // Define projectile initial velocity
-        proj->Velocity = FrontVector * projectileSpeed;
-        // Set projectile orientation vectors
-        proj->FrontVector = FrontVector;
-        proj->RightVector = RightVector;
-        proj->UpVector = UpVector;
-        // Add to active projectiles
+        Projectile* proj = new Projectile(proj_shape, spawnPos, projectileSpeed, attackDamage, 50.0f);
+
+        proj->Velocity = shootDirection * projectileSpeed;
+
+        proj->FrontVector = shootDirection;
+        proj->RightVector = glm::normalize(glm::cross(proj->FrontVector, glm::vec3(0.0f, 1.0f, 0.0f)));
+        proj->UpVector    = glm::normalize(glm::cross(proj->RightVector, proj->FrontVector));
+
         activeProjectiles.push_back(proj);
-        attackCooldown = 1.0f / attackSpeed; // Reset cooldown
-    }else{
-        std::cout << "Attack on cooldown: " << attackCooldown << " seconds remaining." << std::endl;
+        attackCooldown = 1.0f / attackSpeed;
     }
 }
 
