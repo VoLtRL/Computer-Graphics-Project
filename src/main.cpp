@@ -77,24 +77,45 @@ int main()
     glUniform3f(glGetUniformLocation(playerShader->get_id(), "objectColor"), 0.22f, 0.65f, 0.92f);
 
     // physics
-	std::vector<PhysicObject*> physicObjects;
 
     //Load map
-    Map* map = new Map(worldShader, viewer.scene_root, physicObjects);
+    Map* map = new Map(worldShader, viewer.scene_root, PhysicObject::allPhysicObjects);
 
 
-    Shape* testCylinder = new Cylinder(playerShader, 2.0f, 0.5f, 50);
+    Shape* playerCube = new Box(worldShader, 1.0f, 1.0f, 1.0f);
 
-    Player* player = new Player(testCylinder, glm::vec3(0.0f,2.0f,0.0f),playerShader);
+    Player* player = new Player(playerCube, glm::vec3(0.0f,2.0f,0.0f),playerShader);
     player->Mass = 70.0f; // mass in kg
     player->Damping = 0.1f; // some damping
     
     viewer.scene_root->add(player);
 
+
+	Shape* testCube1 = new Box(worldShader, 1.0f, 1.0f, 1.0f);
+	PhysicShapeObject* cube1 = new PhysicShapeObject(testCube1, glm::vec3(1.0f, 2.0f, 5.0f));
+	cube1->SetMass(0.0f); // immovable
+    cube1->collisionShape = testCube1;
+	cube1->shapeType = BOX;
+
+    Shape* testCube2 = new Box(worldShader, 1.0f, 1.0f, 1.0f);
+	PhysicShapeObject* cube2 = new PhysicShapeObject(testCube2, glm::vec3(1.0f, 5.0f, 5.0f));
+	cube2->SetMass(2.0f); // mass in kg
+    cube2->Damping = 0.1f; // some damping
+	cube2->collisionShape = testCube2;
+    cube1->shapeType = BOX;
+
+    PhysicObject::allPhysicObjects.push_back(cube1);
+    PhysicObject::allPhysicObjects.push_back(cube2);
+
+	viewer.scene_root->add(cube1);
+	viewer.scene_root->add(cube2);
+
+
     viewer.update_callback = [&]() {
         // update physics for all objects
         float deltaTime = viewer.deltaTime;
-        for (PhysicObject* obj : physicObjects) {
+        for (PhysicObject* obj : PhysicObject::allPhysicObjects) {
+            std::cout << "Updating physics : " << *obj << std::endl;
             obj->UpdatePhysics(deltaTime);
         }
         // handle player input

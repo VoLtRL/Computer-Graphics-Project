@@ -3,6 +3,7 @@
 
 Sphere::Sphere(Shader* shader_program, float radius, int slices) : Shape(shader_program){
     // generate vertices
+	radius = radius;
     std::vector<glm::vec3> vertices;
     for (int i = 0; i <= slices; i++) {
         float theta = glm::pi<float>() * static_cast<float>(i) / static_cast<float>(slices);
