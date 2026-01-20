@@ -8,7 +8,7 @@ Camera::Camera(glm::vec3 center, glm::vec3 up, float yaw, float pitch)
       Velocity(glm::vec3(0.0f)), 
       Acceleration(40.0f), 
       Damping(45.0f),
-      Distance(15.0f)
+      Distance(12.0f)
 {
     Target = center;
     WorldUp = up;
@@ -36,12 +36,12 @@ void Camera::updateCameraVectors()
     
     Front = glm::normalize(direction);
 
-    // update Position based on Target and Distance
-    Position = Target - (Front * Distance);
-
-    // also re-calculate the Right and Up vector
+    // calculate the new Right and Up vectors
     Right = glm::normalize(glm::cross(Front, WorldUp)); 
     Up    = glm::normalize(glm::cross(Right, Front));
+
+
+    Position = Target - (Front * Distance);
 }
 
 void Camera::ProcessMouseMovement(float xoffset, float yoffset, bool constrainPitch)

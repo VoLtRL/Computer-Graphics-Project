@@ -18,7 +18,7 @@ public:
 
     // actions
     void jump();
-    void shoot();
+    void shoot(glm::vec3 shootDirection);
     void move(glm::vec3 direction);
 
     // health management
