@@ -18,44 +18,36 @@ void Game::Init() {
     std::string shaderDir = SHADER_DIR;
     std::string imageDir = IMAGE_DIR;
 
-    ResourceManager::LoadShader(shaderDir + "world.vert", shaderDir + "world.frag", "world");
-    ResourceManager::LoadShader(shaderDir + "player.vert", shaderDir + "player.frag", "player");
-    ResourceManager::LoadShader(shaderDir + "crosshair.vert", shaderDir + "crosshair.frag", "crosshair");
-
+    ResourceManager::LoadShader(shaderDir + "standard.vert", shaderDir + "standard.frag", "standard");
     ResourceManager::LoadTexture(imageDir + "crosshair.png", "crosshair");
 
-    Shader* worldShader = ResourceManager::GetShader("world");
-    Shader* playerShader = ResourceManager::GetShader("player");
+    Shader* StandardShader = ResourceManager::GetShader("standard");
 
     glm::vec4 fogColor(0.2f, 0.2f, 0.2f, 1.0f);
     float fogStart = 20.0f;
     float fogEnd = 100.0f;
-    
-    std::vector<GLuint> shaderIds = {worldShader->get_id(), playerShader->get_id()};
-    for (GLuint shaderId : shaderIds){
-        glUseProgram(shaderId);
-        glUniform4fv(glGetUniformLocation(shaderId, "fogColor"), 1, &fogColor[0]);
-        glUniform1f(glGetUniformLocation(shaderId, "fogStart"), fogStart);
-        glUniform1f(glGetUniformLocation(shaderId, "fogEnd"), fogEnd);  
-    }
 
-    glUseProgram(worldShader->get_id());
-    glUniform3f(glGetUniformLocation(worldShader->get_id(), "objectColor"), 0.8f, 0.8f, 0.8f);
-    glUseProgram(playerShader->get_id());
-    glUniform3f(glGetUniformLocation(playerShader->get_id(), "objectColor"), 0.22f, 0.65f, 0.92f);
+    glUseProgram(StandardShader->get_id());
+    glUniform4fv(glGetUniformLocation(StandardShader->get_id(), "fogColor"), 1, &fogColor[0]);
+    glUniform1f(glGetUniformLocation(StandardShader->get_id(), "fogStart"), fogStart);
+    glUniform1f(glGetUniformLocation(StandardShader->get_id(), "fogEnd"), fogEnd);
 
     // physics
 	std::vector<PhysicObject*> mapPhysicObjects;
 
     //Load map
-    Map* map = new Map(worldShader, viewer->scene_root, mapPhysicObjects);
+    Map* map = new Map(StandardShader, viewer->scene_root, mapPhysicObjects);
     
     for(auto obj : mapPhysicObjects) {
         handlePhysics->AddObject(obj);
     }
 
-    Shape* playerShape = new Capsule(playerShader, 0.6f, 1.0f);
-    player = new Player(playerShape, glm::vec3(0.0f, 2.0f, 0.0f), playerShader);
+    // Create Player Shape with a blue color and no checkerboard pattern
+    Shape* playerShape = new Capsule(StandardShader, 0.6f, 1.0f);
+    playerShape->color = glm::vec3(0.22f, 0.65f, 0.92f);
+    playerShape->useCheckerboard = false;
+
+    player = new Player(playerShape, glm::vec3(0.0f, 2.0f, 0.0f), StandardShader);
     player->Mass = 70.0f;
     player->Damping = 0.1f;
 
@@ -113,6 +105,26 @@ void Game::Update() {
 
     ProcessInput(deltaTime);
     player->update(deltaTime);
+
+    // Handle Light
+
+    Shader* standardShader = ResourceManager::GetShader("standard");
+    glUseProgram(standardShader->get_id());
+
+    glm::vec3 lightPos(0.0f, -100.0f, 0.0f);
+    
+    for (auto proj : player->getActiveProjectiles()) {
+        if (proj->isActive()) {
+            lightPos = proj->Position;
+        }
+    }
+
+    glUniform3f(glGetUniformLocation(standardShader->get_id(), "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+    
+    glUniform3f(glGetUniformLocation(standardShader->get_id(), "lightColor"), 1.0f, 0.8f, 0.6f);
+    glUniform1f(glGetUniformLocation(standardShader->get_id(), "lightIntensity"), 5.0f);
+
+
 
     if(player->Position.y <= 0.5f){
         player->Position.y = 0.5f;

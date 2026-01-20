@@ -30,6 +30,7 @@ public:
     bool isAlive() const { return health > 0.0f; }
     float getSpeed() const { return movementSpeed; }
     float getSize() const { return size; }
+    std::vector<Projectile*> getActiveProjectiles() const { return activeProjectiles; }
 
     // resizing
     void resize(float scale);
