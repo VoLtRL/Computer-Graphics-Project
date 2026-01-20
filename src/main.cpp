@@ -81,28 +81,35 @@ int main()
     //Load map
     Map* map = new Map(worldShader, viewer.scene_root, PhysicObject::allPhysicObjects);
 
+    Shape* playerCube = new Box(playerShader, 1.0f, 1.0f, 1.0f);
 
-    Shape* playerCube = new Box(worldShader, 1.0f, 1.0f, 1.0f);
-
-    Player* player = new Player(playerCube, glm::vec3(0.0f,2.0f,0.0f),playerShader);
-    player->Mass = 70.0f; // mass in kg
-    player->Damping = 0.1f; // some damping
-    
+    Player* player = new Player(playerCube, glm::vec3(0.0f,20.0f,0.0f),playerShader);
+    player->SetMass(70.0f); // mass in kg
+    player->Damping = 1.0f; // some damping
+	player->collisionShape = playerCube;
+	player->shapeType = BOX;
+	player->name = "Player";
+	PhysicObject::allPhysicObjects.push_back(player);
     viewer.scene_root->add(player);
 
 
-	Shape* testCube1 = new Box(worldShader, 1.0f, 1.0f, 1.0f);
-	PhysicShapeObject* cube1 = new PhysicShapeObject(testCube1, glm::vec3(1.0f, 2.0f, 5.0f));
+	Shape* testCube1 = new Box(worldShader, 5.0f, 5.0f, 5.0f);
+	PhysicShapeObject* cube1 = new PhysicShapeObject(testCube1, glm::vec3(0.0f, 2.0f, 0.0f));
+	cube1->RotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(45.2f), glm::vec3(1.0f, 0.0f, 0.0f));
 	cube1->SetMass(0.0f); // immovable
     cube1->collisionShape = testCube1;
 	cube1->shapeType = BOX;
+    cube1->name = "AnchoredCube";
+	cube1->canCollide = true;
 
-    Shape* testCube2 = new Box(worldShader, 1.0f, 1.0f, 1.0f);
-	PhysicShapeObject* cube2 = new PhysicShapeObject(testCube2, glm::vec3(1.0f, 5.0f, 5.0f));
+    Shape* testCube2 = new Box(worldShader, 3.0f, 3.0f, 3.0f);
+	PhysicShapeObject* cube2 = new PhysicShapeObject(testCube2, glm::vec3(7.0f, 10.0f, 0.0f));
 	cube2->SetMass(2.0f); // mass in kg
     cube2->Damping = 0.1f; // some damping
 	cube2->collisionShape = testCube2;
-    cube1->shapeType = BOX;
+    cube2->shapeType = BOX;
+	cube2->name = "FallingCube";
+	cube2->canCollide = true;
 
     PhysicObject::allPhysicObjects.push_back(cube1);
     PhysicObject::allPhysicObjects.push_back(cube2);
@@ -115,17 +122,11 @@ int main()
         // update physics for all objects
         float deltaTime = viewer.deltaTime;
         for (PhysicObject* obj : PhysicObject::allPhysicObjects) {
-            std::cout << "Updating physics : " << *obj << std::endl;
             obj->UpdatePhysics(deltaTime);
         }
         // handle player input
         handle_input(viewer,*player,deltaTime);
         player->update(deltaTime);
-        // keep player above ground
-        if(player->Position.y <=0.5f){
-            player->Position.y = 0.5f;
-            player->Velocity.y = 0.0f;
-        }
 
         // update camera target to follow player
         viewer.camera->SetTarget(player->Position);

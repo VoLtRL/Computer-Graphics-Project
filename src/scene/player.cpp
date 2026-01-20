@@ -27,8 +27,6 @@ Player::Player(Shape* shape, glm::vec3 position,Shader* projectileShader)
 
 void Player::update(float deltaTime)
 {
-    // handle physics
-    UpdatePhysics(deltaTime);
 
     // handle attack cooldown
     if (attackCooldown > 0.0f) {
@@ -37,12 +35,6 @@ void Player::update(float deltaTime)
             attackCooldown = 0.0f;
         }
     }
-    // handle ground damping
-    if (Position.y <= 0.5f) {
-        Velocity.x -= Velocity.x * glm::exp(-groundDamping * deltaTime);
-        Velocity.z -= Velocity.z * glm::exp(-groundDamping * deltaTime);
-        isJumping = false;
-    }   
 
     // debug info
     std::cout << "Player position: (" 
@@ -93,11 +85,10 @@ void Player::shoot(){
         Shape* proj_shape = new Sphere(projectileShader, size * 0.2f, 20);
         Projectile* proj = new Projectile(proj_shape, Position, projectileSpeed, attackDamage, 50.0f);
         // Define projectile initial velocity
-        proj->Velocity = FrontVector * projectileSpeed;
+		glm::vec3 FrontVectorNorm = RotationMatrix * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
+        proj->Velocity = GetFrontVector() * projectileSpeed;
         // Set projectile orientation vectors
-        proj->FrontVector = FrontVector;
-        proj->RightVector = RightVector;
-        proj->UpVector = UpVector;
+		proj->RotationMatrix = RotationMatrix;
         // Add to active projectiles
         activeProjectiles.push_back(proj);
         attackCooldown = 1.0f / attackSpeed; // Reset cooldown
@@ -114,9 +105,13 @@ void Player::move(glm::vec3 direction)
         Velocity.x = normDir.x * movementSpeed;
         Velocity.z = normDir.z * movementSpeed;
         // Update orientation vectors
-        FrontVector = glm::normalize(glm::vec3(normDir.x, 0.0f, normDir.z));
-        RightVector = glm::normalize(glm::cross(FrontVector, WorldUpVector));
-        UpVector = glm::normalize(glm::cross(RightVector, FrontVector));
+        glm::vec3 FrontVector = glm::normalize(glm::vec3(normDir.x, 0.0f, normDir.z));
+        glm::vec3 RightVector = glm::normalize(glm::cross(FrontVector, WorldUpVector));
+        glm::vec3 UpVector = glm::normalize(glm::cross(RightVector, FrontVector));
+		RotationMatrix = glm::mat4(1.0f);
+		RotationMatrix[0] = glm::vec4(RightVector, 0.0f);
+		RotationMatrix[1] = glm::vec4(UpVector, 0.0f);
+		RotationMatrix[2] = glm::vec4(-FrontVector, 0.0f);
         
     }
 }

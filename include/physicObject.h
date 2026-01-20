@@ -4,6 +4,7 @@
 #include <../external/glm/glm/gtc/matrix_transform.hpp>
 #include <vector>
 #include <iostream>
+#include <string>
 
 class physicShapeObject; // Forward declaration
 
@@ -16,7 +17,8 @@ class Shape;
 enum ShapeType {
 	BOX,
 	SPHERE,
-	CAPSULE
+	CAPSULE,
+	INVALID
 };
 
 class PhysicObject {
@@ -25,29 +27,25 @@ public:
 	PhysicObject(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f)
 	);
 
+	std::string name = "";
+
 	// Position and movement
 	glm::vec3 Position;			// The object's world position.
 	glm::vec3 Velocity;			// The object's velocity, updates position.
 	glm::vec3 Acceleration;		// The object's acceleration, updates velocity.
 	float Damping;				// Damping strength, updates velocity.
+	float Friction;				// Friction coefficient, updates velocity.
 
 	// Orientation vectors
 	glm::mat4 RotationMatrix;		// The object's rotation matrix.
 
-	// A CHANGER
-	glm::vec3 FrontVector;		// The object's forward vector. TO BE MOVED TO A GLOBAL CONSTANT
-	glm::vec3 RightVector;		// The object's right vector. TO BE MOVED TO A GLOBAL CONSTANT
-	glm::vec3 UpVector;			// The object's upward vector. TO BE MOVED TO A GLOBAL CONSTANT
-	//A CHANGER
-
-
-	const glm::vec3 WorldUpVector;	// The world's upward vector. TO BE MOVED TO A GLOBAL CONSTANT
+	inline static const glm::vec3 WorldUpVector = glm::vec3(0.0f,1.0f,0.0f);	// The world's upward vector.
 
 	// Mass
 	float Mass;					// The object's mass in kg.
 	float InvMass;				// The object's inverse mass in kg^(-1).
 	bool kinematic;				// True if the object is kinematic (not affected by forces).
-	const float gravity;		// Gravitational acceleration in m*s^(-2). TO BE MOVED TO A GLOBAL CONSTANT
+	inline static const float gravity = 9.8f;		// Gravitational acceleration in m*s^(-2). TO BE MOVED TO A GLOBAL CONSTANT
 
 	// Collisions
 	bool canCollide;			// True if the object can collide with other collidable objects.
@@ -63,6 +61,23 @@ public:
 		Mass = mass;
 		InvMass = (mass > 0.0f) ? 1.0f / mass : 0.0f;
 	}
+
+	void ApplyForce(const glm::vec3& force) {
+		forcesApplied += force;
+	}
+
+	glm::vec3 GetFrontVector() {
+		return glm::vec3(RotationMatrix * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f));
+	}
+
+	glm::vec3 GetRightVector() {
+		return glm::vec3(RotationMatrix * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f));
+	}
+
+	glm::vec3 GetUpVector() {
+		return glm::vec3(RotationMatrix * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f));
+	}
+
 
 	inline static std::vector<PhysicObject*> allPhysicObjects{}; // Static list of all PhysicObject instances
 

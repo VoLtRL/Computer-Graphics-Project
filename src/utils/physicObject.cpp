@@ -32,9 +32,8 @@ float ProjectOBB(const OBBCollision& box, const glm::vec3& axis) {
 }
 
 
+
 PhysicObject::PhysicObject(glm::vec3 position)
-	: WorldUpVector(0.0f, 1.0f, 0.0f),	// TO BE MOVED TO A GLOBAL CONSTANT
-	gravity(9.81f)					// TO BE MOVED TO A GLOBAL CONSTANT. Maybe use a gravity vector?
 {
 
 	// Position and movement
@@ -42,19 +41,22 @@ PhysicObject::PhysicObject(glm::vec3 position)
 	Velocity = glm::vec3(0.0f, 0.0f, 0.0f);			// default : 0 units*s^(-1)
 	Acceleration = glm::vec3(0.0f, 0.0f, 0.0f);		// default : 0 units*s^(-2)
 	Damping = 0.0f;									// default : 0.0f
+	Friction = 0.01f;								// default : 0.01f WARNING ultra sensitive, don't go too high (0.1 is enough for full stop)
 
 	// Orientation matrix
 	RotationMatrix = glm::mat4(1.0f);				// default : identity matrix
 
 	// Mass
 	Mass = 0.0f;									// default : 0 kg (immovable)
+	InvMass = 0.0f;									// default : 0 kg^(-1)
 	kinematic = false;								// default : false
 
 	// Collisions
 	canCollide = true;								// default : true
 	forcesApplied = glm::vec3(0.0f, 0.0f, 0.0f);	// default : 0 N
-	Restitution = 0.5f;							// default : 0.5
-	shapeType = BOX;								// default : BOX
+	Restitution = 0.1f;							// default : 0.5
+	shapeType = INVALID;								// default : BOX
+	collisionShape = nullptr;					// default : nullptr
 
 	PhysicObject::allPhysicObjects.push_back(this); // Add this instance to the static list
 }
@@ -64,11 +66,14 @@ void PhysicObject::ResolveCollision(
 	PhysicObject* B,
 	const CollisionInfo& c
 ) {
-	if (!c.hit) return;
+	if (!c.hit){ 
+		std::cout << "No Collision" << std::endl;
+		return;
+	}
 	std::cout << "Collision detected with penetration: " << c.penetration << std::endl;
 
 	// --- Correction de position ---
-	float percent = 0.95f;
+	float percent = 0.99f;
 	float slop = 0.01f;
 
 	glm::vec3 correction =
@@ -93,8 +98,11 @@ void PhysicObject::ResolveCollision(
 
 	glm::vec3 impulse = j * c.normal;
 
-	A->Velocity -= impulse * A->InvMass;
-	B->Velocity += impulse * B->InvMass;
+	A->ApplyForce(-impulse * A->InvMass);
+	B->ApplyForce(impulse * B->InvMass);
+
+	A->Velocity *= (1.0f - B->Friction);
+	B->Velocity *= (1.0f - A->Friction);
 }
 
 
@@ -143,18 +151,18 @@ void PhysicObject::UpdatePhysics(float deltaTime)
 }
 
 CollisionInfo PhysicObject::Box2Box(PhysicObject* objA, PhysicObject* objB) {
-	
-	Box* a = dynamic_cast<Box*>(objA->collisionShape);
-	Box* b = dynamic_cast<Box*>(objB->collisionShape);
+	std::cout << "Box Collision Check" << std::endl;
+	Box* a = static_cast<Box*>(objA->collisionShape);
+	Box* b = static_cast<Box*>(objB->collisionShape);
 
 	OBBCollision A;
 	A.center = objA->Position;
-	A.halfExtents = glm::vec3(a->w / 2.0f, a->h / 2.0f, a->d / 2.0f);
+	A.halfExtents = glm::vec3(a->w, a->h, a->d);
 	A.rotation = glm::mat3(objA->RotationMatrix);
 
 	OBBCollision B;
 	B.center = objB->Position;
-	B.halfExtents = glm::vec3(b->w / 2.0f, b->h / 2.0f, b->d / 2.0f);
+	B.halfExtents = glm::vec3(b->w, b->h, b->d);
 	B.rotation = glm::mat3(objB->RotationMatrix);
 
 
@@ -209,15 +217,15 @@ CollisionInfo PhysicObject::Box2Box(PhysicObject* objA, PhysicObject* objB) {
 
 CollisionInfo PhysicObject::Box2Sphere(PhysicObject* box, PhysicObject* sphere) {
 
-	Box* boxShape = dynamic_cast<Box*>(box->collisionShape);
-	Sphere* sphereShape = dynamic_cast<Sphere*>(sphere->collisionShape);
+	Box* boxShape = static_cast<Box*>(box->collisionShape);
+	Sphere* sphereShape = static_cast<Sphere*>(sphere->collisionShape);
 
 	SphereCollision s;
 	s.center = sphere->Position;
 	s.radius = sphereShape->radius;
 	OBBCollision b;
 	b.center = box->Position;
-	b.halfExtents = glm::vec3(boxShape->w / 2.0f, boxShape->h / 2.0f, boxShape->d / 2.0f);
+	b.halfExtents = glm::vec3(boxShape->w, boxShape->h, boxShape->d);
 	b.rotation = glm::mat3(box->RotationMatrix);
 
 	CollisionInfo result;
@@ -254,8 +262,8 @@ CollisionInfo PhysicObject::Box2Capsule(PhysicObject* objA, PhysicObject* objB) 
 
 CollisionInfo PhysicObject::Sphere2Sphere(PhysicObject* objA, PhysicObject* objB) {
 
-	Sphere* a = dynamic_cast<Sphere*>(objA->collisionShape);
-	Sphere* b = dynamic_cast<Sphere*>(objB->collisionShape);
+	Sphere* a = static_cast<Sphere*>(objA->collisionShape);
+	Sphere* b = static_cast<Sphere*>(objB->collisionShape);
 
 	SphereCollision A;
 	A.center = objA->Position;
@@ -297,66 +305,74 @@ CollisionInfo PhysicObject::Capsule2Capsule(PhysicObject* objA, PhysicObject* ob
 }
 
 CollisionInfo PhysicObject::checkCollision(PhysicObject* objA, PhysicObject* objB) {
+	if (!objA->canCollide || !objB->canCollide) {
+		std::cout << "One of the PhysicObjects cannot collide." << std::endl;
+		CollisionInfo result;
+		return result; // No collision detected
+	}
+
+	std::cout << "Checking collision between " << objA->name << " and " << objB->name << std::endl;
+
 	if(!objA || !objB) {
+		std::cout << "One of the PhysicObjects is null." << std::endl;
 		CollisionInfo result;
 		return result; // No collision detected
 	}
 
 	ShapeType typeA = objA->shapeType;
 	ShapeType typeB = objB->shapeType;
-	if (!typeA || !typeB) {
+	if (typeA == INVALID || typeB == INVALID) {
+		std::cout << "One of the PhysicObjects has an invalid ShapeType." << std::endl;
 		CollisionInfo result;
 		return result; // No collision detected
 	}
-	// Simple collision detection based on Axis-Aligned Bounding Boxes (AABB)
-	if (!objA->canCollide || !objB->canCollide) {
-		CollisionInfo result;
 
+	Shape* shapeA = objA->collisionShape;
+	Shape* shapeB = objB->collisionShape;
+	if (!shapeA || !shapeB) {
+		std::cout << "One of the PhysicObjects has a null collision shape." << std::endl;
+		CollisionInfo result;
 		return result; // No collision detected
 	}
-	if (typeA == ShapeType::BOX) {
+
+
+	if (typeA == BOX) {
 		// old was safely casted to NewType
-		if (typeB == ShapeType::BOX) {
+		if (typeB == BOX) {
 			return Box2Box(objA, objB);
 		}
-		else if (typeB == ShapeType::SPHERE) {
+		else if (typeB == SPHERE) {
 			return Box2Sphere(objA, objB);
 		}
-		/*
-		else if (Capsule* w = dynamic_cast<Capsule*>(shapeB)) {
+		else if (typeB == CAPSULE) {
 			return Box2Capsule(objA, objB);
 		}
-		*/
 	}
-	else if (typeA == ShapeType::SPHERE) {
+	else if (typeA == SPHERE) {
 		// old was safely casted to NewType
-		if (typeB == ShapeType::BOX) {
+		if (typeB == BOX) {
 			return Box2Sphere(objB, objA); // Reverse order
 		}
-		else if (typeB == ShapeType::SPHERE) {
+		else if (typeB == SPHERE) {
 			return Sphere2Sphere(objA, objB);
 		}
-		/*
-		else if (Capsule* w = dynamic_cast<Capsule*>(objB)) {
+		else if (typeB == CAPSULE) {
 			return Sphere2Capsule(objA, objB);
 		}
-		*/
 	}
-	/*
-	else if (Capsule* v = dynamic_cast<Capsule*>(objA)) {
+	else if (typeA == CAPSULE) {
 		// old was safely casted to NewType
-		if (Box* w = dynamic_cast<Box*>(objB)) {
+		if (typeB == BOX) {
 			return Box2Capsule(objB, objA); // Reverse order
 		}
-		else if (Sphere* w = dynamic_cast<Sphere*>(objB)) {
+		else if (typeB == SPHERE) {
 			return Sphere2Capsule(objB, objA); // Reverse order
 		}
-		else if (Capsule* w = dynamic_cast<Capsule*>(objB)) {
+		else if (typeB == CAPSULE) {
 			return Capsule2Capsule(objA, objB);
 		}
 		
 	}
-	*/
 
 	CollisionInfo result;
 
@@ -374,13 +390,14 @@ std::string PhysicObject::ShapeTypeToString(ShapeType type) {
 }
 
 std::ostream& operator<<(std::ostream& os, const PhysicObject& obj) {
-	os << "PhysicObject(Position: [" << obj.Position.x << ", " << obj.Position.y << ", " << obj.Position.z
-		<< "], Velocity: [" << obj.Velocity.x << ", " << obj.Velocity.y << ", " << obj.Velocity.z
-		<< "], Acceleration: [" << obj.Acceleration.x << ", " << obj.Acceleration.y << ", " << obj.Acceleration.z
-		<< "], Mass: " << obj.Mass
-		<< ", Kinematic: " << obj.kinematic
-		<< ", CanCollide: " << obj.canCollide
-		<< ", ShapeType: " << PhysicObject::ShapeTypeToString(obj.shapeType)
+	os << "PhysicObject(Name : " << obj.name
+		<< "   \n\tPosition: [" << obj.Position.x << ", " << obj.Position.y << ", " << obj.Position.z
+		<< "], \n\tVelocity: [" << obj.Velocity.x << ", " << obj.Velocity.y << ", " << obj.Velocity.z
+		<< "], \n\tAcceleration: [" << obj.Acceleration.x << ", " << obj.Acceleration.y << ", " << obj.Acceleration.z
+		<< "], \n\tMass: " << obj.Mass
+		<< ", \n\tKinematic: " << obj.kinematic
+		<< ", \n\tCanCollide: " << obj.canCollide
+		<< ", \n\tShapeType: " << PhysicObject::ShapeTypeToString(obj.shapeType)
 		<< ")";
 	return os;
 }
