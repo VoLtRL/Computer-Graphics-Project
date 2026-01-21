@@ -38,7 +38,7 @@ void Game::Init() {
     
 
     // Create Player Shape with a blue color and no checkerboard pattern
-    Shape* playerShape = new Sphere(StandardShader, 0.5f, 20);
+    Shape* playerShape = new Capsule(StandardShader, 1.0f, 2.0f);
     playerShape->color = glm::vec3(0.22f, 0.65f, 0.92f);
     playerShape->useCheckerboard = false;
     
@@ -48,7 +48,7 @@ void Game::Init() {
     player->Damping = 1.0f;
     player->Friction = 10.0f;
     player->collisionShape = playerShape;
-	player->shapeType = SPHERE;
+	player->shapeType = CAPSULE;
     player->canCollide = true;
     player->name = "Player";
 
@@ -59,8 +59,8 @@ void Game::Init() {
 
     Box* testBoxShape = new Box(StandardShader, 5.0f, 5.0f, 5.0f);
     testBoxShape->color = glm::vec3(0.8f, 0.3f, 0.3f);
-    PhysicShapeObject* testBox = new PhysicShapeObject(testBoxShape, glm::vec3(2.0f, 5.0f, 0.0f));
-    testBox->SetMass(50.0f);
+    PhysicShapeObject* testBox = new PhysicShapeObject(testBoxShape, glm::vec3(5.0f, 2.5f, 0.0f));
+    testBox->SetMass(0.0f);
     testBox->Damping = 1.0f;
     testBox->Friction = 1.0f;
     testBox->collisionShape = testBoxShape;
@@ -68,6 +68,30 @@ void Game::Init() {
     testBox->canCollide = true;
     testBox->name = "TestBox";
     viewer->scene_root->add(testBox);
+
+    Sphere* testSphereShape = new Sphere(StandardShader, 2.5f, 20);
+    testSphereShape->color = glm::vec3(0.3f, 0.8f, 0.8f);
+    PhysicShapeObject* testShpere = new PhysicShapeObject(testSphereShape, glm::vec3(2.0f, 2.5f, 15.0f));
+    testShpere->SetMass(50.0f);
+    testShpere->Damping = 1.0f;
+    testShpere->Friction = 1.0f;
+    testShpere->collisionShape = testSphereShape;
+    testShpere->shapeType = SPHERE;
+    testShpere->canCollide = true;
+    testShpere->name = "TestSphere";
+    viewer->scene_root->add(testShpere);
+
+    Capsule* testCapsuleShape = new Capsule(StandardShader, 2.0f, 5.0f);
+    testCapsuleShape->color = glm::vec3(0.8f, 0.8f, 0.3f);
+    PhysicShapeObject* testCapsule = new PhysicShapeObject(testCapsuleShape, glm::vec3(2.0f, 2.5f, -15.0f));
+    testCapsule->SetMass(50.0f);
+    testCapsule->Damping = 1.0f;
+    testCapsule->Friction = 1.0f;
+    testCapsule->collisionShape = testCapsuleShape;
+    testCapsule->shapeType = CAPSULE;
+    testCapsule->canCollide = true;
+    testCapsule->name = "TestCapsule";
+    viewer->scene_root->add(testCapsule);
 }
 
 void Game::ProcessInput(float deltaTime) {

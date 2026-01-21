@@ -2,20 +2,116 @@
 
 #include "box.h"
 #include "sphere.h"
+#include "capsule.h"
 
 
 float PhysicObject::Length2(const glm::vec3& v) {
 	return glm::dot(v, v);
 }
 
-float ProjectOBB(const OBBCollision& box, const glm::vec3& axis) {
+float PhysicObject::ProjectOBB(const OBBCollision& box, const glm::vec3& axis) {
 	return
         box.halfExtents.x * std::abs(glm::dot(axis, box.rotation[0])) +
         box.halfExtents.y * std::abs(glm::dot(axis, box.rotation[1])) +
         box.halfExtents.z * std::abs(glm::dot(axis, box.rotation[2]));
 }
 
+glm::vec3 PhysicObject::ClosestPointAABB(
+	const glm::vec3& p,
+	const glm::vec3& min,
+	const glm::vec3& max
+) {
+	return glm::clamp(p, min, max);
+}
 
+void ClosestPointsSegmentSegment(
+	const glm::vec3& p1, const glm::vec3& q1,
+	const glm::vec3& p2, const glm::vec3& q2,
+	glm::vec3& c1, glm::vec3& c2
+) {
+	glm::vec3 d1 = q1 - p1;
+	glm::vec3 d2 = q2 - p2;
+	glm::vec3 r = p1 - p2;
+
+	float a = glm::dot(d1, d1);
+	float e = glm::dot(d2, d2);
+	float f = glm::dot(d2, r);
+
+	float s, t;
+
+	if (a <= 1e-6f && e <= 1e-6f) {
+		c1 = p1;
+		c2 = p2;
+		return;
+	}
+
+	if (a <= 1e-6f) {
+		s = 0.0f;
+		t = glm::clamp(f / e, 0.0f, 1.0f);
+	}
+	else {
+		float c = glm::dot(d1, r);
+
+		if (e <= 1e-6f) {
+			t = 0.0f;
+			s = glm::clamp(-c / a, 0.0f, 1.0f);
+		}
+		else {
+			float b = glm::dot(d1, d2);
+			float denom = a * e - b * b;
+
+			if (denom != 0.0f)
+				s = glm::clamp((b * f - c * e) / denom, 0.0f, 1.0f);
+			else
+				s = 0.0f;
+
+			t = (b * s + f) / e;
+
+			if (t < 0.0f) {
+				t = 0.0f;
+				s = glm::clamp(-c / a, 0.0f, 1.0f);
+			}
+			else if (t > 1.0f) {
+				t = 1.0f;
+				s = glm::clamp((b - c) / a, 0.0f, 1.0f);
+			}
+		}
+	}
+
+	c1 = p1 + d1 * s;
+	c2 = p2 + d2 * t;
+}
+
+glm::vec3 PhysicObject::ClosestPointSegmentAABB(
+	const glm::vec3& A,
+	const glm::vec3& B,
+	const glm::vec3& boxMin,
+	const glm::vec3& boxMax
+) {
+	float t = 0.0f;
+	glm::vec3 d = B - A;
+
+	glm::vec3 p = A;
+
+	for (int i = 0; i < 3; ++i) {
+		if (std::abs(d[i]) < 1e-6f) {
+			p[i] = glm::clamp(A[i], boxMin[i], boxMax[i]);
+		}
+		else {
+			float ood = 1.0f / d[i];
+			float t1 = (boxMin[i] - A[i]) * ood;
+			float t2 = (boxMax[i] - A[i]) * ood;
+
+			if (t1 > t2) std::swap(t1, t2);
+
+			t = glm::max(t, t1);
+			t = glm::min(t, t2);
+		}
+	}
+
+	t = glm::clamp(t, 0.0f, 1.0f);
+	return A + d * t;
+}
 
 PhysicObject::PhysicObject(glm::vec3 position)
 {
@@ -220,12 +316,12 @@ CollisionInfo PhysicObject::Box2Box(PhysicObject* objA, PhysicObject* objB) {
 		axis = glm::normalize(axis);
 
 		float dist = std::abs(glm::dot(d, axis));
-		float rA = ProjectOBB(A, axis);
-		float rB = ProjectOBB(B, axis);
+		float rA = PhysicObject::ProjectOBB(A, axis);
+		float rB = PhysicObject::ProjectOBB(B, axis);
 
 		float overlap = rA + rB - dist;
 		if (overlap < 0) {
-			return result; // s�paration
+			return result; // séparation
 		}
 
 		if (overlap < minPenetration) {
@@ -318,10 +414,77 @@ CollisionInfo PhysicObject::Box2Sphere(PhysicObject* boxObj, PhysicObject* spher
 }
 
 CollisionInfo PhysicObject::Box2Capsule(PhysicObject* objA, PhysicObject* objB) {
-	// Placeholder for Box to Capsule collision detection logic
 	CollisionInfo result;
 
-	return result; // No collision detected
+	Box* boxShape = static_cast<Box*>(objA->collisionShape);
+	Capsule* capShape = static_cast<Capsule*>(objB->collisionShape);
+
+	OBBCollision box;
+	box.center = objA->Position;
+	box.halfExtents = glm::vec3(boxShape->w, boxShape->h, boxShape->d);
+	box.rotation = glm::mat3(objA->RotationMatrix);
+
+	CapsuleCollision cap;
+	cap.A = objB->Position + objB->GetUpVector() * (capShape->height / 2.0f);
+	cap.B = objB->Position - objB->GetUpVector() * (capShape->height / 2.0f);
+	cap.radius = capShape->radius;
+
+
+	// 1️⃣ Rotation pure (plus stable que inverse(mat4))
+	glm::mat3 rot = glm::mat3(box.rotation);
+	glm::mat3 invRot = glm::transpose(rot);
+
+	// 2️⃣ Capsule en espace local de la boîte
+	glm::vec3 localA = invRot * (cap.A - box.center);
+	glm::vec3 localB = invRot * (cap.B - box.center);
+
+	glm::vec3 boxMin = -box.halfExtents;
+	glm::vec3 boxMax = box.halfExtents;
+
+	// 3️⃣ Point du segment le plus proche de la boîte
+	glm::vec3 closest = ClosestPointSegmentAABB(
+		localA, localB, boxMin, boxMax
+	);
+
+	// 4️⃣ Point le plus proche SUR la boîte
+	glm::vec3 boxPoint = ClosestPointAABB(
+		closest, boxMin, boxMax
+	);
+
+	// 5️⃣ Distance capsule ↔ boîte
+	glm::vec3 delta = closest - boxPoint;
+	float distSq = glm::dot(delta, delta);
+
+	if (distSq > cap.radius * cap.radius)
+		return result; // pas collision 🌱
+
+	// 6️⃣ Collision confirmée
+	float distance = std::sqrt(distSq);
+
+	result.hit = true;
+	result.penetration = cap.radius - distance;
+
+	// Normale locale
+	glm::vec3 localNormal;
+	if (distance < 1e-6f) {
+		// Capsule au cœur de la boîte → on pousse vers la sortie
+		glm::vec3 d = glm::abs(closest) - box.halfExtents;
+
+		if (d.x > d.y && d.x > d.z)
+			localNormal = glm::vec3(glm::sign(closest.x), 0, 0);
+		else if (d.y > d.z)
+			localNormal = glm::vec3(0, glm::sign(closest.y), 0);
+		else
+			localNormal = glm::vec3(0, 0, glm::sign(closest.z));
+	}
+	else {
+		localNormal = glm::normalize(delta);
+	}
+
+	// 7️⃣ Normale en espace monde
+	result.normal = glm::normalize(rot * localNormal);
+
+	return result;
 }
 
 CollisionInfo PhysicObject::Sphere2Sphere(PhysicObject* objA, PhysicObject* objB) {
@@ -355,17 +518,109 @@ CollisionInfo PhysicObject::Sphere2Sphere(PhysicObject* objA, PhysicObject* objB
 }
 
 CollisionInfo PhysicObject::Sphere2Capsule(PhysicObject* objA, PhysicObject* objB) {
-	// Placeholder for Sphere to Capsule collision detection logic
 	CollisionInfo result;
 
-	return result; // No collision detected
+	Sphere* sphShape = static_cast<Sphere*>(objA->collisionShape);
+	Capsule* capShape = static_cast<Capsule*>(objB->collisionShape);
+
+	SphereCollision sph;
+	sph.center = objA->Position;
+	sph.radius = sphShape->radius;
+
+	CapsuleCollision cap;
+	cap.A = objB->Position + objB->GetUpVector() * (capShape->height / 2.0f);
+	cap.B = objB->Position - objB->GetUpVector() * (capShape->height / 2.0f);
+	cap.radius = capShape->radius;
+
+
+	// 1️⃣ Projection du centre de la sphère sur le segment
+	glm::vec3 AB = cap.B - cap.A;
+	float abLenSq = glm::dot(AB, AB);
+
+	float t = 0.0f;
+	if (abLenSq > 1e-6f) {
+		t = glm::dot(sph.center - cap.A, AB) / abLenSq;
+		t = glm::clamp(t, 0.0f, 1.0f);
+	}
+
+	glm::vec3 closest = cap.A + t * AB;
+
+	// 2️⃣ Distance entre la sphère et la capsule
+	glm::vec3 delta = sph.center - closest;
+	float distSq = glm::dot(delta, delta);
+
+	float radiusSum = cap.radius + sph.radius;
+
+	if (distSq > radiusSum * radiusSum)
+		return result; // pas collision 
+
+	// 3️⃣ Collision confirmée
+	float distance = std::sqrt(distSq);
+
+	result.hit = true;
+	result.penetration = radiusSum - distance;
+
+	// 4️⃣ Normale
+	if (distance < 1e-6f) {
+		// centre pile sur l'axe → normale arbitraire
+		glm::vec3 axis = cap.B - cap.A;
+		result.normal = glm::normalize(axis);
+	}
+	else {
+		result.normal = glm::normalize(delta);
+	}
+
+	return result;
 }
 
 CollisionInfo PhysicObject::Capsule2Capsule(PhysicObject* objA, PhysicObject* objB) {
-	// Placeholder for Capsule to Capsule collision detection logic
 	CollisionInfo result;
 
-	return result; // No collision detected
+	glm::vec3 cA, cB;
+
+	Capsule* capShapeA = static_cast<Capsule*>(objA->collisionShape);
+	Capsule* capShapeB = static_cast<Capsule*>(objB->collisionShape);
+
+	glm::vec3 capA_start = objA->Position + objA->GetUpVector() * (capShapeA->height / 2.0f);
+	glm::vec3 capA_end = objA->Position - objA->GetUpVector() * (capShapeA->height / 2.0f);
+
+	glm::vec3 capB_start = objB->Position + objB->GetUpVector() * (capShapeB->height / 2.0f);
+	glm::vec3 capB_end = objB->Position - objB->GetUpVector() * (capShapeB->height / 2.0f);
+
+
+	// 1️⃣ Points les plus proches entre les deux segments
+	ClosestPointsSegmentSegment(
+		capA_start, capA_end,
+		capB_start, capB_end,
+		cA, cB
+	);
+
+	// 2️⃣ Distance entre ces points
+	glm::vec3 delta = cB - cA;
+	float distSq = glm::dot(delta, delta);
+
+	float radiusSum = capShapeA->radius + capShapeB->radius;
+
+	if (distSq > radiusSum * radiusSum)
+		return result; // pas de collision 🌿
+
+	// 3️⃣ Collision confirmée
+	float distance = std::sqrt(distSq);
+
+	result.hit = true;
+
+	// Cas dégénéré : segments parfaitement alignés
+	if (distance < 1e-6f) {
+		glm::vec3 axis = capA_end - capA_start;
+		result.normal = glm::normalize(axis);
+		result.penetration = radiusSum;
+	}
+	else {
+		result.normal = glm::normalize(delta);
+		result.penetration = radiusSum - distance;
+	}
+
+	return result;
 }
 
 CollisionInfo PhysicObject::checkCollision(PhysicObject* objA, PhysicObject* objB) {
