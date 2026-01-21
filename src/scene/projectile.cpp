@@ -21,21 +21,12 @@ void Projectile::update(float deltaTime)
 {
     if (!active) return;
 
-    // update physics
-    UpdatePhysics(deltaTime);
-
     // update traveled distance
     traveledDistance += glm::length(Velocity * deltaTime);
 
     // deactivate if exceeded range
     if (traveledDistance >= range) {
         active = false;
-    }
-
-    if(Position.y < 0.5f){
-      // make a bounce effect
-      Velocity.y = - Velocity.y * 0.5f; // lose some energy on bounce
-      Position.y = 0.5f; // reset position to ground level
     }
 
     std::cout << "Projectile position: (" 

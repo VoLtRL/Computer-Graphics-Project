@@ -105,7 +105,7 @@ void Player::shoot(glm::vec3 shootDirection){
 
     if(attackCooldown <= 0.0f){
         
-        glm::vec3 shootingOrigin = Position + (UpVector * 1.2f) + (FrontVector * 0.5f);
+        glm::vec3 shootingOrigin = Position + (GetUpVector() * 1.2f) + (GetFrontVector() * 0.5f);
 
         float spawnDistance = 0.5f;
         glm::vec3 spawnPos = shootingOrigin + (shootDirection * spawnDistance);
@@ -116,12 +116,16 @@ void Player::shoot(glm::vec3 shootDirection){
         proj_shape->isEmissive = true;
 
         Projectile* proj = new Projectile(proj_shape, spawnPos, projectileSpeed, attackDamage, 50.0f);
-
         proj->Velocity = shootDirection * projectileSpeed;
+        proj->SetMass(20.0f);
+        proj->kinematic = false;
+        proj->collisionShape = proj_shape;
+        proj->shapeType = SPHERE;
+        proj->canCollide = true;
 
-        proj->FrontVector = shootDirection;
-        proj->RightVector = glm::normalize(glm::cross(proj->FrontVector, glm::vec3(0.0f, 1.0f, 0.0f)));
-        proj->UpVector    = glm::normalize(glm::cross(proj->RightVector, proj->FrontVector));
+        proj->setFrontVector(shootDirection);
+        proj->setRightVector(glm::normalize(glm::cross(proj->GetFrontVector(), glm::vec3(0.0f, 1.0f, 0.0f))));
+        proj->setUpVector(glm::normalize(glm::cross(proj->GetRightVector(), proj->GetFrontVector())));
         activeProjectiles.push_back(proj);
         attackCooldown = 1.0f / attackSpeed;
     }

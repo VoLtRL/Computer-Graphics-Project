@@ -2,6 +2,7 @@
 #include "capsule.h"
 #include <GLFW/glfw3.h>
 #include "handlePhysics.h"
+#include "sphere.h"
 
 Game::Game(Viewer* v) : viewer(v) {
     handlePhysics = new HandlePhysics();
@@ -32,27 +33,26 @@ void Game::Init() {
     glUniform1f(glGetUniformLocation(StandardShader->get_id(), "fogStart"), fogStart);
     glUniform1f(glGetUniformLocation(StandardShader->get_id(), "fogEnd"), fogEnd);
 
-    // physics
-	std::vector<PhysicObject*> mapPhysicObjects;
-
     //Load map
-    Map* map = new Map(StandardShader, viewer->scene_root, mapPhysicObjects);
+    Map* map = new Map(StandardShader, viewer->scene_root);
     
-    for(auto obj : mapPhysicObjects) {
-        handlePhysics->AddObject(obj);
-    }
 
     // Create Player Shape with a blue color and no checkerboard pattern
-    Shape* playerShape = new Capsule(StandardShader, 0.6f, 1.0f);
+    Shape* playerShape = new Sphere(StandardShader, 0.5f, 20);
     playerShape->color = glm::vec3(0.22f, 0.65f, 0.92f);
     playerShape->useCheckerboard = false;
+    
 
-    player = new Player(playerShape, glm::vec3(0.0f, 2.0f, 0.0f), StandardShader);
-    player->Mass = 70.0f;
-    player->Damping = 0.1f;
+    player = new Player(playerShape, glm::vec3(0.0f, 10.0f, 0.0f), StandardShader);
+    player->SetMass(70.0f);
+    player->Damping = 1.0f;
+    player->Friction = 0.5f;
+    player->collisionShape = playerShape;
+	player->shapeType = SPHERE;
+    player->canCollide = true;
+    player->name = "Player";
 
     viewer->scene_root->add(player);
-    handlePhysics->AddObject(player);
 
     crosshair = new Crosshair(0.1f);
     crosshairTexture = ResourceManager::GetTexture("crosshair");
@@ -143,12 +143,6 @@ void Game::Update() {
         glUniform1fv(glGetUniformLocation(standardShader->get_id(), "lightIntensities"), activeCount, lightIntensities.data());
     }
 
-
-    if(player->Position.y <= 0.5f){
-        player->Position.y = 0.5f;
-        player->Velocity.y = 0.0f;
-    }
-
     glm::vec3 camOffset(0.0f, 1.4f, 0.0f);
 
     viewer->camera->SetTarget(player->Position + camOffset);
@@ -157,10 +151,10 @@ void Game::Update() {
     camFront.y = 0.0f;
     camFront = glm::normalize(camFront);
 
-    player->FrontVector = camFront;
+    player->setFrontVector(camFront);
     
-    player->RightVector = glm::normalize(glm::cross(player->FrontVector, glm::vec3(0.0f, 1.0f, 0.0f)));
-    player->UpVector    = glm::normalize(glm::cross(player->RightVector, player->FrontVector));
+    player->setRightVector(glm::normalize(glm::cross(player->GetFrontVector(), glm::vec3(0.0f, 1.0f, 0.0f))));
+    player->setUpVector(glm::normalize(glm::cross(player->GetRightVector(), player->GetFrontVector())));
 }
 
 void Game::RenderUI() {

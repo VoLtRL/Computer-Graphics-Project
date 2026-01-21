@@ -10,7 +10,10 @@ int main()
 {
     // Create viewer instance
     Viewer viewer(SCR_WIDTH, SCR_HEIGHT);
+    Game game(&viewer);
     
+    game.Init();
+
     viewer.update_callback = [&]() {
         game.Update(); // update game state
     };

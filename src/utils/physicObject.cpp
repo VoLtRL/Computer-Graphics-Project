@@ -45,7 +45,12 @@ PhysicObject::PhysicObject(glm::vec3 position)
 	PhysicObject::allPhysicObjects.push_back(this); // Add this instance to the static list
 }
 
-
+PhysicObject::~PhysicObject() {
+    auto it = std::find(allPhysicObjects.begin(), allPhysicObjects.end(), this);
+    if (it != allPhysicObjects.end()) {
+        allPhysicObjects.erase(it);
+    }
+}
 	
 
 void PhysicObject::ResolveCollision(
@@ -62,7 +67,7 @@ void PhysicObject::ResolveCollision(
 	float invMassSum = A->InvMass + B->InvMass;
 	if (invMassSum == 0.0f) return;
 
-	// --- Sécuriser la normale ---
+	// --- Sï¿½curiser la normale ---
 	glm::vec3 normal = c.normal;
 	glm::vec3 AB = B->Position - A->Position;
 	if (glm::dot(normal, AB) < 0.0f)
@@ -81,7 +86,7 @@ void PhysicObject::ResolveCollision(
 	A->Position -= correction * A->InvMass;
 	B->Position += correction * B->InvMass;
 
-	// --- Vélocité relative ---
+	// --- Vï¿½locitï¿½ relative ---
 	glm::vec3 rv = B->Velocity - A->Velocity;
 	float velAlongNormal = glm::dot(rv, normal);
 
@@ -149,13 +154,6 @@ void PhysicObject::UpdatePhysics(float deltaTime)
 		forcesApplied = glm::vec3(0.0f);	// Since forces are instant, reset after each update
 	}
 
-	// Collisions
-
-	for (PhysicObject* other : PhysicObject::allPhysicObjects) {
-		if (other == this) continue;
-		CollisionInfo info = checkCollision(this, other);
-		ResolveCollision(this, other, info);
-	}
 }
 
 CollisionInfo PhysicObject::Box2Box(PhysicObject* objA, PhysicObject* objB) {
@@ -206,7 +204,7 @@ CollisionInfo PhysicObject::Box2Box(PhysicObject* objA, PhysicObject* objB) {
 
 		float overlap = rA + rB - dist;
 		if (overlap < 0) {
-			return result; // séparation
+			return result; // sï¿½paration
 		}
 
 		if (overlap < minPenetration) {
@@ -242,7 +240,7 @@ CollisionInfo PhysicObject::Box2Sphere(PhysicObject* boxObj, PhysicObject* spher
 	// 1. Matrice inverse de rotation
 	glm::mat4 invRot = glm::inverse(box.rotation);
 
-	// 2. Centre de la sphère en espace local de la boîte
+	// 2. Centre de la sphï¿½re en espace local de la boï¿½te
 	glm::vec3 localCenter =
 		glm::vec3(invRot * glm::vec4(sphere.center - box.center, 1.0f));
 
@@ -252,7 +250,7 @@ CollisionInfo PhysicObject::Box2Sphere(PhysicObject* boxObj, PhysicObject* spher
 	closestPoint.y = glm::clamp(localCenter.y, -box.halfExtents.y, box.halfExtents.y);
 	closestPoint.z = glm::clamp(localCenter.z, -box.halfExtents.z, box.halfExtents.z);
 
-	// 4. Vecteur entre la sphère et la boîte
+	// 4. Vecteur entre la sphï¿½re et la boï¿½te
 	glm::vec3 delta = localCenter - closestPoint;
 	float distanceSq = glm::dot(delta, delta);
 
@@ -269,7 +267,7 @@ CollisionInfo PhysicObject::Box2Sphere(PhysicObject* boxObj, PhysicObject* spher
 	float distance = sqrt(distanceSq);
 	result.penetration = sphere.radius - distance;
 
-	// Cas spécial : centre de la sphère à l'intérieur de la boîte
+	// 5. Handle case when sphere center is inside the box
 	if (distance < 0.0001f) {
 		// Trouver la face la plus proche
 		glm::vec3 absLocal = glm::abs(localCenter);
@@ -292,7 +290,7 @@ CollisionInfo PhysicObject::Box2Sphere(PhysicObject* boxObj, PhysicObject* spher
 	result.normal =
 		glm::normalize(glm::vec3(box.rotation * glm::vec4(localNormal, 0.0f)));
 
-	// 8. Pénétration
+	// 8. Pï¿½nï¿½tration
 	result.penetration = sphere.radius - distance;
 
 	return result;
