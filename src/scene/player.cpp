@@ -11,14 +11,15 @@ Player::Player(Shape* shape, glm::vec3 position,Shader* projectileShader)
       movementSpeed(5.0f),
       jumpStrength(10.0f),
       attackDamage(20.0f),
-      attackSpeed(1.0f),
+      attackSpeed(2.0f),
       size(1.0f),
       isJumping(false),
       attackCooldown(0.0f),
       groundDamping(8.0f),
-      projectileSpeed(15.0f),
+      projectileSpeed(30.0f),
       projectileShader(projectileShader),
-	  PreviousPosition(position)
+      PreviousPosition(position)
+
 {
     std::cout << "Player created at position: (" 
               << position.x << ", " 
@@ -100,21 +101,29 @@ void Player::gainJumpStrength(float quantity){
     jumpStrength += quantity;
 }
 
-void Player::shoot(){
+void Player::shoot(glm::vec3 shootDirection){
+
     if(attackCooldown <= 0.0f){
-        // Create and launch projectile
+        
+        glm::vec3 shootingOrigin = Position + (UpVector * 1.2f) + (FrontVector * 0.5f);
+
+        float spawnDistance = 0.5f;
+        glm::vec3 spawnPos = shootingOrigin + (shootDirection * spawnDistance);
+
         Shape* proj_shape = new Sphere(projectileShader, size * 0.2f, 20);
-        Projectile* proj = new Projectile(proj_shape, Position, projectileSpeed, attackDamage, 50.0f);
-        // Define projectile initial velocity
-		glm::vec3 FrontVectorNorm = RotationMatrix * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
-        proj->Velocity = GetFrontVector() * projectileSpeed;
-        // Set projectile orientation vectors
-		proj->RotationMatrix = RotationMatrix;
-        // Add to active projectiles
+
+        proj_shape->color = glm::vec3(1.0f, 0.96f, 0.86f);
+        proj_shape->isEmissive = true;
+
+        Projectile* proj = new Projectile(proj_shape, spawnPos, projectileSpeed, attackDamage, 50.0f);
+
+        proj->Velocity = shootDirection * projectileSpeed;
+
+        proj->FrontVector = shootDirection;
+        proj->RightVector = glm::normalize(glm::cross(proj->FrontVector, glm::vec3(0.0f, 1.0f, 0.0f)));
+        proj->UpVector    = glm::normalize(glm::cross(proj->RightVector, proj->FrontVector));
         activeProjectiles.push_back(proj);
-        attackCooldown = 1.0f / attackSpeed; // Reset cooldown
-    }else{
-        std::cout << "Attack on cooldown: " << attackCooldown << " seconds remaining." << std::endl;
+        attackCooldown = 1.0f / attackSpeed;
     }
 }
 

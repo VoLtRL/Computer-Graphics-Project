@@ -33,6 +33,7 @@ public:
     Camera* camera;
 
     std::function<void()> update_callback; // Fonction de rappel pour les mises à jour par frame
+    std::function<void()> draw_ui_callback; // Draw UI callback
 
 private:
     GLFWwindow* win;
