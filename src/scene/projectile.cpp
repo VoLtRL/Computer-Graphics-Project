@@ -10,7 +10,7 @@ Projectile::Projectile(Shape* shape, glm::vec3 position, float speed, float dama
       active(true)
       {
     // Set initial velocity in the forward direction
-    Velocity = FrontVector * projectileSpeed;
+    Velocity = GetFrontVector() * projectileSpeed;
     Mass = 1.0f; // Set a default mass
     kinematic = false; // Projectiles are affected by physics
     

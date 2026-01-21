@@ -42,6 +42,14 @@ public:
     // setters
     void gainJumpStrength(float quantity);
 
+	void BeforeCollide(PhysicObject* other, CollisionInfo info) override;
+	void OnCollide(PhysicObject* other, CollisionInfo info) override;
+
+
+	// Position and velocity register
+    glm::vec3 PreviousPosition;
+	glm::vec3 PreviousVelocity;
+
 private:
     // stats
     float health;

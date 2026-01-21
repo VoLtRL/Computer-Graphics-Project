@@ -2,7 +2,7 @@
 #include "box.h"
 #include "physicShapeObject.h"
 
-Map::Map(Shader* shader, Node* sceneRoot, std::vector<PhysicObject*>& physicsList) {
+Map::Map(Shader* shader, Node* sceneRoot) {
 
     Box* groundShape = new Box(shader, 50.0f, 1.0f, 50.0f); // Large flat box as ground
     groundShape->color = glm::vec3(1.0f, 1.0f, 1.0f); 
@@ -12,9 +12,12 @@ Map::Map(Shader* shader, Node* sceneRoot, std::vector<PhysicObject*>& physicsLis
     ground->Mass = 0.0f; // Immovable ground
     ground->canCollide = true; // Enable collisions
     ground->kinematic = false; // Not kinematic
+	ground->name = "Ground";
+	ground->shapeType = BOX;
+	ground->Damping = 1.0f; // No damping
+	ground->collisionShape = groundShape;
 
 
     sceneRoot->add(ground); // Add ground to the scene graph
-    physicsList.push_back(ground); // Add ground to the physics simulation list
     
 }

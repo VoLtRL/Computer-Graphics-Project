@@ -8,9 +8,9 @@ Box::Box(Shader *shader_program, float width, float height, float depth)
     : Shape(shader_program)
 {
     // half dimensions to center the box at origin
-    float w = width * 0.5f;
-    float h = height * 0.5f;
-    float d = depth * 0.5f;
+    w = width * 0.5f;
+    h = height * 0.5f;
+    d = depth * 0.5f;
 
     // define vertices
     std::vector<glm::vec3> vertices = {
