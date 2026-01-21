@@ -45,14 +45,29 @@ void Game::Init() {
 
     player = new Player(playerShape, glm::vec3(0.0f, 10.0f, 0.0f), StandardShader);
     player->SetMass(70.0f);
-    player->Damping = 1.0f;
-    player->Friction = 0.5f;
+    player->Damping = 0.8f;
+    player->Friction = 1.0f;
     player->collisionShape = playerShape;
 	player->shapeType = SPHERE;
     player->canCollide = true;
     player->name = "Player";
-
     viewer->scene_root->add(player);
+
+
+
+    // Test Cube
+    Box* testBoxShape = new Box(StandardShader, 5.0f, 5.0f, 5.0f);
+    testBoxShape->color = glm::vec3(0.8f, 0.3f, 0.3f);
+    PhysicShapeObject* testBox = new PhysicShapeObject(testBoxShape, glm::vec3(2.0f, 5.0f, 0.0f));
+    testBox->SetMass(50.0f);
+    testBox->Damping = 1.0f;
+    testBox->Friction = 1.0f;
+    testBox->collisionShape = testBoxShape;
+    testBox->shapeType = BOX;
+    testBox->canCollide = true;
+    testBox->name = "TestBox";
+    viewer->scene_root->add(testBox);
+
 
     crosshair = new Crosshair(0.1f);
     crosshairTexture = ResourceManager::GetTexture("crosshair");

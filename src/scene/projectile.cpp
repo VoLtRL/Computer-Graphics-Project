@@ -13,13 +13,13 @@ Projectile::Projectile(Shape* shape, glm::vec3 position, float speed, float dama
     Velocity = GetFrontVector() * projectileSpeed;
     Mass = 1.0f; // Set a default mass
     kinematic = false; // Projectiles are affected by physics
-    
-
-      }
+    }
 
 void Projectile::update(float deltaTime)
 {
-    if (!active) return;
+    if (!active){
+        return;
+    }
 
     // update traveled distance
     traveledDistance += glm::length(Velocity * deltaTime);

@@ -11,7 +11,7 @@ Player::Player(Shape* shape, glm::vec3 position,Shader* projectileShader)
       movementSpeed(5.0f),
       jumpStrength(10.0f),
       attackDamage(20.0f),
-      attackSpeed(2.0f),
+      attackSpeed(50.0f),
       size(1.0f),
       isJumping(false),
       attackCooldown(0.0f),
@@ -70,6 +70,8 @@ void Player::update(float deltaTime)
     for(Projectile* proj : activeProjectiles){
         if(proj->isActive()){
             proj->update(deltaTime);
+        } else {
+            deleteActiveProjectile(proj);
         }
     }
 
@@ -115,13 +117,14 @@ void Player::shoot(glm::vec3 shootDirection){
         proj_shape->color = glm::vec3(1.0f, 0.96f, 0.86f);
         proj_shape->isEmissive = true;
 
-        Projectile* proj = new Projectile(proj_shape, spawnPos, projectileSpeed, attackDamage, 50.0f);
+        Projectile* proj = new Projectile(proj_shape, spawnPos, projectileSpeed, attackDamage, 100.0f);
         proj->Velocity = shootDirection * projectileSpeed;
-        proj->SetMass(20.0f);
+        proj->SetMass(0.2f);
         proj->kinematic = false;
         proj->collisionShape = proj_shape;
         proj->shapeType = SPHERE;
         proj->canCollide = true;
+        proj->Restitution = 1.0f;
 
         proj->setFrontVector(shootDirection);
         proj->setRightVector(glm::normalize(glm::cross(proj->GetFrontVector(), glm::vec3(0.0f, 1.0f, 0.0f))));
@@ -174,5 +177,13 @@ void Player::resize(float scale)
 void Player::updateAnimation(float deltaTime)
 {
     // TODO
+}
+
+void Player::deleteActiveProjectile(Projectile* proj){
+    auto it = std::find(activeProjectiles.begin(), activeProjectiles.end(), proj);
+    if (it != activeProjectiles.end()) {
+        activeProjectiles.erase(it);
+    }
+    PhysicObject::deleteObject(proj);
 }
 
