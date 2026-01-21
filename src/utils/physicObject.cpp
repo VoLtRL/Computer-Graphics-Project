@@ -10,9 +10,9 @@ float PhysicObject::Length2(const glm::vec3& v) {
 
 float ProjectOBB(const OBBCollision& box, const glm::vec3& axis) {
 	return
-		box.halfExtents.x * abs(glm::dot(axis, box.rotation[0])) +
-		box.halfExtents.y * abs(glm::dot(axis, box.rotation[1])) +
-		box.halfExtents.z * abs(glm::dot(axis, box.rotation[2]));
+        box.halfExtents.x * std::abs(glm::dot(axis, box.rotation[0])) +
+        box.halfExtents.y * std::abs(glm::dot(axis, box.rotation[1])) +
+        box.halfExtents.z * std::abs(glm::dot(axis, box.rotation[2]));
 }
 
 
@@ -219,7 +219,7 @@ CollisionInfo PhysicObject::Box2Box(PhysicObject* objA, PhysicObject* objB) {
 
 		axis = glm::normalize(axis);
 
-		float dist = abs(glm::dot(d, axis));
+		float dist = std::abs(glm::dot(d, axis));
 		float rA = ProjectOBB(A, axis);
 		float rB = ProjectOBB(B, axis);
 

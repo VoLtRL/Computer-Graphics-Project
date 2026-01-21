@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string>
 #include <algorithm> // Added for std::find in destructor
+#include <cmath>
 
 class physicShapeObject; // Forward declaration
 
