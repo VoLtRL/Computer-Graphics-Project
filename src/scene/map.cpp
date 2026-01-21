@@ -13,7 +13,9 @@ Map::Map(Shader* shader, Node* sceneRoot) {
 	ground->name = "Ground";
 	ground->shapeType = BOX;
 	ground->Damping = 1.0f; // No damping
+    ground->Friction = 0.5f;
 	ground->collisionShape = groundShape;
+    ground->Restitution = 1.0f;
 
 
     sceneRoot->add(ground); // Add ground to the scene graph

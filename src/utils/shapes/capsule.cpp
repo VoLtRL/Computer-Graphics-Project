@@ -2,6 +2,7 @@
 #include <vector>
 #include <glm/gtc/type_ptr.hpp>
 #include <cmath>
+# define M_PI          3.141592653589793238462643383279502884L /* pi */
 
 Capsule::Capsule(Shader* shader_program, float radius, float height)
     : Shape(shader_program), radius(radius), height(height) {
@@ -13,7 +14,7 @@ Capsule::Capsule(Shader* shader_program, float radius, float height)
 
     // cylinder part
     for (unsigned int i = 0; i <= segments; ++i) {
-        float theta = i * 2.0f * M_PI / segments;
+        float theta = i * 2.0f *  M_PI * segments;
         float cosTheta = cos(theta);
         float sinTheta = sin(theta);
 

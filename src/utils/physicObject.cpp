@@ -103,6 +103,27 @@ void PhysicObject::ResolveCollision(
 	A->Velocity -= impulse * A->InvMass;
 	B->Velocity += impulse * B->InvMass;
 
+	// --- FRICTION ---
+	glm::vec3 tangent =
+		rv - glm::dot(rv, normal) * normal;
+
+	if (PhysicObject::Length2(tangent) > 1e-6f) {
+		tangent = glm::normalize(tangent);
+
+		float mu = std::sqrt(A->Friction * B->Friction);
+
+		float jt = -glm::dot(rv, tangent);
+		jt /= (A->InvMass + B->InvMass);
+
+		float maxFriction = j * mu;
+		jt = glm::clamp(jt, -maxFriction, maxFriction);
+
+		glm::vec3 frictionImpulse = jt * tangent;
+
+		A->Velocity -= frictionImpulse * A->InvMass;
+		B->Velocity += frictionImpulse * B->InvMass;
+	}
+
 	A->OnCollide(B, c);
 	B->OnCollide(A, c);
 }
@@ -290,7 +311,7 @@ CollisionInfo PhysicObject::Box2Sphere(PhysicObject* boxObj, PhysicObject* spher
 	result.normal =
 		glm::normalize(glm::vec3(box.rotation * glm::vec4(localNormal, 0.0f)));
 
-	// 8. P�n�tration
+	// 8. Pénétration
 	result.penetration = sphere.radius - distance;
 
 	return result;
