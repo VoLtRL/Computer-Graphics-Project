@@ -42,6 +42,18 @@ enum ShapeType {
     INVALID
 };
 
+enum CollisionGroup : uint32_t {
+    CG_NONE = 0,
+    CG_PLAYER = 1 << 0,
+    CG_ENEMY = 1 << 1,
+    CG_PLAYER_PROJECTILE = 1 << 2,
+    CG_ENEMY_PROJECTILE = 1 << 3,
+    CG_ENVIRONMENT = 1 << 4,
+    CG_MAP = CG_PLAYER | CG_ENEMY | CG_PLAYER_PROJECTILE | CG_ENEMY_PROJECTILE | CG_ENVIRONMENT,
+    CG_PLAYER_COLLISIONS = CG_ENVIRONMENT | CG_ENEMY | CG_ENEMY_PROJECTILE
+};
+
+
 class PhysicObject {
 
 public:
@@ -74,6 +86,8 @@ public:
     Shape* collisionShape;
     float Restitution;
     ShapeType shapeType;
+    uint32_t  collisionGroup = CG_NONE;
+    uint32_t  collisionMask = CG_NONE;
 
     // Update physics state (Integration only)
     void UpdatePhysics(float deltaTime);
@@ -110,6 +124,7 @@ public:
     void setUpVector(const glm::vec3& up) {
         RotationMatrix[1] = glm::vec4(glm::normalize(up), 0.0f);
     }
+
 
     // Static list of all PhysicObject instances
     inline static std::vector<PhysicObject*> allPhysicObjects{}; 

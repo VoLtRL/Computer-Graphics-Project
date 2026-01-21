@@ -16,6 +16,8 @@ Map::Map(Shader* shader, Node* sceneRoot) {
     ground->Friction = 0.5f;
 	ground->collisionShape = groundShape;
     ground->Restitution = 1.0f;
+    ground->collisionGroup = CG_ENVIRONMENT;
+    ground->collisionMask = CG_PLAYER | CG_ENEMY | CG_PLAYER_PROJECTILE | CG_ENEMY_PROJECTILE | CG_ENVIRONMENT;
 
 
     sceneRoot->add(ground); // Add ground to the scene graph

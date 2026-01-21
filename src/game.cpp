@@ -51,6 +51,8 @@ void Game::Init() {
 	player->shapeType = CAPSULE;
     player->canCollide = true;
     player->name = "Player";
+	player->collisionGroup = CG_PLAYER;
+	player->collisionMask = CG_PLAYER_COLLISIONS;
 
     viewer->scene_root->add(player);
 
@@ -67,6 +69,8 @@ void Game::Init() {
     testBox->shapeType = BOX;
     testBox->canCollide = true;
     testBox->name = "TestBox";
+	testBox->collisionGroup = CG_ENVIRONMENT;
+	testBox->collisionMask = CG_PLAYER | CG_ENEMY | CG_PLAYER_PROJECTILE | CG_ENEMY_PROJECTILE | CG_ENVIRONMENT;
     viewer->scene_root->add(testBox);
 
     Sphere* testSphereShape = new Sphere(StandardShader, 2.5f, 20);
@@ -79,6 +83,8 @@ void Game::Init() {
     testShpere->shapeType = SPHERE;
     testShpere->canCollide = true;
     testShpere->name = "TestSphere";
+    testShpere->collisionGroup = CG_ENVIRONMENT;
+    testShpere->collisionMask = CG_PLAYER | CG_ENEMY | CG_PLAYER_PROJECTILE | CG_ENEMY_PROJECTILE | CG_ENVIRONMENT;
     viewer->scene_root->add(testShpere);
 
     Capsule* testCapsuleShape = new Capsule(StandardShader, 2.0f, 5.0f);
@@ -91,6 +97,8 @@ void Game::Init() {
     testCapsule->shapeType = CAPSULE;
     testCapsule->canCollide = true;
     testCapsule->name = "TestCapsule";
+	testCapsule->collisionGroup = CG_ENVIRONMENT;
+	testCapsule->collisionMask = CG_PLAYER | CG_ENEMY | CG_PLAYER_PROJECTILE | CG_ENEMY_PROJECTILE | CG_ENVIRONMENT;
     viewer->scene_root->add(testCapsule);
 }
 

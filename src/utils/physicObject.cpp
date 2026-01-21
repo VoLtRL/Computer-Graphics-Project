@@ -624,6 +624,13 @@ CollisionInfo PhysicObject::Capsule2Capsule(PhysicObject* objA, PhysicObject* ob
 }
 
 CollisionInfo PhysicObject::checkCollision(PhysicObject* objA, PhysicObject* objB) {
+
+	if (!objA || !objB) {
+		std::cout << "One of the PhysicObjects is null." << std::endl;
+		CollisionInfo result;
+		return result; // No collision detected
+	}
+
 	if (!objA->canCollide || !objB->canCollide) {
 		std::cout << "One of the PhysicObjects cannot collide." << std::endl;
 		CollisionInfo result;
@@ -631,12 +638,6 @@ CollisionInfo PhysicObject::checkCollision(PhysicObject* objA, PhysicObject* obj
 	}
 
 	std::cout << "Checking collision between " << objA->name << " and " << objB->name << std::endl;
-
-	if(!objA || !objB) {
-		std::cout << "One of the PhysicObjects is null." << std::endl;
-		CollisionInfo result;
-		return result; // No collision detected
-	}
 
 	ShapeType typeA = objA->shapeType;
 	ShapeType typeB = objB->shapeType;
@@ -654,6 +655,12 @@ CollisionInfo PhysicObject::checkCollision(PhysicObject* objA, PhysicObject* obj
 		return result; // No collision detected
 	}
 
+
+	if (!((objA->collisionMask & objB->collisionGroup) && (objB->collisionMask & objA->collisionGroup))) {
+		std::cout << "These objects can't collide with each others." << std::endl;
+		CollisionInfo result;
+		return result; // No collision detected
+	}
 
 	if (typeA == BOX) {
 		// old was safely casted to NewType
