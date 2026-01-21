@@ -10,6 +10,7 @@
 #include "map.h"
 #include <vector>
 #include "player.h"
+#include "sphere.h"
 
 #ifndef SHADER_DIR
 #error "SHADER_DIR not defined"
@@ -79,17 +80,16 @@ int main()
     // physics
 
     //Load map
-    Map* map = new Map(worldShader, viewer.scene_root, PhysicObject::allPhysicObjects);
+    Map* map = new Map(worldShader, viewer.scene_root);
 
-    Shape* playerCube = new Box(playerShader, 1.0f, 1.0f, 1.0f);
+    Shape* playerCube = new Sphere(playerShader, 1.0f);
 
     Player* player = new Player(playerCube, glm::vec3(0.0f,20.0f,0.0f),playerShader);
     player->SetMass(70.0f); // mass in kg
     player->Damping = 1.0f; // some damping
 	player->collisionShape = playerCube;
-	player->shapeType = BOX;
+	player->shapeType = SPHERE;
 	player->name = "Player";
-	PhysicObject::allPhysicObjects.push_back(player);
     viewer.scene_root->add(player);
 
 
@@ -105,14 +105,24 @@ int main()
     Shape* testCube2 = new Box(worldShader, 3.0f, 3.0f, 3.0f);
 	PhysicShapeObject* cube2 = new PhysicShapeObject(testCube2, glm::vec3(7.0f, 10.0f, 0.0f));
 	cube2->SetMass(2.0f); // mass in kg
-    cube2->Damping = 0.1f; // some damping
+    cube2->Damping = 0.0f; // some damping
 	cube2->collisionShape = testCube2;
     cube2->shapeType = BOX;
 	cube2->name = "FallingCube";
 	cube2->canCollide = true;
+	cube2->Friction = 0.0f;
 
-    PhysicObject::allPhysicObjects.push_back(cube1);
-    PhysicObject::allPhysicObjects.push_back(cube2);
+	Shape* testSphere = new Sphere(worldShader, 2.0f, 20);
+	PhysicShapeObject* sphere1 = new PhysicShapeObject(testSphere, glm::vec3(-7.0f, 10.0f, 0.0f));
+    sphere1->SetMass(2.0f); // mass in kg
+	sphere1->Damping = 0.0f; // some damping
+    sphere1->collisionShape = testSphere;
+	sphere1->shapeType = SPHERE;
+	sphere1->name = "FallingSphere";
+	sphere1->canCollide = true;
+
+
+	viewer.scene_root->add(sphere1);
 
 	viewer.scene_root->add(cube1);
 	viewer.scene_root->add(cube2);

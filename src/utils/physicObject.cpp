@@ -3,24 +3,8 @@
 #include "box.h"
 #include "sphere.h"
 
-struct CollisionInfo {
-	bool hit = false;
-	glm::vec3 normal = glm::vec3(0.0f);
-	float penetration = 0.0f;
-};
 
-struct OBBCollision {
-	glm::vec3 center;
-	glm::vec3 halfExtents; // (w/2, h/2, d/2)
-	glm::mat3 rotation;    // orientation
-};
-
-struct SphereCollision {
-	glm::vec3 center;
-	float radius;
-};
-
-float length2(const glm::vec3& v) {
+float PhysicObject::Length2(const glm::vec3& v) {
 	return glm::dot(v, v);
 }
 
@@ -61,52 +45,76 @@ PhysicObject::PhysicObject(glm::vec3 position)
 	PhysicObject::allPhysicObjects.push_back(this); // Add this instance to the static list
 }
 
+
+	
+
 void PhysicObject::ResolveCollision(
 	PhysicObject* A,
 	PhysicObject* B,
 	const CollisionInfo& c
 ) {
-	if (!c.hit){ 
-		std::cout << "No Collision" << std::endl;
-		return;
-	}
-	std::cout << "Collision detected with penetration: " << c.penetration << std::endl;
+	if (!c.hit) return;
+	//std::cout << "Collision detected with penetration: " << c.penetration << std::endl;
+
+	A->BeforeCollide(B, c);
+	B->BeforeCollide(A, c);
+
+	float invMassSum = A->InvMass + B->InvMass;
+	if (invMassSum == 0.0f) return;
+
+	// --- Sécuriser la normale ---
+	glm::vec3 normal = c.normal;
+	glm::vec3 AB = B->Position - A->Position;
+	if (glm::dot(normal, AB) < 0.0f)
+		normal = -normal;
 
 	// --- Correction de position ---
-	float percent = 0.99f;
+	float percent = 0.8f;
 	float slop = 0.01f;
 
 	glm::vec3 correction =
 		std::max(c.penetration - slop, 0.0f)
-		/ (A->InvMass + B->InvMass)
+		/ invMassSum
 		* percent
-		* c.normal;
+		* normal;
 
 	A->Position -= correction * A->InvMass;
 	B->Position += correction * B->InvMass;
 
 	// --- Vélocité relative ---
 	glm::vec3 rv = B->Velocity - A->Velocity;
-	float velAlongNormal = glm::dot(rv, c.normal);
+	float velAlongNormal = glm::dot(rv, normal);
 
-	if (velAlongNormal > 0) return;
+	if (velAlongNormal > 0.0f) return;
 
 	float e = std::min(A->Restitution, B->Restitution);
 
-	float j = -(1 + e) * velAlongNormal;
-	j /= A->InvMass + B->InvMass;
+	float j = -(1.0f + e) * velAlongNormal;
+	j /= invMassSum;
 
-	glm::vec3 impulse = j * c.normal;
+	glm::vec3 impulse = j * normal;
 
-	A->ApplyForce(-impulse * A->InvMass);
-	B->ApplyForce(impulse * B->InvMass);
+	// IMPULSION CORRECTE
+	A->Velocity -= impulse * A->InvMass;
+	B->Velocity += impulse * B->InvMass;
 
-	A->Velocity *= (1.0f - B->Friction);
-	B->Velocity *= (1.0f - A->Friction);
+	A->OnCollide(B, c);
+	B->OnCollide(A, c);
 }
 
 
+
 // Update physics state
+
+void PhysicObject::OnCollide(PhysicObject* other, CollisionInfo info) {
+	// Placeholder for after-collision response logic
+	return;
+}
+
+void PhysicObject::BeforeCollide(PhysicObject* other, CollisionInfo info) {
+	// Placeholder for pre-collision logic
+	return;
+}
 
 void PhysicObject::UpdatePhysics(float deltaTime)
 {
@@ -137,21 +145,21 @@ void PhysicObject::UpdatePhysics(float deltaTime)
 		Position += Velocity * deltaTime;			// Integrate velocity
 
 		// Reset applied forces
+		// Reset applied forces
 		forcesApplied = glm::vec3(0.0f);	// Since forces are instant, reset after each update
 	}
 
 	// Collisions
+
 	for (PhysicObject* other : PhysicObject::allPhysicObjects) {
 		if (other == this) continue;
-
 		CollisionInfo info = checkCollision(this, other);
 		ResolveCollision(this, other, info);
 	}
-
 }
 
 CollisionInfo PhysicObject::Box2Box(PhysicObject* objA, PhysicObject* objB) {
-	std::cout << "Box Collision Check" << std::endl;
+	//std::cout << "Box-Box Collision Check" << std::endl;
 	Box* a = static_cast<Box*>(objA->collisionShape);
 	Box* b = static_cast<Box*>(objB->collisionShape);
 
@@ -188,7 +196,7 @@ CollisionInfo PhysicObject::Box2Box(PhysicObject* objA, PhysicObject* objB) {
 
 	for (int i = 0; i < axisCount; i++) {
 		glm::vec3 axis = axes[i];
-		if (length2(axis) < 1e-6f) continue;
+		if (PhysicObject::Length2(axis) < 1e-6f) continue;
 
 		axis = glm::normalize(axis);
 
@@ -215,40 +223,77 @@ CollisionInfo PhysicObject::Box2Box(PhysicObject* objA, PhysicObject* objB) {
 
 }
 
-CollisionInfo PhysicObject::Box2Sphere(PhysicObject* box, PhysicObject* sphere) {
+CollisionInfo PhysicObject::Box2Sphere(PhysicObject* boxObj, PhysicObject* sphereObj) {
+	//std::cout << "Box-Sphere Collision Check" << std::endl;
+	Box* boxShape = static_cast<Box*>(boxObj->collisionShape);
+	Sphere* sphereShape = static_cast<Sphere*>(sphereObj->collisionShape);
 
-	Box* boxShape = static_cast<Box*>(box->collisionShape);
-	Sphere* sphereShape = static_cast<Sphere*>(sphere->collisionShape);
+	OBBCollision box;
+	box.center = boxObj->Position;
+	box.halfExtents = glm::vec3(boxShape->w, boxShape->h, boxShape->d);
+	box.rotation = glm::mat3(boxObj->RotationMatrix);
 
-	SphereCollision s;
-	s.center = sphere->Position;
-	s.radius = sphereShape->radius;
-	OBBCollision b;
-	b.center = box->Position;
-	b.halfExtents = glm::vec3(boxShape->w, boxShape->h, boxShape->d);
-	b.rotation = glm::mat3(box->RotationMatrix);
+	SphereCollision sphere;
+	sphere.center = sphereObj->Position;
+	sphere.radius = sphereShape->radius;
 
 	CollisionInfo result;
 
-	glm::vec3 localCenter = glm::transpose(b.rotation) * (s.center - b.center);
+	// 1. Matrice inverse de rotation
+	glm::mat4 invRot = glm::inverse(box.rotation);
 
-	glm::vec3 closestPoint = glm::clamp(
-		localCenter,
-		-b.halfExtents,
-		b.halfExtents
-	);
+	// 2. Centre de la sphère en espace local de la boîte
+	glm::vec3 localCenter =
+		glm::vec3(invRot * glm::vec4(sphere.center - box.center, 1.0f));
 
-	glm::vec3 worldClosest = b.center + b.rotation * closestPoint;
-	glm::vec3 delta = s.center - worldClosest;
+	// 3. Point le plus proche sur l'AABB locale
+	glm::vec3 closestPoint;
+	closestPoint.x = glm::clamp(localCenter.x, -box.halfExtents.x, box.halfExtents.x);
+	closestPoint.y = glm::clamp(localCenter.y, -box.halfExtents.y, box.halfExtents.y);
+	closestPoint.z = glm::clamp(localCenter.z, -box.halfExtents.z, box.halfExtents.z);
 
-	float dist2 = glm::dot(delta, delta);
-	if (dist2 > s.radius * s.radius) return result;
+	// 4. Vecteur entre la sphère et la boîte
+	glm::vec3 delta = localCenter - closestPoint;
+	float distanceSq = glm::dot(delta, delta);
 
-	float dist = sqrt(dist2);
+	if (distanceSq > sphere.radius * sphere.radius){
+		result.hit = false;
+		result.penetration = 0.0f;
+		return result;
+	}
+
+	//std::cout << "distanceSq = " << distanceSq << std::endl;
+	//std::cout << "radiusSq   = " << sphere.radius * sphere.radius << std::endl;
 
 	result.hit = true;
-	result.normal = dist > 0.0f ? delta / dist : glm::vec3(0, 1, 0);
-	result.penetration = s.radius - dist;
+	float distance = sqrt(distanceSq);
+	result.penetration = sphere.radius - distance;
+
+	// Cas spécial : centre de la sphère à l'intérieur de la boîte
+	if (distance < 0.0001f) {
+		// Trouver la face la plus proche
+		glm::vec3 absLocal = glm::abs(localCenter);
+		glm::vec3 d = box.halfExtents - absLocal;
+
+		if (d.x < d.y && d.x < d.z)
+			delta = glm::vec3(glm::sign(localCenter.x), 0, 0);
+		else if (d.y < d.z)
+			delta = glm::vec3(0, glm::sign(localCenter.y), 0);
+		else
+			delta = glm::vec3(0, 0, glm::sign(localCenter.z));
+
+		distance = 0.0f;
+	}
+
+	// 6. Normale en espace local
+	glm::vec3 localNormal = glm::normalize(delta);
+
+	// 7. Repasser la normale en espace monde
+	result.normal =
+		glm::normalize(glm::vec3(box.rotation * glm::vec4(localNormal, 0.0f)));
+
+	// 8. Pénétration
+	result.penetration = sphere.radius - distance;
 
 	return result;
 }

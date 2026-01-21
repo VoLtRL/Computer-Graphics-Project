@@ -17,12 +17,33 @@ Player::Player(Shape* shape, glm::vec3 position,Shader* projectileShader)
       attackCooldown(0.0f),
       groundDamping(8.0f),
       projectileSpeed(15.0f),
-      projectileShader(projectileShader)
+      projectileShader(projectileShader),
+	  PreviousPosition(position)
 {
     std::cout << "Player created at position: (" 
               << position.x << ", " 
               << position.y << ", " 
               << position.z << ")" << std::endl;
+}
+
+void Player::BeforeCollide(PhysicObject* other, CollisionInfo info)
+{
+    // Placeholder for any pre-collision logic
+    if (info.hit) {
+        PreviousPosition = Position;
+        PreviousVelocity = Velocity;
+	}
+}
+
+void Player::OnCollide(PhysicObject* other, CollisionInfo info)
+{
+    // Simple ground collision detection
+    if (isJumping && info.hit && PhysicObject::Length2(PreviousPosition-Position) < 0.05f) {
+        isJumping = false; // Reset jumping state when colliding with ground
+    }
+    else {
+        //std::cout << PhysicObject::Length2(PreviousPosition - Position) << std::endl;
+    }
 }
 
 void Player::update(float deltaTime)

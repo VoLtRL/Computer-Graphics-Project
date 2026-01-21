@@ -8,9 +8,23 @@
 
 class physicShapeObject; // Forward declaration
 
-struct CollisionInfo;
-struct OBBCollision;
-struct SphereCollision;
+
+struct CollisionInfo {
+	bool hit = false;
+	glm::vec3 normal = glm::vec3(0.0f);
+	float penetration = 0.0f;
+};
+
+struct OBBCollision {
+	glm::vec3 center;
+	glm::vec3 halfExtents; // (w/2, h/2, d/2)
+	glm::mat3 rotation;    // orientation
+};
+
+struct SphereCollision {
+	glm::vec3 center;
+	float radius;
+};
 
 class Shape;
 
@@ -81,6 +95,11 @@ public:
 
 	inline static std::vector<PhysicObject*> allPhysicObjects{}; // Static list of all PhysicObject instances
 
+	virtual void BeforeCollide(PhysicObject* other, CollisionInfo info);
+	virtual void OnCollide(PhysicObject* other, CollisionInfo info);
+
+	static float Length2(const glm::vec3& v); // Static method to compute squared length of a vector
+
 	static CollisionInfo Box2Box(PhysicObject* objA, PhysicObject* objB); // Static method for AABB collision detection
 	static CollisionInfo Box2Sphere(PhysicObject* objA, PhysicObject* objB); // Static method for Box to Sphere collision detection
 	static CollisionInfo Box2Capsule(PhysicObject* objA, PhysicObject* objB); // Static method for Box to Capsule collision detection
@@ -88,6 +107,7 @@ public:
 	static CollisionInfo Sphere2Capsule(PhysicObject* objA, PhysicObject* objB); // Static method for Sphere to Capsule collision detection
 	static CollisionInfo Capsule2Capsule(PhysicObject* objA, PhysicObject* objB); // Static method for Capsule to Capsule collision detection
 	static CollisionInfo checkCollision(PhysicObject* objA, PhysicObject* objB); // Static method to check collision between two PhysicObjects
+
 
 	static void ResolveCollision(PhysicObject* objA, PhysicObject* objB, const CollisionInfo& collisionInfo);
 	static std::string ShapeTypeToString(ShapeType type);
