@@ -24,10 +24,16 @@ public:
     float deltaTime = 0.0f; 
     float lastFrame = 0.0f;
 
+    unsigned int depthMapFBO;
+    unsigned int depthMap;
+    const unsigned int SHADOW_WIDTH = 2048, SHADOW_HEIGHT = 2048;
+
     std::map<int, bool> keymap = {{GLFW_KEY_W, false}, {GLFW_KEY_A, false}, {GLFW_KEY_S, false}, {GLFW_KEY_D, false}, {GLFW_KEY_ESCAPE, false}};
 
     void run();
     void on_key(int key);
+    void initShadowMap();
+
 
     Node *scene_root;
     Camera* camera;

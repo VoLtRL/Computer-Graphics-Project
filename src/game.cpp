@@ -25,8 +25,8 @@ void Game::Init() {
     Shader* StandardShader = ResourceManager::GetShader("standard");
 
     glm::vec4 fogColor(0.2f, 0.2f, 0.2f, 1.0f);
-    float fogStart = 5.0f;
-    float fogEnd = 45.0f;
+    float fogStart = 10.0f;
+    float fogEnd = 75.0f;
 
     glUseProgram(StandardShader->get_id());
     glUniform4fv(glGetUniformLocation(StandardShader->get_id(), "fogColor"), 1, &fogColor[0]);
@@ -127,7 +127,7 @@ void Game::Update() {
     glUseProgram(standardShader->get_id());
 
     int activeCount = 0;
-    int MAX_LIGHTS = 32;
+    int MAX_LIGHTS = 100;
 
     std::vector<float> lightPos;
     std::vector<float> lightColors;
@@ -150,7 +150,9 @@ void Game::Update() {
         }
     }
 
+    
     glUniform1i(glGetUniformLocation(standardShader->get_id(), "numActiveLights"), activeCount);
+
     
     if (activeCount > 0) {
         glUniform3fv(glGetUniformLocation(standardShader->get_id(), "lightPos"), activeCount, lightPos.data());
