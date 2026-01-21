@@ -1,5 +1,7 @@
 #version 330 core
 
+#define MAX_LIGHTS 32
+
 in vec3 fragPos;
 in float visibility;
 
@@ -10,9 +12,10 @@ uniform bool useCheckerboard;
 uniform bool isEmissive;
 
 uniform vec4 fogColor;
-uniform vec3 lightPos;
-uniform vec3 lightColor;
-uniform float lightIntensity;
+uniform int numActiveLights;
+uniform vec3 lightPos[MAX_LIGHTS];
+uniform vec3 lightColors[MAX_LIGHTS];
+uniform float lightIntensities[MAX_LIGHTS];
 
 vec4 applyFog(vec4 baseColor, float vis) {
     return mix(fogColor, baseColor, vis);
@@ -37,12 +40,15 @@ void main() {
         baseColor = objectColor;
     }
 
-    float distance = length(lightPos - fragPos);
-    float attenuation = 1.0 / (1.0 + 0.05 * distance + 0.005 * distance * distance);
+    vec3 totalLighting = vec3(0.0);
+
+    for(int i = 0; i < numActiveLights; i++) {
+        float distance = length(lightPos[i] - fragPos);
+        float attenuation = 1.0 / (1.0 + 0.05 * distance + 0.005 * distance * distance);
+        totalLighting += lightColors[i] * attenuation * lightIntensities[i];
+    }
     
-    vec3 lighting = lightColor * attenuation * lightIntensity;
-    
-    vec3 finalColorRGB = baseColor + lighting;
+    vec3 finalColorRGB = baseColor + totalLighting;
 
     out_color = applyFog(vec4(finalColorRGB, 1.0), visibility);
 }

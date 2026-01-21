@@ -24,8 +24,8 @@ void Game::Init() {
     Shader* StandardShader = ResourceManager::GetShader("standard");
 
     glm::vec4 fogColor(0.2f, 0.2f, 0.2f, 1.0f);
-    float fogStart = 20.0f;
-    float fogEnd = 100.0f;
+    float fogStart = 5.0f;
+    float fogEnd = 45.0f;
 
     glUseProgram(StandardShader->get_id());
     glUniform4fv(glGetUniformLocation(StandardShader->get_id(), "fogColor"), 1, &fogColor[0]);
@@ -111,19 +111,37 @@ void Game::Update() {
     Shader* standardShader = ResourceManager::GetShader("standard");
     glUseProgram(standardShader->get_id());
 
-    glm::vec3 lightPos(0.0f, -100.0f, 0.0f);
+    int activeCount = 0;
+    int MAX_LIGHTS = 32;
+
+    std::vector<float> lightPos;
+    std::vector<float> lightColors;
+    std::vector<float> lightIntensities;
+
     
     for (auto proj : player->getActiveProjectiles()) {
-        if (proj->isActive()) {
-            lightPos = proj->Position;
+        if (proj->isActive() && activeCount < MAX_LIGHTS) {
+            lightPos.push_back(proj->Position.x);
+            lightPos.push_back(proj->Position.y);
+            lightPos.push_back(proj->Position.z);
+
+            lightColors.push_back(1.0f);
+            lightColors.push_back(0.8f);
+            lightColors.push_back(0.6f);
+
+            lightIntensities.push_back(0.6f);
+
+            activeCount++;
         }
     }
 
-    glUniform3f(glGetUniformLocation(standardShader->get_id(), "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+    glUniform1i(glGetUniformLocation(standardShader->get_id(), "numActiveLights"), activeCount);
     
-    glUniform3f(glGetUniformLocation(standardShader->get_id(), "lightColor"), 1.0f, 0.8f, 0.6f);
-    glUniform1f(glGetUniformLocation(standardShader->get_id(), "lightIntensity"), 5.0f);
-
+    if (activeCount > 0) {
+        glUniform3fv(glGetUniformLocation(standardShader->get_id(), "lightPos"), activeCount, lightPos.data());
+        glUniform3fv(glGetUniformLocation(standardShader->get_id(), "lightColors"), activeCount, lightColors.data());
+        glUniform1fv(glGetUniformLocation(standardShader->get_id(), "lightIntensities"), activeCount, lightIntensities.data());
+    }
 
 
     if(player->Position.y <= 0.5f){

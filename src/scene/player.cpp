@@ -97,7 +97,7 @@ void Player::shoot(glm::vec3 shootDirection){
         glm::vec3 spawnPos = shootingOrigin + (shootDirection * spawnDistance);
 
         Shape* proj_shape = new Sphere(projectileShader, size * 0.2f, 20);
-        proj_shape->color = glm::vec3(1.0f, 1.0f, 1.0f);
+        proj_shape->color = glm::vec3(1.0f, 0.96f, 0.86f);
         proj_shape->isEmissive = true;
 
         Projectile* proj = new Projectile(proj_shape, spawnPos, projectileSpeed, attackDamage, 50.0f);
