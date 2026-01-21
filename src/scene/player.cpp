@@ -65,16 +65,35 @@ void Player::update(float deltaTime)
 
 void Player::draw(glm::mat4& view, glm::mat4& projection)
 {
-    // Draw the player using the PhysicShapeObject's draw method
-    PhysicShapeObject::draw(view, projection);
-    // Draw active projectiles
-    for(Projectile* proj : activeProjectiles){
-        if(proj->isActive()){
-            proj->draw(view, projection);
-        }
+    if (this->model != nullptr) {
+
+        glm::mat4 model = glm::mat4(1.0f);
+        
+        // Position
+        model = glm::translate(model, this->Position);
+        //For good positioning on the platform
+        model = glm::translate(model, glm::vec3(0.0f, 1.0f, 0.0f));
+
+        // Orientation
+        glm::mat4 rotation = glm::inverse(glm::lookAt(glm::vec3(0.0f), this->FrontVector, glm::vec3(0.0f, 1.0f, 0.0f)));
+        model = model * rotation;
+
+        // Ajustement
+        // model = glm::scale(model, glm::vec3(0.5f));
+        // model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0,1,0));
+
+        // Draw
+        this->model->draw(model, view, projection);
+    } 
+    else {//Backup
+        PhysicShapeObject::draw(view, projection);
+    }
+
+    // Projectiles
+    for (auto p : activeProjectiles) {
+        p->draw(view, projection);
     }
 }
-
 
 void Player::jump(){
     if(!isJumping){

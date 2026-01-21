@@ -5,6 +5,8 @@
 #include <glm/glm.hpp>
 #include <vector>
 
+#include "node.h"
+
 // Forward declaration pour éviter les inclusions circulaires si nécessaire
 class Weapon; 
 
@@ -15,6 +17,9 @@ public:
     // game loop update
     void update(float deltaTime); 
     void draw(glm::mat4& view, glm::mat4& projection) override;
+
+    //Skin 3D
+    void setModel(Node* modelNode) { this->model = modelNode; }
 
     // actions
     void jump();
@@ -43,6 +48,9 @@ public:
     void gainJumpStrength(float quantity);
 
 private:
+    //Model
+    Node* model = nullptr;
+
     // stats
     float health;
     float maxHealth;

@@ -3,6 +3,8 @@
 #include <GLFW/glfw3.h>
 #include "handlePhysics.h"
 
+#include "model.h"
+
 Game::Game(Viewer* v) : viewer(v) {
     handlePhysics = new HandlePhysics();
 }
@@ -53,6 +55,16 @@ void Game::Init() {
 
     viewer->scene_root->add(player);
     handlePhysics->AddObject(player);
+
+    // --- Intégration chevalier ---
+    Model* knight = new Model(imageDir + "Knight_V2.glb", StandardShader);
+    if (knight->rootNode) {
+        // Optionnel : Si le modèle est trop grand/petit ou mal orienté, 
+        // on peut modifier la transformation de rootNode ici.
+        // Exemple : knight->rootNode->set_transform(glm::scale(glm::mat4(1.0f), glm::vec3(0.5f))); 
+        
+        player->setModel(knight->rootNode);
+    }
 
     crosshair = new Crosshair(0.1f);
     crosshairTexture = ResourceManager::GetTexture("crosshair");
@@ -123,8 +135,6 @@ void Game::Update() {
     
     glUniform3f(glGetUniformLocation(standardShader->get_id(), "lightColor"), 1.0f, 0.8f, 0.6f);
     glUniform1f(glGetUniformLocation(standardShader->get_id(), "lightIntensity"), 5.0f);
-
-
 
     if(player->Position.y <= 0.5f){
         player->Position.y = 0.5f;
