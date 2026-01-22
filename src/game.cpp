@@ -100,12 +100,6 @@ void Game::Init() {
         viewer->scene_root->add(e);
     }
 
-    // --- Integration of Knight ---
-    Model* knight = new Model(imageDir + "Knight_V2.glb", StandardShader);
-    if (knight->rootNode) {
-        player->setModel(knight->rootNode);
-    }
-
     crosshair = new Crosshair(0.1f);
     crosshairTexture = ResourceManager::GetTexture("crosshair");
 }
