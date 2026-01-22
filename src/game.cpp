@@ -44,7 +44,6 @@ void Game::Init() {
         handlePhysics->AddObject(obj);
     }
 
-    // Create Player Shape with a blue color and no checkerboard pattern
     Shape* playerShape = new Capsule(StandardShader, 0.6f, 1.0f);
     playerShape->color = glm::vec3(0.22f, 0.65f, 0.92f);
     playerShape->useCheckerboard = false;
@@ -56,13 +55,9 @@ void Game::Init() {
     viewer->scene_root->add(player);
     handlePhysics->AddObject(player);
 
-    // --- Intégration chevalier ---
+    // --- Integration of Knight ---
     Model* knight = new Model(imageDir + "Knight_V2.glb", StandardShader);
     if (knight->rootNode) {
-        // Optionnel : Si le modèle est trop grand/petit ou mal orienté, 
-        // on peut modifier la transformation de rootNode ici.
-        // Exemple : knight->rootNode->set_transform(glm::scale(glm::mat4(1.0f), glm::vec3(0.5f))); 
-        
         player->setModel(knight->rootNode);
     }
 
