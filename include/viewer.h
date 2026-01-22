@@ -14,8 +14,8 @@
 
 #include <functional>
 
-const unsigned int SCR_WIDTH = 700;
-const unsigned int SCR_HEIGHT = 700;
+const unsigned int SCR_WIDTH = 1920;
+const unsigned int SCR_HEIGHT = 1200;
 
 class Viewer {
 public:
@@ -24,7 +24,7 @@ public:
     float deltaTime = 0.0f; 
     float lastFrame = 0.0f;
 
-    std::map<int, bool> keymap = {{GLFW_KEY_W, false}, {GLFW_KEY_A, false}, {GLFW_KEY_S, false}, {GLFW_KEY_D, false}, {GLFW_KEY_ESCAPE, false}};
+    std::map<int, bool> keymap = {{GLFW_KEY_W, false}, {GLFW_KEY_A, false}, {GLFW_KEY_S, false}, {GLFW_KEY_D, false}, {GLFW_KEY_ESCAPE, false}, {GLFW_KEY_SPACE, false}, {GLFW_KEY_F, false}};
 
     void run();
     void on_key(int key);

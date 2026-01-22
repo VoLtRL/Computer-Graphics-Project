@@ -1,5 +1,5 @@
 #include "mesh.h"
-#include <glm/gtc/type_ptr.hpp> // Nécessaire pour glm::value_ptr
+#include <glm/gtc/type_ptr.hpp>
 
 Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures, Shader* shader, std::string matName) 
     : Shape(shader) 
@@ -8,9 +8,6 @@ Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std:
     this->indices = indices;
     this->textures = textures;
     this->materialName = matName;
-
-    // On désactive le damier par défaut pour les modèles importés
-    this->useCheckerboard = false;
     
     setupMesh();
 }
@@ -27,19 +24,19 @@ void Mesh::setupMesh() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
 
-    // Positions
+    // position
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
     
-    // Normales
+    // normal
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
     
-    // Coordonnées de texture
+    // texture coordinates
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
     
-    // Tangentes
+    // tangent
     glEnableVertexAttribArray(3);
     glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Tangent));
 
@@ -57,18 +54,18 @@ void Mesh::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection) {
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-    // --- GESTION DES COULEURS SELON LE NOM DU MATÉRIAU ---
-    glm::vec3 finalColor(0.5f, 0.5f, 0.5f); // Gris par défaut
+    // define material color based on materialName
+    glm::vec3 finalColor(0.5f, 0.5f, 0.5f); // gray
 
-    // OR
+    // gold
     if (materialName.find("Trim") != std::string::npos || materialName.find("Gold") != std::string::npos) {
         finalColor = glm::vec3(1.0f, 0.84f, 0.0f); 
     }
-    // GRIS ACIER BLEUTÉ
+    // gray 2
     else if (materialName.find("Steel") != std::string::npos || materialName.find("Metal") != std::string::npos) {
         finalColor = glm::vec3(0.60f, 0.65f, 0.70f); 
     }
-    // NOIR ANTHRACITE
+    // black
     else if (materialName.find("Dark") != std::string::npos || materialName.find("Leather") != std::string::npos) {
         finalColor = glm::vec3(0.15f, 0.15f, 0.15f); 
     }

@@ -15,7 +15,6 @@ void Model::Draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection) {
 
 void Model::loadModel(std::string const &path) {
     Assimp::Importer importer;
-    // Options de post-traitement : Triangulate, FlipUVs, CalcTangentSpace
     const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
 
     if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
@@ -31,18 +30,18 @@ Node* Model::processNode(aiNode *node, const aiScene *scene) {
     Node* newNode = new Node();
     newNode->name = node->mName.C_Str();
     
-    // Conversion de la transformation
+    // transform convert
     glm::mat4 transform = aiMatrix4x4ToGlm(node->mTransformation);
     newNode->set_transform(transform);
 
-    // Traitement des meshes du noeud
+    // meshes
     for(unsigned int i = 0; i < node->mNumMeshes; i++) {
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
         Mesh* myMesh = processMesh(mesh, scene);
         newNode->add(myMesh);
     }
 
-    // Traitement des enfants
+    // child nodes
     for(unsigned int i = 0; i < node->mNumChildren; i++) {
         Node* childNode = processNode(node->mChildren[i], scene);
         newNode->add(childNode);
@@ -56,13 +55,13 @@ Mesh* Model::processMesh(aiMesh *mesh, const aiScene *scene) {
     std::vector<unsigned int> indices;
     std::vector<Texture> textures;
 
-    // 1. Récupération des vertices
+    // handle vertices
     for(unsigned int i = 0; i < mesh->mNumVertices; i++) {
         Vertex vertex;
-        // Positions
+        // position
         vertex.Position = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
         
-        // Normales
+        // normal
         if (mesh->HasNormals())
             vertex.Normal = glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
         
@@ -77,14 +76,14 @@ Mesh* Model::processMesh(aiMesh *mesh, const aiScene *scene) {
         vertices.push_back(vertex);
     }
 
-    // 2. Récupération des indices (faces)
+    // handle indices
     for(unsigned int i = 0; i < mesh->mNumFaces; i++) {
         aiFace face = mesh->mFaces[i];
         for(unsigned int j = 0; j < face.mNumIndices; j++)
             indices.push_back(face.mIndices[j]);
     }
 
-    // 3. Récupération du nom du matériau
+    // gather textures and add them to the textures vector if needed
     std::string matName = "default";
     if (mesh->mMaterialIndex >= 0) {
         aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
@@ -99,7 +98,7 @@ Mesh* Model::processMesh(aiMesh *mesh, const aiScene *scene) {
 
 glm::mat4 Model::aiMatrix4x4ToGlm(const aiMatrix4x4& from) {
     glm::mat4 to;
-    // Assimp est Row-Major, GLM est Column-Major, donc on transpose lors de la copie
+    // column-major order
     to[0][0] = from.a1; to[1][0] = from.a2; to[2][0] = from.a3; to[3][0] = from.a4;
     to[0][1] = from.b1; to[1][1] = from.b2; to[2][1] = from.b3; to[3][1] = from.b4;
     to[0][2] = from.c1; to[1][2] = from.c2; to[2][2] = from.c3; to[3][2] = from.c4;
