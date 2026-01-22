@@ -53,8 +53,13 @@ void Game::Init() {
 	player->shapeType = SPHERE;
     player->canCollide = true;
     player->name = "Player";
-    viewer->scene_root->add(player);
 
+    Model* knight = new Model(imageDir + "Knight_V2.glb", StandardShader);
+    if (knight->rootNode) {
+        player->setModel(knight->rootNode);
+    }
+
+    viewer->scene_root->add(player);
 
 
     // Test Cube
