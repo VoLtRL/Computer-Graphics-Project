@@ -6,6 +6,8 @@
 #include "player.h"
 #include "map.h"
 #include "crosshair.h"
+#include "enemy.h"
+#include <vector>
 
 class Game {
 public:
@@ -23,6 +25,7 @@ private:
     Viewer* viewer;
 
     Player* player;
+    std::vector<Enemy*> enemies;
     Map* map;
     Crosshair* crosshair;
     unsigned int crosshairTexture;

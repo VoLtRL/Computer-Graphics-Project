@@ -18,6 +18,10 @@ public:
     bool useCheckerboard;
     bool isEmissive;
 
+    Shape* clone() const {
+        return new Shape(*this);
+    }
+
 protected:
     GLuint shader_program_;
 };

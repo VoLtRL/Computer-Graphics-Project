@@ -24,9 +24,11 @@ public:
     // health management
     void takeDamage(float damage);
     void heal(float amount);
+    void die();
     
     // getters
     float getHealth() const { return health; }
+    void setHealth(float newHealth) { health = newHealth; }
     bool isAlive() const { return health > 0.0f; }
     float getSpeed() const { return movementSpeed; }
     float getSize() const { return size; }
@@ -43,7 +45,7 @@ public:
     void gainJumpStrength(float quantity);
 
 	void BeforeCollide(PhysicObject* other, CollisionInfo info) override;
-	void OnCollide(PhysicObject* other, CollisionInfo info) override;
+	void OnCollide(PhysicObject* other, CollisionInfo info, float deltaTime) override;
 
     void deleteActiveProjectile(Projectile* proj);
 

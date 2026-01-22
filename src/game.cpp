@@ -45,6 +45,7 @@ void Game::Init() {
 
     player = new Player(playerShape, glm::vec3(0.0f, 10.0f, 0.0f), StandardShader);
     player->SetMass(70.0f);
+    player->setHealth(500.0f);
     player->Damping = 0.8f;
     player->Friction = 1.0f;
     player->collisionShape = playerShape;
@@ -68,6 +69,30 @@ void Game::Init() {
     testBox->name = "TestBox";
     viewer->scene_root->add(testBox);
 
+    // Enemy
+    Shape* enemyShape = new Sphere(StandardShader, 0.5f, 20);
+    enemyShape->color = glm::vec3(0.9f, 0.1f, 0.1f);
+    enemyShape->useCheckerboard = false;
+
+    Enemy *enemy = new Enemy(enemyShape, glm::vec3(-5.0f, 10.0f, -5.0f), StandardShader);
+    enemy->SetMass(50.0f);
+    enemy->Damping = 1.0f;
+    enemy->Friction = 1.0f;
+    enemy->canCollide = true;
+    enemy->collisionShape = enemyShape;
+    enemy->shapeType = SPHERE;
+    enemy->canCollide = true;
+    enemy->name = "Enemy1";
+    enemy->setSpeed(1.0f);
+    enemy->setAttackSpeed(0.5f);
+    enemy->setPower(50);
+    enemies.push_back(enemy);
+
+
+
+    for(auto e : enemies){
+        viewer->scene_root->add(e);
+    }
 
     crosshair = new Crosshair(0.1f);
     crosshairTexture = ResourceManager::GetTexture("crosshair");
@@ -121,6 +146,11 @@ void Game::Update() {
     ProcessInput(deltaTime);
     player->update(deltaTime);
 
+    for(auto enemy : enemies){
+        enemy->moveTowardsPlayer(player->Position, deltaTime);
+        enemy->attack(player, deltaTime);
+    }
+
     // Handle Light
 
     Shader* standardShader = ResourceManager::GetShader("standard");
@@ -149,7 +179,6 @@ void Game::Update() {
             activeCount++;
         }
     }
-
     
     glUniform1i(glGetUniformLocation(standardShader->get_id(), "numActiveLights"), activeCount);
 

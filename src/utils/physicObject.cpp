@@ -56,7 +56,8 @@ PhysicObject::~PhysicObject() {
 void PhysicObject::ResolveCollision(
 	PhysicObject* A,
 	PhysicObject* B,
-	const CollisionInfo& c
+	const CollisionInfo& c,
+	float deltaTime
 ) {
 	if (!c.hit) return;
 	//std::cout << "Collision detected with penetration: " << c.penetration << std::endl;
@@ -103,15 +104,15 @@ void PhysicObject::ResolveCollision(
 	A->Velocity -= impulse * A->InvMass;
 	B->Velocity += impulse * B->InvMass;
 
-	A->OnCollide(B, c);
-	B->OnCollide(A, c);
+	A->OnCollide(B, c, deltaTime);
+	B->OnCollide(A, c, deltaTime);
 }
 
 
 
 // Update physics state
 
-void PhysicObject::OnCollide(PhysicObject* other, CollisionInfo info) {
+void PhysicObject::OnCollide(PhysicObject* other, CollisionInfo info, float deltaTime) {
 	// Placeholder for after-collision response logic
 	return;
 }

@@ -1,6 +1,7 @@
 #include "player.h"
 #include "projectile.h"
 #include "sphere.h"
+#include "enemy.h"
 
 #include <vector>
 
@@ -36,11 +37,15 @@ void Player::BeforeCollide(PhysicObject* other, CollisionInfo info)
 	}
 }
 
-void Player::OnCollide(PhysicObject* other, CollisionInfo info)
+void Player::OnCollide(PhysicObject* other, CollisionInfo info, float deltaTime)
 {
     // Simple ground collision detection
     if (isJumping && info.hit && PhysicObject::Length2(PreviousPosition-Position) < 0.05f) {
         isJumping = false; // Reset jumping state when colliding with ground
+    }
+    Enemy* enemy = dynamic_cast<Enemy*>(other);
+    if (enemy && info.hit) {
+        enemy->attack(this, deltaTime); // call attack on enemy
     }
     else {
         //std::cout << PhysicObject::Length2(PreviousPosition - Position) << std::endl;
@@ -49,6 +54,10 @@ void Player::OnCollide(PhysicObject* other, CollisionInfo info)
 
 void Player::update(float deltaTime)
 {
+    if(health <= 0.0f){
+        die();
+        return;
+    }
 
     // handle attack cooldown
     if (attackCooldown > 0.0f) {
@@ -167,6 +176,13 @@ void Player::heal(float amount)
     if (health > maxHealth) {
         health = maxHealth;
     }
+}
+
+void Player::die()
+{
+    // Placeholder for death logic
+    std::cout << "Player has died." << std::endl;
+    std::exit(0); // just exit for now
 }
 
 void Player::resize(float scale)

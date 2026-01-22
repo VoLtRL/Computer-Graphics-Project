@@ -115,7 +115,7 @@ public:
     };
 
     virtual void BeforeCollide(PhysicObject* other, CollisionInfo info);
-    virtual void OnCollide(PhysicObject* other, CollisionInfo info);
+    virtual void OnCollide(PhysicObject* other, CollisionInfo info, float deltaTime);
 
     static float Length2(const glm::vec3& v);
 
@@ -127,7 +127,7 @@ public:
     static CollisionInfo Capsule2Capsule(PhysicObject* objA, PhysicObject* objB);
     static CollisionInfo checkCollision(PhysicObject* objA, PhysicObject* objB);
 
-    static void ResolveCollision(PhysicObject* objA, PhysicObject* objB, const CollisionInfo& collisionInfo);
+    static void ResolveCollision(PhysicObject* objA, PhysicObject* objB, const CollisionInfo& collisionInfo, float deltaTime);
     static std::string ShapeTypeToString(ShapeType type);
 };
 
