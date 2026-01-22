@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string>
 #include <algorithm> // Added for std::find in destructor
+#include <cmath>
 
 class physicShapeObject; // Forward declaration
 
@@ -26,14 +27,43 @@ struct SphereCollision {
     float radius;
 };
 
+struct CapsuleCollision {
+    glm::vec3 A;
+    glm::vec3 B;
+    float radius;
+};
+
 class Shape;
 
-enum ShapeType {
-    BOX,
-    SPHERE,
-    CAPSULE,
-    INVALID
+enum class ShapeType {
+    ST_BOX,
+    ST_SPHERE,
+    ST_CAPSULE,
+	ST_INVALID
 };
+
+std::ostream& operator<<(std::ostream& os, const ShapeType& st);
+
+enum CollisionGroup : uint32_t {
+    CG_NONE = 0,
+    CG_PLAYER = 1 << 0,
+    CG_ENEMY = 1 << 1,
+    CG_PLAYER_PROJECTILE = 1 << 2,
+    CG_ENEMY_PROJECTILE = 1 << 3,
+    CG_ENVIRONMENT = 1 << 4,
+    CG_PRESETS_MAP = CG_PLAYER | CG_ENEMY | CG_PLAYER_PROJECTILE | CG_ENEMY_PROJECTILE | CG_ENVIRONMENT,
+    CG_PRESETS_PLAYER = CG_ENVIRONMENT | CG_ENEMY | CG_ENEMY_PROJECTILE,
+	CG_PRESETS_ENEMY = CG_ENVIRONMENT | CG_PLAYER | CG_PLAYER_PROJECTILE
+};
+
+enum class CollisionResponse {
+    CR_NONE,       // ignore
+    CR_TRIGGER,    // events only
+    CR_PHYSICAL,   // blocage physique
+    CR_BOTH        // blocage + events
+};
+
+std::ostream& operator<<(std::ostream& os, const CollisionResponse& cr);
 
 class PhysicObject {
 
@@ -62,11 +92,13 @@ public:
     inline static const float gravity = 9.8f;
 
     // Collisions
-    bool canCollide;
+	CollisionResponse collisionResponse = CollisionResponse::CR_BOTH;
     glm::vec3 forcesApplied;
     Shape* collisionShape;
     float Restitution;
     ShapeType shapeType;
+    uint32_t  collisionGroup = CG_NONE;
+    uint32_t  collisionMask = CG_NONE;
 
     // Update physics state (Integration only)
     void UpdatePhysics(float deltaTime);
@@ -104,6 +136,7 @@ public:
         RotationMatrix[1] = glm::vec4(glm::normalize(up), 0.0f);
     }
 
+
     // Static list of all PhysicObject instances
     inline static std::vector<PhysicObject*> allPhysicObjects{}; 
 
@@ -118,6 +151,9 @@ public:
     virtual void OnCollide(PhysicObject* other, CollisionInfo info);
 
     static float Length2(const glm::vec3& v);
+    static float PhysicObject::ProjectOBB(const OBBCollision& box, const glm::vec3& axis);
+    static glm::vec3 PhysicObject::ClosestPointAABB(const glm::vec3& p, const glm::vec3& min, const glm::vec3& max);
+    static glm::vec3 PhysicObject::ClosestPointSegmentAABB(const glm::vec3& A, const glm::vec3& B, const glm::vec3& boxMin, const glm::vec3& boxMax);
 
     static CollisionInfo Box2Box(PhysicObject* objA, PhysicObject* objB);
     static CollisionInfo Box2Sphere(PhysicObject* objA, PhysicObject* objB);
@@ -128,7 +164,6 @@ public:
     static CollisionInfo checkCollision(PhysicObject* objA, PhysicObject* objB);
 
     static void ResolveCollision(PhysicObject* objA, PhysicObject* objB, const CollisionInfo& collisionInfo);
-    static std::string ShapeTypeToString(ShapeType type);
 };
 
 std::ostream& operator<<(std::ostream& os, const PhysicObject& obj);

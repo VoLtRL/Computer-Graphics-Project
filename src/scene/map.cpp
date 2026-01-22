@@ -8,12 +8,15 @@ Map::Map(Shader* shader, Node* sceneRoot) {
     groundShape->color = glm::vec3(1.0f, 1.0f, 1.0f); 
     groundShape->useCheckerboard = true; // Enable checkerboard pattern
     ground->SetMass(0.0f); // Immovable ground
-    ground->canCollide = true; // Enable collisions
     ground->kinematic = false; // Not kinematic
 	ground->name = "Ground";
-	ground->shapeType = BOX;
+	ground->shapeType = ShapeType::ST_BOX;
 	ground->Damping = 1.0f; // No damping
+    ground->Friction = 0.5f;
 	ground->collisionShape = groundShape;
+    ground->Restitution = 1.0f;
+    ground->collisionGroup = CG_ENVIRONMENT;
+    ground->collisionMask = CG_PRESETS_MAP;
 
 
     sceneRoot->add(ground); // Add ground to the scene graph

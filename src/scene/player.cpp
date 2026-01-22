@@ -132,9 +132,11 @@ void Player::shoot(glm::vec3 shootDirection){
         proj->SetMass(0.2f);
         proj->kinematic = false;
         proj->collisionShape = proj_shape;
-        proj->shapeType = SPHERE;
-        proj->canCollide = true;
-        proj->Restitution = 1.0f;
+        proj->shapeType = ShapeType::ST_SPHERE;
+        proj->Friction=0.0f;
+        proj->Restitution=0.75f;
+		    proj->collisionGroup = CG_PLAYER_PROJECTILE;
+		    proj->collisionMask = CG_ENEMY | CG_ENVIRONMENT;
 
         proj->setFrontVector(shootDirection);
         proj->setRightVector(glm::normalize(glm::cross(proj->GetFrontVector(), glm::vec3(0.0f, 1.0f, 0.0f))));

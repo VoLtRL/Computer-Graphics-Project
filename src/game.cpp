@@ -37,21 +37,23 @@ void Game::Init() {
 
     //Load map
     Map* map = new Map(StandardShader, viewer->scene_root);
-    
-    Shape* playerShape = new Sphere(StandardShader, 0.5f, 20);
-  
+
+    // Create Player Shape with a blue color and no checkerboard pattern
+    Shape* playerShape = new Capsule(StandardShader, 1.0f, 2.0f);
+
     playerShape->color = glm::vec3(0.22f, 0.65f, 0.92f);
     playerShape->useCheckerboard = false;
     
 
     player = new Player(playerShape, glm::vec3(0.0f, 10.0f, 0.0f), StandardShader);
     player->SetMass(70.0f);
-    player->Damping = 0.8f;
-    player->Friction = 1.0f;
+    player->Damping = 1.0f;
+    player->Friction = 10.0f;
     player->collisionShape = playerShape;
-	player->shapeType = SPHERE;
-    player->canCollide = true;
+	  player->shapeType = ShapeType::ST_CAPSULE;
     player->name = "Player";
+	  player->collisionGroup = CG_PLAYER;
+	  player->collisionMask = CG_PRESETS_PLAYER;
     viewer->scene_root->add(player);
 
 
@@ -78,6 +80,45 @@ void Game::Init() {
 
     crosshair = new Crosshair(0.1f);
     crosshairTexture = ResourceManager::GetTexture("crosshair");
+
+    Box* testBoxShape = new Box(StandardShader, 5.0f, 5.0f, 5.0f);
+    testBoxShape->color = glm::vec3(0.8f, 0.3f, 0.3f);
+    PhysicShapeObject* testBox = new PhysicShapeObject(testBoxShape, glm::vec3(5.0f, 2.5f, 0.0f));
+    testBox->SetMass(0.0f);
+    testBox->Damping = 1.0f;
+    testBox->Friction = 1.0f;
+    testBox->collisionShape = testBoxShape;
+    testBox->shapeType = ShapeType::ST_BOX;
+    testBox->name = "TestBox";
+	testBox->collisionGroup = CG_ENVIRONMENT;
+	testBox->collisionMask = CG_PRESETS_MAP;
+    viewer->scene_root->add(testBox);
+
+    Sphere* testSphereShape = new Sphere(StandardShader, 2.5f, 20);
+    testSphereShape->color = glm::vec3(0.3f, 0.8f, 0.8f);
+    PhysicShapeObject* testShpere = new PhysicShapeObject(testSphereShape, glm::vec3(2.0f, 2.5f, 15.0f));
+    testShpere->SetMass(50.0f);
+    testShpere->Damping = 1.0f;
+    testShpere->Friction = 1.0f;
+    testShpere->collisionShape = testSphereShape;
+    testShpere->shapeType = ShapeType::ST_SPHERE;
+    testShpere->name = "TestSphere";
+    testShpere->collisionGroup = CG_ENVIRONMENT;
+    testShpere->collisionMask = CG_PRESETS_MAP;
+    viewer->scene_root->add(testShpere);
+
+    Capsule* testCapsuleShape = new Capsule(StandardShader, 2.0f, 5.0f);
+    testCapsuleShape->color = glm::vec3(0.8f, 0.8f, 0.3f);
+    PhysicShapeObject* testCapsule = new PhysicShapeObject(testCapsuleShape, glm::vec3(2.0f, 2.5f, -15.0f));
+    testCapsule->SetMass(50.0f);
+    testCapsule->Damping = 1.0f;
+    testCapsule->Friction = 1.0f;
+    testCapsule->collisionShape = testCapsuleShape;
+    testCapsule->shapeType = ShapeType::ST_CAPSULE;
+    testCapsule->name = "TestCapsule";
+	testCapsule->collisionGroup = CG_ENVIRONMENT;
+	testCapsule->collisionMask = CG_PRESETS_MAP;
+    viewer->scene_root->add(testCapsule);
 }
 
 void Game::ProcessInput(float deltaTime) {
