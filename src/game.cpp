@@ -4,6 +4,8 @@
 #include "handlePhysics.h"
 #include "sphere.h"
 
+#include "model.h"
+
 Game::Game(Viewer* v) : viewer(v) {
     handlePhysics = new HandlePhysics();
 }
@@ -36,9 +38,8 @@ void Game::Init() {
     //Load map
     Map* map = new Map(StandardShader, viewer->scene_root);
     
-
-    // Create Player Shape with a blue color and no checkerboard pattern
     Shape* playerShape = new Sphere(StandardShader, 0.5f, 20);
+  
     playerShape->color = glm::vec3(0.22f, 0.65f, 0.92f);
     playerShape->useCheckerboard = false;
     
@@ -68,6 +69,12 @@ void Game::Init() {
     testBox->name = "TestBox";
     viewer->scene_root->add(testBox);
 
+
+    // --- Integration of Knight ---
+    Model* knight = new Model(imageDir + "Knight_V2.glb", StandardShader);
+    if (knight->rootNode) {
+        player->setModel(knight->rootNode);
+    }
 
     crosshair = new Crosshair(0.1f);
     crosshairTexture = ResourceManager::GetTexture("crosshair");
@@ -150,9 +157,8 @@ void Game::Update() {
         }
     }
 
-    
-    glUniform1i(glGetUniformLocation(standardShader->get_id(), "numActiveLights"), activeCount);
 
+    glUniform1i(glGetUniformLocation(standardShader->get_id(), "numActiveLights"), activeCount);
     
     if (activeCount > 0) {
         glUniform3fv(glGetUniformLocation(standardShader->get_id(), "lightPos"), activeCount, lightPos.data());
