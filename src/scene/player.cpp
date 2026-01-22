@@ -12,13 +12,15 @@ Player::Player(Shape* shape, glm::vec3 position,Shader* projectileShader)
       movementSpeed(5.0f),
       jumpStrength(10.0f),
       attackDamage(20.0f),
-      attackSpeed(2.0f),
+      attackSpeed(50.0f),
       size(1.0f),
       isJumping(false),
       attackCooldown(0.0f),
       groundDamping(8.0f),
       projectileSpeed(30.0f),
-      projectileShader(projectileShader)
+      projectileShader(projectileShader),
+      PreviousPosition(position)
+
 {
     std::cout << "Player created at position: (" 
               << position.x << ", " 
@@ -26,10 +28,28 @@ Player::Player(Shape* shape, glm::vec3 position,Shader* projectileShader)
               << position.z << ")" << std::endl;
 }
 
+void Player::BeforeCollide(PhysicObject* other, CollisionInfo info)
+{
+    // Placeholder for any pre-collision logic
+    if (info.hit) {
+        PreviousPosition = Position;
+        PreviousVelocity = Velocity;
+	}
+}
+
+void Player::OnCollide(PhysicObject* other, CollisionInfo info)
+{
+    // Simple ground collision detection
+    if (isJumping && info.hit && PhysicObject::Length2(PreviousPosition-Position) < 0.05f) {
+        isJumping = false; // Reset jumping state when colliding with ground
+    }
+    else {
+        //std::cout << PhysicObject::Length2(PreviousPosition - Position) << std::endl;
+    }
+}
+
 void Player::update(float deltaTime)
 {
-    // handle physics
-    UpdatePhysics(deltaTime);
 
     // handle attack cooldown
     if (attackCooldown > 0.0f) {
@@ -38,12 +58,6 @@ void Player::update(float deltaTime)
             attackCooldown = 0.0f;
         }
     }
-    // handle ground damping
-    if (Position.y <= 0.5f) {
-        Velocity.x -= Velocity.x * glm::exp(-groundDamping * deltaTime);
-        Velocity.z -= Velocity.z * glm::exp(-groundDamping * deltaTime);
-        isJumping = false;
-    }   
 
     // debug info
     std::cout << "Player position: (" 
@@ -57,6 +71,8 @@ void Player::update(float deltaTime)
     for(Projectile* proj : activeProjectiles){
         if(proj->isActive()){
             proj->update(deltaTime);
+        } else {
+            deleteActiveProjectile(proj);
         }
     }
 
@@ -101,23 +117,28 @@ void Player::shoot(glm::vec3 shootDirection){
 
     if(attackCooldown <= 0.0f){
         
-        glm::vec3 shootingOrigin = Position + (UpVector * 1.2f) + (FrontVector * 0.5f);
+        glm::vec3 shootingOrigin = Position + (GetUpVector() * 1.2f) + (GetFrontVector() * 0.5f);
 
         float spawnDistance = 0.5f;
         glm::vec3 spawnPos = shootingOrigin + (shootDirection * spawnDistance);
 
         Shape* proj_shape = new Sphere(projectileShader, size * 0.2f, 20);
-        proj_shape->color = glm::vec3(1.0f, 1.0f, 1.0f);
+
+        proj_shape->color = glm::vec3(1.0f, 0.96f, 0.86f);
         proj_shape->isEmissive = true;
 
-        Projectile* proj = new Projectile(proj_shape, spawnPos, projectileSpeed, attackDamage, 50.0f);
-
+        Projectile* proj = new Projectile(proj_shape, spawnPos, projectileSpeed, attackDamage, 100.0f);
         proj->Velocity = shootDirection * projectileSpeed;
+        proj->SetMass(0.2f);
+        proj->kinematic = false;
+        proj->collisionShape = proj_shape;
+        proj->shapeType = SPHERE;
+        proj->canCollide = true;
+        proj->Restitution = 1.0f;
 
-        proj->FrontVector = shootDirection;
-        proj->RightVector = glm::normalize(glm::cross(proj->FrontVector, glm::vec3(0.0f, 1.0f, 0.0f)));
-        proj->UpVector    = glm::normalize(glm::cross(proj->RightVector, proj->FrontVector));
-
+        proj->setFrontVector(shootDirection);
+        proj->setRightVector(glm::normalize(glm::cross(proj->GetFrontVector(), glm::vec3(0.0f, 1.0f, 0.0f))));
+        proj->setUpVector(glm::normalize(glm::cross(proj->GetRightVector(), proj->GetFrontVector())));
         activeProjectiles.push_back(proj);
         attackCooldown = 1.0f / attackSpeed;
     }
@@ -131,9 +152,13 @@ void Player::move(glm::vec3 direction)
         Velocity.x = normDir.x * movementSpeed;
         Velocity.z = normDir.z * movementSpeed;
         // Update orientation vectors
-        FrontVector = glm::normalize(glm::vec3(normDir.x, 0.0f, normDir.z));
-        RightVector = glm::normalize(glm::cross(FrontVector, WorldUpVector));
-        UpVector = glm::normalize(glm::cross(RightVector, FrontVector));
+        glm::vec3 FrontVector = glm::normalize(glm::vec3(normDir.x, 0.0f, normDir.z));
+        glm::vec3 RightVector = glm::normalize(glm::cross(FrontVector, WorldUpVector));
+        glm::vec3 UpVector = glm::normalize(glm::cross(RightVector, FrontVector));
+		RotationMatrix = glm::mat4(1.0f);
+		RotationMatrix[0] = glm::vec4(RightVector, 0.0f);
+		RotationMatrix[1] = glm::vec4(UpVector, 0.0f);
+		RotationMatrix[2] = glm::vec4(-FrontVector, 0.0f);
         
     }
 }
@@ -213,3 +238,12 @@ void Player::setModel(Node* modelNode) {
     if(legLeft) legLeftOrig = legLeft->get_transform();
     if(legRight) legRightOrig = legRight->get_transform();
 }
+
+void Player::deleteActiveProjectile(Projectile* proj){
+    auto it = std::find(activeProjectiles.begin(), activeProjectiles.end(), proj);
+    if (it != activeProjectiles.end()) {
+        activeProjectiles.erase(it);
+    }
+    PhysicObject::deleteObject(proj);
+}
+

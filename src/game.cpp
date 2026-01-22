@@ -2,6 +2,7 @@
 #include "capsule.h"
 #include <GLFW/glfw3.h>
 #include "handlePhysics.h"
+#include "sphere.h"
 
 #include "model.h"
 
@@ -26,34 +27,48 @@ void Game::Init() {
     Shader* StandardShader = ResourceManager::GetShader("standard");
 
     glm::vec4 fogColor(0.2f, 0.2f, 0.2f, 1.0f);
-    float fogStart = 20.0f;
-    float fogEnd = 100.0f;
+    float fogStart = 10.0f;
+    float fogEnd = 75.0f;
 
     glUseProgram(StandardShader->get_id());
     glUniform4fv(glGetUniformLocation(StandardShader->get_id(), "fogColor"), 1, &fogColor[0]);
     glUniform1f(glGetUniformLocation(StandardShader->get_id(), "fogStart"), fogStart);
     glUniform1f(glGetUniformLocation(StandardShader->get_id(), "fogEnd"), fogEnd);
 
-    // physics
-	std::vector<PhysicObject*> mapPhysicObjects;
-
     //Load map
-    Map* map = new Map(StandardShader, viewer->scene_root, mapPhysicObjects);
+    Map* map = new Map(StandardShader, viewer->scene_root);
     
-    for(auto obj : mapPhysicObjects) {
-        handlePhysics->AddObject(obj);
-    }
-
-    Shape* playerShape = new Capsule(StandardShader, 0.6f, 1.0f);
+    Shape* playerShape = new Sphere(StandardShader, 0.5f, 20);
+  
     playerShape->color = glm::vec3(0.22f, 0.65f, 0.92f);
     playerShape->useCheckerboard = false;
+    
 
-    player = new Player(playerShape, glm::vec3(0.0f, 2.0f, 0.0f), StandardShader);
-    player->Mass = 70.0f;
-    player->Damping = 0.1f;
-
+    player = new Player(playerShape, glm::vec3(0.0f, 10.0f, 0.0f), StandardShader);
+    player->SetMass(70.0f);
+    player->Damping = 0.8f;
+    player->Friction = 1.0f;
+    player->collisionShape = playerShape;
+	player->shapeType = SPHERE;
+    player->canCollide = true;
+    player->name = "Player";
     viewer->scene_root->add(player);
-    handlePhysics->AddObject(player);
+
+
+
+    // Test Cube
+    Box* testBoxShape = new Box(StandardShader, 5.0f, 5.0f, 5.0f);
+    testBoxShape->color = glm::vec3(0.8f, 0.3f, 0.3f);
+    PhysicShapeObject* testBox = new PhysicShapeObject(testBoxShape, glm::vec3(2.0f, 5.0f, 0.0f));
+    testBox->SetMass(50.0f);
+    testBox->Damping = 1.0f;
+    testBox->Friction = 1.0f;
+    testBox->collisionShape = testBoxShape;
+    testBox->shapeType = BOX;
+    testBox->canCollide = true;
+    testBox->name = "TestBox";
+    viewer->scene_root->add(testBox);
+
 
     // --- Integration of Knight ---
     Model* knight = new Model(imageDir + "Knight_V2.glb", StandardShader);
@@ -118,22 +133,37 @@ void Game::Update() {
     Shader* standardShader = ResourceManager::GetShader("standard");
     glUseProgram(standardShader->get_id());
 
-    glm::vec3 lightPos(0.0f, -100.0f, 0.0f);
+    int activeCount = 0;
+    int MAX_LIGHTS = 100;
+
+    std::vector<float> lightPos;
+    std::vector<float> lightColors;
+    std::vector<float> lightIntensities;
+
     
     for (auto proj : player->getActiveProjectiles()) {
-        if (proj->isActive()) {
-            lightPos = proj->Position;
+        if (proj->isActive() && activeCount < MAX_LIGHTS) {
+            lightPos.push_back(proj->Position.x);
+            lightPos.push_back(proj->Position.y);
+            lightPos.push_back(proj->Position.z);
+
+            lightColors.push_back(1.0f);
+            lightColors.push_back(0.8f);
+            lightColors.push_back(0.6f);
+
+            lightIntensities.push_back(0.6f);
+
+            activeCount++;
         }
     }
 
-    glUniform3f(glGetUniformLocation(standardShader->get_id(), "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-    
-    glUniform3f(glGetUniformLocation(standardShader->get_id(), "lightColor"), 1.0f, 0.8f, 0.6f);
-    glUniform1f(glGetUniformLocation(standardShader->get_id(), "lightIntensity"), 5.0f);
 
-    if(player->Position.y <= 0.5f){
-        player->Position.y = 0.5f;
-        player->Velocity.y = 0.0f;
+    glUniform1i(glGetUniformLocation(standardShader->get_id(), "numActiveLights"), activeCount);
+    
+    if (activeCount > 0) {
+        glUniform3fv(glGetUniformLocation(standardShader->get_id(), "lightPos"), activeCount, lightPos.data());
+        glUniform3fv(glGetUniformLocation(standardShader->get_id(), "lightColors"), activeCount, lightColors.data());
+        glUniform1fv(glGetUniformLocation(standardShader->get_id(), "lightIntensities"), activeCount, lightIntensities.data());
     }
 
     glm::vec3 camOffset(0.0f, 1.4f, 0.0f);
@@ -144,10 +174,10 @@ void Game::Update() {
     camFront.y = 0.0f;
     camFront = glm::normalize(camFront);
 
-    player->FrontVector = camFront;
+    player->setFrontVector(camFront);
     
-    player->RightVector = glm::normalize(glm::cross(player->FrontVector, glm::vec3(0.0f, 1.0f, 0.0f)));
-    player->UpVector    = glm::normalize(glm::cross(player->RightVector, player->FrontVector));
+    player->setRightVector(glm::normalize(glm::cross(player->GetFrontVector(), glm::vec3(0.0f, 1.0f, 0.0f))));
+    player->setUpVector(glm::normalize(glm::cross(player->GetRightVector(), player->GetFrontVector())));
 }
 
 void Game::RenderUI() {

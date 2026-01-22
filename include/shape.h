@@ -13,6 +13,7 @@ public:
 
     virtual void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection);
 
+    virtual ~Shape() = default;
     glm::vec3 color;
     bool useCheckerboard;
     bool isEmissive;

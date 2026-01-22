@@ -5,6 +5,8 @@
 #include <glm/glm.hpp>
 #include "glm/ext.hpp"
 #include <glm/gtc/matrix_transform.hpp>
+#include "resourceManager.h"
+#include "shader.h"
 
 
 Viewer::Viewer(int width, int height)
@@ -76,34 +78,91 @@ Viewer::Viewer(int width, int height)
     scene_root = new Node();
 }
 
+void Viewer::initShadowMap()
+{
+
+    glGenFramebuffers(1, &depthMapFBO);
+
+    glGenTextures(1, &depthMap);
+    glBindTexture(GL_TEXTURE_2D, depthMap);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 
+                 SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 void Viewer::run()
 {
-    // Main render loop for this OpenGL window
+    // sunlight position
+    glm::vec3 lightPos(-20.0f, 50.0f, -20.0f);
+
     while (!glfwWindowShouldClose(win))
     {
-
         float currentFrame = (float)glfwGetTime();
-
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
-
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         if (update_callback) {
             update_callback();
         }
-        // Process input
         this->process_input(deltaTime);
-        
 
+        Shader* shader = ResourceManager::GetShader("standard"); 
+
+        glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 1.0f, 100.0f);
+        glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 lightSpaceMatrix = lightProjection * lightView;
         glm::mat4 model = glm::mat4(1.0f);
 
-        glm::mat4 view = camera->GetViewMatrix();
+        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+        glClear(GL_DEPTH_BUFFER_BIT);
 
-        float aspectRatio = (float) SCR_WIDTH / (float) SCR_HEIGHT;
-        glm::mat4 projection = camera->GetProjectionMatrix(aspectRatio);
+        if(shader) {
+            glUseProgram(shader->get_id());
+            glUniform1i(glGetUniformLocation(shader->get_id(), "isShadowPass"), true);
+        }
+
+        glCullFace(GL_FRONT);
+
+        scene_root->draw(model, lightView, lightProjection);
+
+        glCullFace(GL_BACK);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        // Normal rendering 
+        glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        if(shader) {
+            glUseProgram(shader->get_id());
+            glUniform1i(glGetUniformLocation(shader->get_id(), "isShadowPass"), false);
+
+            glUniform3fv(glGetUniformLocation(shader->get_id(), "viewPos"), 1, &camera->Position[0]);
+            
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, depthMap);
+            glUniform1i(glGetUniformLocation(shader->get_id(), "shadowMap"), 1);
+            glUniformMatrix4fv(glGetUniformLocation(shader->get_id(), "lightSpaceMatrix"), 1, GL_FALSE, &lightSpaceMatrix[0][0]);
+            glUniform3fv(glGetUniformLocation(shader->get_id(), "dirLightPos"), 1, &lightPos[0]);
+        }
 
         camera->UpdatePhysics(deltaTime);
+        glm::mat4 view = camera->GetViewMatrix();
+        float aspectRatio = (float) SCR_WIDTH / (float) SCR_HEIGHT;
+        glm::mat4 projection = camera->GetProjectionMatrix(aspectRatio);
 
         scene_root->draw(model, view, projection);
 
@@ -111,14 +170,10 @@ void Viewer::run()
             draw_ui_callback();
         }
 
-        // Poll for and process events
         glfwPollEvents();
-
-        // flush render commands, and swap draw buffers
         glfwSwapBuffers(win);
     }
 
-    /* close GL context and any other GLFW resources */
     glfwTerminate();
 }
 

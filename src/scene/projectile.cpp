@@ -10,19 +10,16 @@ Projectile::Projectile(Shape* shape, glm::vec3 position, float speed, float dama
       active(true)
       {
     // Set initial velocity in the forward direction
-    Velocity = FrontVector * projectileSpeed;
+    Velocity = GetFrontVector() * projectileSpeed;
     Mass = 1.0f; // Set a default mass
     kinematic = false; // Projectiles are affected by physics
-    
-
-      }
+    }
 
 void Projectile::update(float deltaTime)
 {
-    if (!active) return;
-
-    // update physics
-    UpdatePhysics(deltaTime);
+    if (!active){
+        return;
+    }
 
     // update traveled distance
     traveledDistance += glm::length(Velocity * deltaTime);
@@ -30,12 +27,6 @@ void Projectile::update(float deltaTime)
     // deactivate if exceeded range
     if (traveledDistance >= range) {
         active = false;
-    }
-
-    if(Position.y < 0.5f){
-      // make a bounce effect
-      Velocity.y = - Velocity.y * 0.5f; // lose some energy on bounce
-      Position.y = 0.5f; // reset position to ground level
     }
 
     std::cout << "Projectile position: (" 
