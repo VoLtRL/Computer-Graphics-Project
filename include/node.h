@@ -20,9 +20,11 @@ public:
     std::vector<Node *> children_;
     glm::mat4 get_transform() { return transform_; };
     std::string name;
+    void key_handler(int key) const;
 
 private:
     glm::mat4 transform_;
     std::vector<Shape *> children_shape_;
 	std::vector<PhysicShapeObject *> children_physic_shape_;
+
 };

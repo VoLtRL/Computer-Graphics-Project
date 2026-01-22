@@ -90,7 +90,7 @@ void Player::draw(glm::mat4& view, glm::mat4& projection){
     model = glm::translate(model, glm::vec3(0.0f, 1.0f, 0.0f));
 
     // Orientation
-    glm::mat4 rotation = glm::inverse(glm::lookAt(glm::vec3(0.0f), this->FrontVector, glm::vec3(0.0f, 1.0f, 0.0f)));
+    glm::mat4 rotation = glm::inverse(glm::lookAt(glm::vec3(0.0f), this->GetFrontVector(), glm::vec3(0.0f, 1.0f, 0.0f)));
     model = model * rotation;
 
     // Draw
