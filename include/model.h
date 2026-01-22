@@ -49,6 +49,7 @@ private:
 
     Node* processNode(aiNode *node, const aiScene *scene) {
         Node* newNode = new Node();
+        newNode->name = node->mName.C_Str();
         glm::mat4 transform = aiMatrix4x4ToGlm(node->mTransformation);
         newNode->set_transform(transform);
 

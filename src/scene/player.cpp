@@ -3,6 +3,7 @@
 #include "sphere.h"
 
 #include <vector>
+#include <GLFW/glfw3.h>
 
 Player::Player(Shape* shape, glm::vec3 position,Shader* projectileShader)
     : PhysicShapeObject(shape, position),
@@ -160,6 +161,55 @@ void Player::resize(float scale)
 
 void Player::updateAnimation(float deltaTime)
 {
-    // TODO
+    if (!model) return;
+
+    //Player moving check
+    bool isMoving = glm::length(glm::vec2(Velocity.x, Velocity.z)) > 0.1f;
+
+    if (isMoving) {
+
+        float speed = 10.0f; 
+        float time = glfwGetTime();
+        
+        float angle = glm::sin(time * speed) * 0.8f; 
+
+        // Rotation + base
+        if (armLeft)  armLeft->set_transform(glm::rotate(armLeftOrig, angle, glm::vec3(1, 0, 0)));
+        if (armRight) armRight->set_transform(glm::rotate(armRightOrig, -angle, glm::vec3(1, 0, 0)));
+        if (legLeft)  legLeft->set_transform(glm::rotate(legLeftOrig, -angle, glm::vec3(1, 0, 0)));
+        if (legRight) legRight->set_transform(glm::rotate(legRightOrig, angle, glm::vec3(1, 0, 0)));
+    } 
+    else {
+        // Reset
+        if (armLeft)  armLeft->set_transform(armLeftOrig);
+        if (armRight) armRight->set_transform(armRightOrig);
+        if (legLeft)  legLeft->set_transform(legLeftOrig);
+        if (legRight) legRight->set_transform(legRightOrig);
+    }
 }
 
+// Recursive search for a node by name
+Node* recursiveFind(Node* node, std::string name) {
+    if (node->name.find(name) != std::string::npos) return node;
+    for (auto child : node->children_) { 
+        Node* res = recursiveFind(child, name);
+        if (res) return res;
+    }
+    return nullptr;
+}
+
+void Player::setModel(Node* modelNode) {
+    this->model = modelNode;
+
+    //Find body parts
+    armLeft = recursiveFind(model, "Arm_upper_L");
+    armRight = recursiveFind(model, "Arm_upper_R");
+    legLeft = recursiveFind(model, "Leg_upper_L");
+    legRight = recursiveFind(model, "Leg_upper_R");
+
+    //Save initial transforms
+    if(armLeft) armLeftOrig = armLeft->get_transform();
+    if(armRight) armRightOrig = armRight->get_transform();
+    if(legLeft) legLeftOrig = legLeft->get_transform();
+    if(legRight) legRightOrig = legRight->get_transform();
+}
