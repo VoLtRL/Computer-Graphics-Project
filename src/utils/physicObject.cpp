@@ -132,10 +132,9 @@ PhysicObject::PhysicObject(glm::vec3 position)
 	kinematic = false;								// default : false
 
 	// Collisions
-	canCollide = true;								// default : true
 	forcesApplied = glm::vec3(0.0f, 0.0f, 0.0f);	// default : 0 N
 	Restitution = 0.1f;							// default : 0.5
-	shapeType = INVALID;								// default : BOX
+	shapeType = ShapeType::ST_INVALID;								// default : BOX
 	collisionShape = nullptr;					// default : nullptr
 
 	PhysicObject::allPhysicObjects.push_back(this); // Add this instance to the static list
@@ -157,71 +156,89 @@ void PhysicObject::ResolveCollision(
 	if (!c.hit) return;
 	//std::cout << "Collision detected with penetration: " << c.penetration << std::endl;
 
-	A->BeforeCollide(B, c);
-	B->BeforeCollide(A, c);
+	CollisionResponse repA = A->collisionResponse;
+	CollisionResponse repB = B->collisionResponse;
 
-	float invMassSum = A->InvMass + B->InvMass;
-	if (invMassSum == 0.0f) return;
+	bool doPhysical = (repA == CollisionResponse::CR_PHYSICAL || repA == CollisionResponse::CR_BOTH)
+		&& (repB == CollisionResponse::CR_PHYSICAL || repB == CollisionResponse::CR_BOTH);
 
-	// --- S�curiser la normale ---
-	glm::vec3 normal = c.normal;
-	glm::vec3 AB = B->Position - A->Position;
-	if (glm::dot(normal, AB) < 0.0f)
-		normal = -normal;
+	bool doTrigger = (repA == CollisionResponse::CR_TRIGGER || repA == CollisionResponse::CR_BOTH)
+		&& (repB == CollisionResponse::CR_TRIGGER || repB == CollisionResponse::CR_BOTH);
 
-	// --- Correction de position ---
-	float percent = 0.8f;
-	float slop = 0.01f;
-
-	glm::vec3 correction =
-		std::max(c.penetration - slop, 0.0f)
-		/ invMassSum
-		* percent
-		* normal;
-
-	A->Position -= correction * A->InvMass;
-	B->Position += correction * B->InvMass;
-
-	// --- V�locit� relative ---
-	glm::vec3 rv = B->Velocity - A->Velocity;
-	float velAlongNormal = glm::dot(rv, normal);
-
-	if (velAlongNormal > 0.0f) return;
-
-	float e = std::min(A->Restitution, B->Restitution);
-
-	float j = -(1.0f + e) * velAlongNormal;
-	j /= invMassSum;
-
-	glm::vec3 impulse = j * normal;
-
-	// IMPULSION CORRECTE
-	A->Velocity -= impulse * A->InvMass;
-	B->Velocity += impulse * B->InvMass;
-
-	// --- FRICTION ---
-	glm::vec3 tangent =
-		rv - glm::dot(rv, normal) * normal;
-
-	if (PhysicObject::Length2(tangent) > 1e-6f) {
-		tangent = glm::normalize(tangent);
-
-		float mu = std::sqrt(A->Friction * B->Friction);
-
-		float jt = -glm::dot(rv, tangent);
-		jt /= (A->InvMass + B->InvMass);
-
-		float maxFriction = j * mu;
-		jt = glm::clamp(jt, -maxFriction, maxFriction);
-
-		glm::vec3 frictionImpulse = jt * tangent;
-
-		A->Velocity -= frictionImpulse * A->InvMass;
-		B->Velocity += frictionImpulse * B->InvMass;
+	if (!doPhysical && !doTrigger) return;
+	if (doTrigger){
+		A->BeforeCollide(B, c);
+		B->BeforeCollide(A, c);
 	}
 
-	A->OnCollide(B, c);
-	B->OnCollide(A, c);
+	if (doPhysical){
+		float invMassSum = A->InvMass + B->InvMass;
+		if (invMassSum == 0.0f) return;
+
+		// --- S�curiser la normale ---
+		glm::vec3 normal = c.normal;
+		glm::vec3 AB = B->Position - A->Position;
+		if (glm::dot(normal, AB) < 0.0f)
+			normal = -normal;
+
+		// --- Correction de position ---
+		float percent = 0.8f;
+		float slop = 0.01f;
+
+		glm::vec3 correction =
+			std::max(c.penetration - slop, 0.0f)
+			/ invMassSum
+			* percent
+			* normal;
+
+		A->Position -= correction * A->InvMass;
+		B->Position += correction * B->InvMass;
+
+		// --- V�locit� relative ---
+		glm::vec3 rv = B->Velocity - A->Velocity;
+		float velAlongNormal = glm::dot(rv, normal);
+
+		if (velAlongNormal > 0.0f) return;
+
+		float e = std::min(A->Restitution, B->Restitution);
+
+		float j = -(1.0f + e) * velAlongNormal;
+		j /= invMassSum;
+
+		glm::vec3 impulse = j * normal;
+
+		// IMPULSION CORRECTE
+		A->Velocity -= impulse * A->InvMass;
+		B->Velocity += impulse * B->InvMass;
+
+		// --- FRICTION ---
+		glm::vec3 tangent =
+			rv - glm::dot(rv, normal) * normal;
+
+		if (PhysicObject::Length2(tangent) > 1e-6f) {
+			tangent = glm::normalize(tangent);
+
+			float mu = std::sqrt(A->Friction * B->Friction);
+
+			float jt = -glm::dot(rv, tangent);
+			jt /= (A->InvMass + B->InvMass);
+
+			float maxFriction = j * mu;
+			jt = glm::clamp(jt, -maxFriction, maxFriction);
+
+			glm::vec3 frictionImpulse = jt * tangent;
+
+			A->Velocity -= frictionImpulse * A->InvMass;
+			B->Velocity += frictionImpulse * B->InvMass;
+		}
+	}
+
+	if (doTrigger)
+	{
+		A->OnCollide(B, c);
+		B->OnCollide(A, c);
+	}
+
 }
 
 
@@ -631,8 +648,17 @@ CollisionInfo PhysicObject::checkCollision(PhysicObject* objA, PhysicObject* obj
 		return result; // No collision detected
 	}
 
-	if (!objA->canCollide || !objB->canCollide) {
-		std::cout << "One of the PhysicObjects cannot collide." << std::endl;
+	CollisionResponse repA = objA->collisionResponse;
+	CollisionResponse repB = objB->collisionResponse;
+
+	bool doPhysical = (repA == CollisionResponse::CR_PHYSICAL || repA == CollisionResponse::CR_BOTH) 
+		&& (repB == CollisionResponse::CR_PHYSICAL || repB == CollisionResponse::CR_BOTH);
+
+	bool doTrigger = (repA == CollisionResponse::CR_TRIGGER || repA == CollisionResponse::CR_BOTH) 
+		&& (repB == CollisionResponse::CR_TRIGGER || repB == CollisionResponse::CR_BOTH);
+
+	if (!doPhysical && !doTrigger) {
+		std::cout << "One of the PhysicObjects cannot collide and cannot touch." << std::endl;
 		CollisionInfo result;
 		return result; // No collision detected
 	}
@@ -641,7 +667,7 @@ CollisionInfo PhysicObject::checkCollision(PhysicObject* objA, PhysicObject* obj
 
 	ShapeType typeA = objA->shapeType;
 	ShapeType typeB = objB->shapeType;
-	if (typeA == INVALID || typeB == INVALID) {
+	if (typeA == ShapeType::ST_INVALID || typeB == ShapeType::ST_INVALID) {
 		std::cout << "One of the PhysicObjects has an invalid ShapeType." << std::endl;
 		CollisionInfo result;
 		return result; // No collision detected
@@ -662,39 +688,39 @@ CollisionInfo PhysicObject::checkCollision(PhysicObject* objA, PhysicObject* obj
 		return result; // No collision detected
 	}
 
-	if (typeA == BOX) {
+	if (typeA == ShapeType::ST_BOX) {
 		// old was safely casted to NewType
-		if (typeB == BOX) {
+		if (typeB == ShapeType::ST_BOX) {
 			return Box2Box(objA, objB);
 		}
-		else if (typeB == SPHERE) {
+		else if (typeB == ShapeType::ST_SPHERE) {
 			return Box2Sphere(objA, objB);
 		}
-		else if (typeB == CAPSULE) {
+		else if (typeB == ShapeType::ST_CAPSULE) {
 			return Box2Capsule(objA, objB);
 		}
 	}
-	else if (typeA == SPHERE) {
+	else if (typeA == ShapeType::ST_SPHERE) {
 		// old was safely casted to NewType
-		if (typeB == BOX) {
+		if (typeB == ShapeType::ST_BOX) {
 			return Box2Sphere(objB, objA); // Reverse order
 		}
-		else if (typeB == SPHERE) {
+		else if (typeB == ShapeType::ST_SPHERE) {
 			return Sphere2Sphere(objA, objB);
 		}
-		else if (typeB == CAPSULE) {
+		else if (typeB == ShapeType::ST_CAPSULE) {
 			return Sphere2Capsule(objA, objB);
 		}
 	}
-	else if (typeA == CAPSULE) {
+	else if (typeA == ShapeType::ST_CAPSULE) {
 		// old was safely casted to NewType
-		if (typeB == BOX) {
+		if (typeB == ShapeType::ST_BOX) {
 			return Box2Capsule(objB, objA); // Reverse order
 		}
-		else if (typeB == SPHERE) {
+		else if (typeB == ShapeType::ST_SPHERE) {
 			return Sphere2Capsule(objB, objA); // Reverse order
 		}
-		else if (typeB == CAPSULE) {
+		else if (typeB == ShapeType::ST_CAPSULE) {
 			return Capsule2Capsule(objA, objB);
 		}
 		
@@ -706,15 +732,6 @@ CollisionInfo PhysicObject::checkCollision(PhysicObject* objA, PhysicObject* obj
 
 }
 
-std::string PhysicObject::ShapeTypeToString(ShapeType type) {
-	switch (type) {
-	case ShapeType::SPHERE:    return "SPHERE";
-	case ShapeType::BOX:	   return "BOX";
-	case ShapeType::CAPSULE:   return "CAPSULE";
-	default:                   return "Unknown";
-	}
-}
-
 std::ostream& operator<<(std::ostream& os, const PhysicObject& obj) {
 	os << "PhysicObject(Name : " << obj.name
 		<< "   \n\tPosition: [" << obj.Position.x << ", " << obj.Position.y << ", " << obj.Position.z
@@ -722,8 +739,51 @@ std::ostream& operator<<(std::ostream& os, const PhysicObject& obj) {
 		<< "], \n\tAcceleration: [" << obj.Acceleration.x << ", " << obj.Acceleration.y << ", " << obj.Acceleration.z
 		<< "], \n\tMass: " << obj.Mass
 		<< ", \n\tKinematic: " << obj.kinematic
-		<< ", \n\tCanCollide: " << obj.canCollide
-		<< ", \n\tShapeType: " << PhysicObject::ShapeTypeToString(obj.shapeType)
+		<< ", \n\tCollisionResponde: " << obj.collisionResponse
+		<< ", \n\tShapeType: " << obj.shapeType
 		<< ")";
+	return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const CollisionResponse& cr) {
+	switch (cr) {
+	case CollisionResponse::CR_NONE:
+		os << "NONE";
+		break;
+	case CollisionResponse::CR_TRIGGER:
+		os << "TRIGGER";
+		break;
+	case CollisionResponse::CR_PHYSICAL:
+		os << "PHYSICAL";
+		break;
+	case CollisionResponse::CR_BOTH:
+		os << "BOTH";
+		break;
+	default:
+		os << "Unknown CollisionResponse";
+		break;
+	}
+	return os;
+}
+
+
+std::ostream& operator<<(std::ostream& os, const ShapeType& st) {
+	switch (st) {
+	case ShapeType::ST_BOX:
+		os << "BOX";
+		break;
+	case ShapeType::ST_SPHERE:
+		os << "SPHERE";
+		break;
+	case ShapeType::ST_CAPSULE:
+		os << "CAPSULE";
+		break;
+	case ShapeType::ST_INVALID:
+		os << "INVALID";
+		break;
+	default:
+		os << "Unknown ShapeType";
+		break;
+	}
 	return os;
 }

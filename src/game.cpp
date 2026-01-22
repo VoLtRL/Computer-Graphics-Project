@@ -48,11 +48,10 @@ void Game::Init() {
     player->Damping = 1.0f;
     player->Friction = 10.0f;
     player->collisionShape = playerShape;
-	player->shapeType = CAPSULE;
-    player->canCollide = true;
+	player->shapeType = ShapeType::ST_CAPSULE;
     player->name = "Player";
 	player->collisionGroup = CG_PLAYER;
-	player->collisionMask = CG_PLAYER_COLLISIONS;
+	player->collisionMask = CG_PRESETS_PLAYER;
 
     viewer->scene_root->add(player);
 
@@ -66,11 +65,10 @@ void Game::Init() {
     testBox->Damping = 1.0f;
     testBox->Friction = 1.0f;
     testBox->collisionShape = testBoxShape;
-    testBox->shapeType = BOX;
-    testBox->canCollide = true;
+    testBox->shapeType = ShapeType::ST_BOX;
     testBox->name = "TestBox";
 	testBox->collisionGroup = CG_ENVIRONMENT;
-	testBox->collisionMask = CG_PLAYER | CG_ENEMY | CG_PLAYER_PROJECTILE | CG_ENEMY_PROJECTILE | CG_ENVIRONMENT;
+	testBox->collisionMask = CG_PRESETS_MAP;
     viewer->scene_root->add(testBox);
 
     Sphere* testSphereShape = new Sphere(StandardShader, 2.5f, 20);
@@ -80,11 +78,10 @@ void Game::Init() {
     testShpere->Damping = 1.0f;
     testShpere->Friction = 1.0f;
     testShpere->collisionShape = testSphereShape;
-    testShpere->shapeType = SPHERE;
-    testShpere->canCollide = true;
+    testShpere->shapeType = ShapeType::ST_SPHERE;
     testShpere->name = "TestSphere";
     testShpere->collisionGroup = CG_ENVIRONMENT;
-    testShpere->collisionMask = CG_PLAYER | CG_ENEMY | CG_PLAYER_PROJECTILE | CG_ENEMY_PROJECTILE | CG_ENVIRONMENT;
+    testShpere->collisionMask = CG_PRESETS_MAP;
     viewer->scene_root->add(testShpere);
 
     Capsule* testCapsuleShape = new Capsule(StandardShader, 2.0f, 5.0f);
@@ -94,11 +91,10 @@ void Game::Init() {
     testCapsule->Damping = 1.0f;
     testCapsule->Friction = 1.0f;
     testCapsule->collisionShape = testCapsuleShape;
-    testCapsule->shapeType = CAPSULE;
-    testCapsule->canCollide = true;
+    testCapsule->shapeType = ShapeType::ST_CAPSULE;
     testCapsule->name = "TestCapsule";
 	testCapsule->collisionGroup = CG_ENVIRONMENT;
-	testCapsule->collisionMask = CG_PLAYER | CG_ENEMY | CG_PLAYER_PROJECTILE | CG_ENEMY_PROJECTILE | CG_ENVIRONMENT;
+	testCapsule->collisionMask = CG_PRESETS_MAP;
     viewer->scene_root->add(testCapsule);
 }
 

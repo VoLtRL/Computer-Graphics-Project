@@ -120,8 +120,7 @@ void Player::shoot(glm::vec3 shootDirection){
         proj->SetMass(20.0f);
         proj->kinematic = false;
         proj->collisionShape = proj_shape;
-        proj->shapeType = SPHERE;
-        proj->canCollide = true;
+        proj->shapeType = ShapeType::ST_SPHERE;
         proj->Friction=0.0f;
         proj->Restitution=0.75f;
 		proj->collisionGroup = CG_PLAYER_PROJECTILE;

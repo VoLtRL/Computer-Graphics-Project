@@ -35,12 +35,14 @@ struct CapsuleCollision {
 
 class Shape;
 
-enum ShapeType {
-    BOX,
-    SPHERE,
-    CAPSULE,
-    INVALID
+enum class ShapeType {
+    ST_BOX,
+    ST_SPHERE,
+    ST_CAPSULE,
+	ST_INVALID
 };
+
+std::ostream& operator<<(std::ostream& os, const ShapeType& st);
 
 enum CollisionGroup : uint32_t {
     CG_NONE = 0,
@@ -49,10 +51,19 @@ enum CollisionGroup : uint32_t {
     CG_PLAYER_PROJECTILE = 1 << 2,
     CG_ENEMY_PROJECTILE = 1 << 3,
     CG_ENVIRONMENT = 1 << 4,
-    CG_MAP = CG_PLAYER | CG_ENEMY | CG_PLAYER_PROJECTILE | CG_ENEMY_PROJECTILE | CG_ENVIRONMENT,
-    CG_PLAYER_COLLISIONS = CG_ENVIRONMENT | CG_ENEMY | CG_ENEMY_PROJECTILE
+    CG_PRESETS_MAP = CG_PLAYER | CG_ENEMY | CG_PLAYER_PROJECTILE | CG_ENEMY_PROJECTILE | CG_ENVIRONMENT,
+    CG_PRESETS_PLAYER = CG_ENVIRONMENT | CG_ENEMY | CG_ENEMY_PROJECTILE,
+	CG_PRESETS_ENEMY = CG_ENVIRONMENT | CG_PLAYER | CG_PLAYER_PROJECTILE
 };
 
+enum class CollisionResponse {
+    CR_NONE,       // ignore
+    CR_TRIGGER,    // events only
+    CR_PHYSICAL,   // blocage physique
+    CR_BOTH        // blocage + events
+};
+
+std::ostream& operator<<(std::ostream& os, const CollisionResponse& cr);
 
 class PhysicObject {
 
@@ -81,7 +92,7 @@ public:
     inline static const float gravity = 9.8f;
 
     // Collisions
-    bool canCollide;
+	CollisionResponse collisionResponse = CollisionResponse::CR_BOTH;
     glm::vec3 forcesApplied;
     Shape* collisionShape;
     float Restitution;
@@ -146,7 +157,6 @@ public:
     static CollisionInfo checkCollision(PhysicObject* objA, PhysicObject* objB);
 
     static void ResolveCollision(PhysicObject* objA, PhysicObject* objB, const CollisionInfo& collisionInfo);
-    static std::string ShapeTypeToString(ShapeType type);
 };
 
 std::ostream& operator<<(std::ostream& os, const PhysicObject& obj);
