@@ -5,6 +5,8 @@
 #include <glm/glm.hpp>
 #include <vector>
 
+#include "node.h"
+
 // Forward declaration pour éviter les inclusions circulaires si nécessaire
 class Weapon; 
 
@@ -15,6 +17,9 @@ public:
     // game loop update
     void update(float deltaTime); 
     void draw(glm::mat4& view, glm::mat4& projection) override;
+
+    //Skin 3D
+    void setModel(Node* modelNode);
 
     // actions
     void jump();
@@ -55,6 +60,21 @@ public:
 	glm::vec3 PreviousVelocity;
 
 private:
+    //Model
+    Node* model = nullptr;
+
+    // body parts for animation
+    Node* armLeft = nullptr;
+    Node* armRight = nullptr;
+    Node* legLeft = nullptr;
+    Node* legRight = nullptr;
+    
+    // original transforms for resetting after animation
+    glm::mat4 armLeftOrig;
+    glm::mat4 armRightOrig;
+    glm::mat4 legLeftOrig;
+    glm::mat4 legRightOrig;
+
     // stats
     float health;
     float maxHealth;
@@ -77,5 +97,9 @@ private:
     // projectile storage
     std::vector<Projectile*> activeProjectiles;
 
-
+    // helper functions
+    Node* findNode(Node* current, std::string targetName) {
+        if (current->name == targetName) return current;
+            return nullptr;
+    }
 };
