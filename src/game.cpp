@@ -50,29 +50,14 @@ void Game::Init() {
     player->Damping = 1.0f;
     player->Friction = 10.0f;
     player->collisionShape = playerShape;
-	  player->shapeType = ShapeType::ST_CAPSULE;
+	player->shapeType = ShapeType::ST_CAPSULE;
     player->name = "Player";
-	  player->collisionGroup = CG_PLAYER;
-	  player->collisionMask = CG_PRESETS_PLAYER;
+	player->collisionGroup = CG_PLAYER;
+	player->collisionMask = CG_PRESETS_PLAYER;
     viewer->scene_root->add(player);
 
 
 
-    // Test Cube
-    Box* testBoxShape = new Box(StandardShader, 5.0f, 5.0f, 5.0f);
-    testBoxShape->color = glm::vec3(0.8f, 0.3f, 0.3f);
-    PhysicShapeObject* testBox = new PhysicShapeObject(testBoxShape, glm::vec3(2.0f, 5.0f, 0.0f));
-    testBox->SetMass(50.0f);
-    testBox->Damping = 1.0f;
-    testBox->Friction = 1.0f;
-    testBox->collisionShape = testBoxShape;
-    testBox->shapeType = BOX;
-    testBox->canCollide = true;
-    testBox->name = "TestBox";
-    viewer->scene_root->add(testBox);
-
-
-    // --- Integration of Knight ---
     Model* knight = new Model(imageDir + "Knight_V2.glb", StandardShader);
     if (knight->rootNode) {
         player->setModel(knight->rootNode);

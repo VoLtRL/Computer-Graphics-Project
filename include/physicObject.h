@@ -151,9 +151,9 @@ public:
     virtual void OnCollide(PhysicObject* other, CollisionInfo info);
 
     static float Length2(const glm::vec3& v);
-    static float PhysicObject::ProjectOBB(const OBBCollision& box, const glm::vec3& axis);
-    static glm::vec3 PhysicObject::ClosestPointAABB(const glm::vec3& p, const glm::vec3& min, const glm::vec3& max);
-    static glm::vec3 PhysicObject::ClosestPointSegmentAABB(const glm::vec3& A, const glm::vec3& B, const glm::vec3& boxMin, const glm::vec3& boxMax);
+    static float ProjectOBB(const OBBCollision& box, const glm::vec3& axis);
+    static glm::vec3 ClosestPointAABB(const glm::vec3& p, const glm::vec3& min, const glm::vec3& max);
+    static glm::vec3 ClosestPointSegmentAABB(const glm::vec3& A, const glm::vec3& B, const glm::vec3& boxMin, const glm::vec3& boxMax);
 
     static CollisionInfo Box2Box(PhysicObject* objA, PhysicObject* objB);
     static CollisionInfo Box2Sphere(PhysicObject* objA, PhysicObject* objB);

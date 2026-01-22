@@ -14,7 +14,7 @@ Capsule::Capsule(Shader* shader_program, float radius, float height)
     const unsigned int rings = 10;
 
     for (unsigned int i = 0; i <= segments; ++i) {
-        float theta = i * 2.0f *  M_PI * segments;
+        float theta = i * 2.0f * M_PI / segments;
         float cosTheta = cos(theta);
         float sinTheta = sin(theta);
 
