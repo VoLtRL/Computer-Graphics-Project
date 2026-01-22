@@ -11,9 +11,9 @@ float PhysicObject::Length2(const glm::vec3& v) {
 
 float PhysicObject::ProjectOBB(const OBBCollision& box, const glm::vec3& axis) {
 	return
-        box.halfExtents.x * std::abs(glm::dot(axis, box.rotation[0])) +
-        box.halfExtents.y * std::abs(glm::dot(axis, box.rotation[1])) +
-        box.halfExtents.z * std::abs(glm::dot(axis, box.rotation[2]));
+		box.halfExtents.x * glm::abs(glm::dot(axis, box.rotation[0])) +
+		box.halfExtents.y * glm::abs(glm::dot(axis, box.rotation[1])) +
+		box.halfExtents.z * glm::abs(glm::dot(axis, box.rotation[2]));
 }
 
 glm::vec3 PhysicObject::ClosestPointAABB(
@@ -332,9 +332,9 @@ CollisionInfo PhysicObject::Box2Box(PhysicObject* objA, PhysicObject* objB) {
 
 		axis = glm::normalize(axis);
 
-		float dist = std::abs(glm::dot(d, axis));
-		float rA = PhysicObject::ProjectOBB(A, axis);
-		float rB = PhysicObject::ProjectOBB(B, axis);
+		float dist = glm::abs(glm::dot(d, axis));
+		float rA = ProjectOBB(A, axis);
+		float rB = ProjectOBB(B, axis);
 
 		float overlap = rA + rB - dist;
 		if (overlap < 0) {

@@ -4,6 +4,8 @@
 #include "handlePhysics.h"
 #include "sphere.h"
 
+#include "model.h"
+
 Game::Game(Viewer* v) : viewer(v) {
     handlePhysics = new HandlePhysics();
 }
@@ -25,8 +27,8 @@ void Game::Init() {
     Shader* StandardShader = ResourceManager::GetShader("standard");
 
     glm::vec4 fogColor(0.2f, 0.2f, 0.2f, 1.0f);
-    float fogStart = 5.0f;
-    float fogEnd = 45.0f;
+    float fogStart = 10.0f;
+    float fogEnd = 75.0f;
 
     glUseProgram(StandardShader->get_id());
     glUniform4fv(glGetUniformLocation(StandardShader->get_id(), "fogColor"), 1, &fogColor[0]);
@@ -35,10 +37,10 @@ void Game::Init() {
 
     //Load map
     Map* map = new Map(StandardShader, viewer->scene_root);
-    
 
     // Create Player Shape with a blue color and no checkerboard pattern
     Shape* playerShape = new Capsule(StandardShader, 1.0f, 2.0f);
+
     playerShape->color = glm::vec3(0.22f, 0.65f, 0.92f);
     playerShape->useCheckerboard = false;
     
@@ -48,12 +50,33 @@ void Game::Init() {
     player->Damping = 1.0f;
     player->Friction = 10.0f;
     player->collisionShape = playerShape;
-	player->shapeType = ShapeType::ST_CAPSULE;
+	  player->shapeType = ShapeType::ST_CAPSULE;
     player->name = "Player";
-	player->collisionGroup = CG_PLAYER;
-	player->collisionMask = CG_PRESETS_PLAYER;
-
+	  player->collisionGroup = CG_PLAYER;
+	  player->collisionMask = CG_PRESETS_PLAYER;
     viewer->scene_root->add(player);
+
+
+
+    // Test Cube
+    Box* testBoxShape = new Box(StandardShader, 5.0f, 5.0f, 5.0f);
+    testBoxShape->color = glm::vec3(0.8f, 0.3f, 0.3f);
+    PhysicShapeObject* testBox = new PhysicShapeObject(testBoxShape, glm::vec3(2.0f, 5.0f, 0.0f));
+    testBox->SetMass(50.0f);
+    testBox->Damping = 1.0f;
+    testBox->Friction = 1.0f;
+    testBox->collisionShape = testBoxShape;
+    testBox->shapeType = BOX;
+    testBox->canCollide = true;
+    testBox->name = "TestBox";
+    viewer->scene_root->add(testBox);
+
+
+    // --- Integration of Knight ---
+    Model* knight = new Model(imageDir + "Knight_V2.glb", StandardShader);
+    if (knight->rootNode) {
+        player->setModel(knight->rootNode);
+    }
 
     crosshair = new Crosshair(0.1f);
     crosshairTexture = ResourceManager::GetTexture("crosshair");
@@ -152,7 +175,7 @@ void Game::Update() {
     glUseProgram(standardShader->get_id());
 
     int activeCount = 0;
-    int MAX_LIGHTS = 32;
+    int MAX_LIGHTS = 100;
 
     std::vector<float> lightPos;
     std::vector<float> lightColors;
@@ -174,6 +197,7 @@ void Game::Update() {
             activeCount++;
         }
     }
+
 
     glUniform1i(glGetUniformLocation(standardShader->get_id(), "numActiveLights"), activeCount);
     

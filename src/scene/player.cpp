@@ -3,6 +3,7 @@
 #include "sphere.h"
 
 #include <vector>
+#include <GLFW/glfw3.h>
 
 Player::Player(Shape* shape, glm::vec3 position,Shader* projectileShader)
     : PhysicShapeObject(shape, position),
@@ -11,7 +12,7 @@ Player::Player(Shape* shape, glm::vec3 position,Shader* projectileShader)
       movementSpeed(5.0f),
       jumpStrength(10.0f),
       attackDamage(20.0f),
-      attackSpeed(2.0f),
+      attackSpeed(50.0f),
       size(1.0f),
       isJumping(false),
       attackCooldown(0.0f),
@@ -70,6 +71,8 @@ void Player::update(float deltaTime)
     for(Projectile* proj : activeProjectiles){
         if(proj->isActive()){
             proj->update(deltaTime);
+        } else {
+            deleteActiveProjectile(proj);
         }
     }
 
@@ -77,18 +80,27 @@ void Player::update(float deltaTime)
     updateAnimation(deltaTime);
 }
 
-void Player::draw(glm::mat4& view, glm::mat4& projection)
-{
-    // Draw the player using the PhysicShapeObject's draw method
-    PhysicShapeObject::draw(view, projection);
-    // Draw active projectiles
-    for(Projectile* proj : activeProjectiles){
-        if(proj->isActive()){
-            proj->draw(view, projection);
-        }
+void Player::draw(glm::mat4& view, glm::mat4& projection){
+
+    glm::mat4 model = glm::mat4(1.0f);
+    
+    // Position
+    model = glm::translate(model, this->Position);
+    //For good positioning on the platform
+    model = glm::translate(model, glm::vec3(0.0f, 1.0f, 0.0f));
+
+    // Orientation
+    glm::mat4 rotation = glm::inverse(glm::lookAt(glm::vec3(0.0f), this->GetFrontVector(), glm::vec3(0.0f, 1.0f, 0.0f)));
+    model = model * rotation;
+
+    // Draw
+    this->model->draw(model, view, projection);
+
+    // Projectiles ?
+    for (auto p : activeProjectiles) {
+        p->draw(view, projection);
     }
 }
-
 
 void Player::jump(){
     if(!isJumping){
@@ -115,17 +127,16 @@ void Player::shoot(glm::vec3 shootDirection){
         proj_shape->color = glm::vec3(1.0f, 0.96f, 0.86f);
         proj_shape->isEmissive = true;
 
-        Projectile* proj = new Projectile(proj_shape, spawnPos, projectileSpeed, attackDamage, 50.0f);
+        Projectile* proj = new Projectile(proj_shape, spawnPos, projectileSpeed, attackDamage, 100.0f);
         proj->Velocity = shootDirection * projectileSpeed;
-        proj->SetMass(20.0f);
+        proj->SetMass(0.2f);
         proj->kinematic = false;
         proj->collisionShape = proj_shape;
         proj->shapeType = ShapeType::ST_SPHERE;
         proj->Friction=0.0f;
         proj->Restitution=0.75f;
-		proj->collisionGroup = CG_PLAYER_PROJECTILE;
-		proj->collisionMask = CG_ENEMY | CG_ENVIRONMENT;
-
+		    proj->collisionGroup = CG_PLAYER_PROJECTILE;
+		    proj->collisionMask = CG_ENEMY | CG_ENVIRONMENT;
 
         proj->setFrontVector(shootDirection);
         proj->setRightVector(glm::normalize(glm::cross(proj->GetFrontVector(), glm::vec3(0.0f, 1.0f, 0.0f))));
@@ -177,6 +188,64 @@ void Player::resize(float scale)
 
 void Player::updateAnimation(float deltaTime)
 {
-    // TODO
+    if (!model) return;
+
+    //Player moving check
+    bool isMoving = glm::length(glm::vec2(Velocity.x, Velocity.z)) > 0.1f;
+
+    if (isMoving) {
+
+        float speed = 10.0f; 
+        float time = glfwGetTime();
+        
+        float angle = glm::sin(time * speed) * 0.8f; 
+
+        // Rotation + base
+        if (armLeft)  armLeft->set_transform(glm::rotate(armLeftOrig, angle, glm::vec3(1, 0, 0)));
+        if (armRight) armRight->set_transform(glm::rotate(armRightOrig, -angle, glm::vec3(1, 0, 0)));
+        if (legLeft)  legLeft->set_transform(glm::rotate(legLeftOrig, -angle, glm::vec3(1, 0, 0)));
+        if (legRight) legRight->set_transform(glm::rotate(legRightOrig, angle, glm::vec3(1, 0, 0)));
+    } 
+    else {
+        // Reset
+        if (armLeft)  armLeft->set_transform(armLeftOrig);
+        if (armRight) armRight->set_transform(armRightOrig);
+        if (legLeft)  legLeft->set_transform(legLeftOrig);
+        if (legRight) legRight->set_transform(legRightOrig);
+    }
+}
+
+// Recursive search for a node by name
+Node* recursiveFind(Node* node, std::string name) {
+    if (node->name.find(name) != std::string::npos) return node;
+    for (auto child : node->children_) { 
+        Node* res = recursiveFind(child, name);
+        if (res) return res;
+    }
+    return nullptr;
+}
+
+void Player::setModel(Node* modelNode) {
+    this->model = modelNode;
+
+    //Find body parts
+    armLeft = recursiveFind(model, "Arm_upper_L");
+    armRight = recursiveFind(model, "Arm_upper_R");
+    legLeft = recursiveFind(model, "Leg_upper_L");
+    legRight = recursiveFind(model, "Leg_upper_R");
+
+    //Save initial transforms
+    if(armLeft) armLeftOrig = armLeft->get_transform();
+    if(armRight) armRightOrig = armRight->get_transform();
+    if(legLeft) legLeftOrig = legLeft->get_transform();
+    if(legRight) legRightOrig = legRight->get_transform();
+}
+
+void Player::deleteActiveProjectile(Projectile* proj){
+    auto it = std::find(activeProjectiles.begin(), activeProjectiles.end(), proj);
+    if (it != activeProjectiles.end()) {
+        activeProjectiles.erase(it);
+    }
+    PhysicObject::deleteObject(proj);
 }
 

@@ -140,6 +140,13 @@ public:
     // Static list of all PhysicObject instances
     inline static std::vector<PhysicObject*> allPhysicObjects{}; 
 
+    inline static void deleteObject(PhysicObject* obj){
+        auto it = std::find(allPhysicObjects.begin(), allPhysicObjects.end(), obj);
+        if (it != allPhysicObjects.end()) {
+            allPhysicObjects.erase(it);
+        }
+    };
+
     virtual void BeforeCollide(PhysicObject* other, CollisionInfo info);
     virtual void OnCollide(PhysicObject* other, CollisionInfo info);
 

@@ -4,7 +4,7 @@
 Sphere::Sphere(Shader* shader_program, float radius, int slices) : Shape(shader_program){
     // generate vertices
 	this->radius = radius;
-    std::vector<glm::vec3> vertices;
+    std::vector<float> vertices;
     for (int i = 0; i <= slices; i++) {
         float theta = glm::pi<float>() * static_cast<float>(i) / static_cast<float>(slices);
         for (int j = 0; j <= slices; j++) {
@@ -12,7 +12,17 @@ Sphere::Sphere(Shader* shader_program, float radius, int slices) : Shape(shader_
             float x = radius * glm::sin(theta) * glm::cos(phi);
             float y = radius * glm::sin(theta) * glm::sin(phi);
             float z = radius * glm::cos(theta);
-            vertices.push_back(glm::vec3(x, y, z));
+
+            // position
+            vertices.push_back(x);
+            vertices.push_back(y);
+            vertices.push_back(z);
+
+            // normal
+            vertices.push_back(x / radius);
+            vertices.push_back(y / radius);
+            vertices.push_back(z / radius);
+
         
     }
     }
@@ -31,11 +41,18 @@ Sphere::Sphere(Shader* shader_program, float radius, int slices) : Shape(shader_
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
     glGenBuffers(2, &buffers[0]);
+
     // create vertex buffer
-    glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), vertices.data(), GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+
+    // Position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    // Normal attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
     // create index buffer
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[1]);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
