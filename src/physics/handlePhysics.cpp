@@ -16,7 +16,7 @@ void HandlePhysics::Update(float deltaTime) {
 
             CollisionInfo info = PhysicObject::checkCollision(objA, objB);
             if (info.hit) {
-                PhysicObject::ResolveCollision(objA, objB, info);
+                PhysicObject::ResolveCollision(objA, objB, info, deltaTime);
             }
         }
     }

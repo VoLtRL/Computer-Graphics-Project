@@ -14,9 +14,6 @@
 
 #include <functional>
 
-const unsigned int SCR_WIDTH = 1920;
-const unsigned int SCR_HEIGHT = 1200;
-
 class Viewer {
 public:
     Viewer(int width=640, int height=480);

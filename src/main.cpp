@@ -1,5 +1,6 @@
 #include "viewer.h"
 #include "game.h"
+#include "constants.h"
 
 #ifndef SHADER_DIR
 #error "SHADER_DIR not defined"
@@ -9,7 +10,7 @@
 int main()
 {
     // Create viewer instance
-    Viewer viewer(SCR_WIDTH, SCR_HEIGHT);
+    Viewer viewer(Config::SCR_WIDTH, Config::SCR_HEIGHT);
     Game game(&viewer);
     
     game.Init();
@@ -23,6 +24,9 @@ int main()
     };
 
     viewer.run();
+
+    glfwTerminate();
+    return 0;
 
 }
 

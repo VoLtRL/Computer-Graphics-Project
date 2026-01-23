@@ -1,6 +1,8 @@
 #include "player.h"
 #include "projectile.h"
 #include "sphere.h"
+#include "enemy.h"
+#include "entityLoader.h"
 
 #include <vector>
 #include <GLFW/glfw3.h>
@@ -37,11 +39,15 @@ void Player::BeforeCollide(PhysicObject* other, CollisionInfo info)
 	}
 }
 
-void Player::OnCollide(PhysicObject* other, CollisionInfo info)
+void Player::OnCollide(PhysicObject* other, CollisionInfo info, float deltaTime)
 {
-    // Simple ground collision detection
-    if (isJumping && info.hit && PhysicObject::Length2(PreviousPosition-Position) < 0.05f) {
+    bool isGround = glm::dot(this->GetUpVector(), info.normal) > 0.7f;
+    if (isJumping && info.hit && isGround && PhysicObject::Length2(PreviousPosition-Position) < 0.05f) {
         isJumping = false; // Reset jumping state when colliding with ground
+    }
+    Enemy* enemy = dynamic_cast<Enemy*>(other);
+    if (enemy && info.hit) {
+        enemy->attack(this, deltaTime); // call attack on enemy
     }
     else {
         //std::cout << PhysicObject::Length2(PreviousPosition - Position) << std::endl;
@@ -50,6 +56,19 @@ void Player::OnCollide(PhysicObject* other, CollisionInfo info)
 
 void Player::update(float deltaTime)
 {
+    if (isDead) {
+        if (model && deathTimer == 0.0f) {
+            glm::mat4 current = model->get_transform();
+            model->set_transform(glm::rotate(current, glm::radians(90.0f), glm::vec3(1,0,0)));
+        }
+        deathTimer += deltaTime;
+        return;
+    }
+
+    if (health <= 0.0f) {
+        die();
+        return;
+    }
 
     // handle attack cooldown
     if (attackCooldown > 0.0f) {
@@ -93,6 +112,9 @@ void Player::draw(glm::mat4& view, glm::mat4& projection){
     glm::mat4 rotation = glm::inverse(glm::lookAt(glm::vec3(0.0f), this->GetFrontVector(), glm::vec3(0.0f, 1.0f, 0.0f)));
     model = model * rotation;
 
+    // Scale
+    model = glm::scale(model, glm::vec3(this->size));
+
     // Draw
     this->model->draw(model, view, projection);
 
@@ -122,25 +144,8 @@ void Player::shoot(glm::vec3 shootDirection){
         float spawnDistance = 0.5f;
         glm::vec3 spawnPos = shootingOrigin + (shootDirection * spawnDistance);
 
-        Shape* proj_shape = new Sphere(projectileShader, size * 0.2f, 20);
+        Projectile* proj = EntityLoader::CreateProjectile(spawnPos, shootDirection, this);
 
-        proj_shape->color = glm::vec3(1.0f, 0.96f, 0.86f);
-        proj_shape->isEmissive = true;
-
-        Projectile* proj = new Projectile(proj_shape, spawnPos, projectileSpeed, attackDamage, 100.0f);
-        proj->Velocity = shootDirection * projectileSpeed;
-        proj->SetMass(0.2f);
-        proj->kinematic = false;
-        proj->collisionShape = proj_shape;
-        proj->shapeType = ShapeType::ST_SPHERE;
-        proj->Friction=0.0f;
-        proj->Restitution=0.75f;
-		    proj->collisionGroup = CG_PLAYER_PROJECTILE;
-		    proj->collisionMask = CG_ENEMY | CG_ENVIRONMENT;
-
-        proj->setFrontVector(shootDirection);
-        proj->setRightVector(glm::normalize(glm::cross(proj->GetFrontVector(), glm::vec3(0.0f, 1.0f, 0.0f))));
-        proj->setUpVector(glm::normalize(glm::cross(proj->GetRightVector(), proj->GetFrontVector())));
         activeProjectiles.push_back(proj);
         attackCooldown = 1.0f / attackSpeed;
     }
@@ -181,9 +186,20 @@ void Player::heal(float amount)
     }
 }
 
+void Player::die() {
+    if (!isDead) {
+        isDead = true;
+        std::cout << "GAME OVER" << std::endl;
+    }
+}
+
 void Player::resize(float scale)
 {
     size *= scale;
+    
+    if (collisionShape && shapeType == SPHERE) {
+        ((Sphere*)collisionShape)->radius *= scale;
+    }
 }
 
 void Player::updateAnimation(float deltaTime)

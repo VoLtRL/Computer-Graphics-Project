@@ -10,6 +10,9 @@ public:
     void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection);
     void key_handler(int key);
     virtual ~Triangle();
+    virtual Shape* clone() const override {
+        return new Triangle(*this);
+    }
 
 private:
     GLuint VAO;

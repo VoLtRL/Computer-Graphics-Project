@@ -21,6 +21,8 @@ public:
     glm::mat4 get_transform() { return transform_; };
     std::string name;
     void key_handler(int key) const;
+    Node* clone() const;
+    ~Node();
 
 private:
     glm::mat4 transform_;

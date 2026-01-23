@@ -34,6 +34,7 @@ public:
     Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures, Shader* shader, std::string matName);
 
     void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection) override;
+    virtual Shape* clone() const override;
 
 private:
     unsigned int VBO, EBO;
