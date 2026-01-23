@@ -9,10 +9,10 @@ public:
     virtual Shape* clone() const override {
         return new Capsule(*this);
     }
+    float radius;
+    float height;
 private:
     unsigned int num_indices;
     GLuint VAO;
     GLuint buffers[2];
-    float radius;
-    float height;
 };
