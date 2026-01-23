@@ -197,7 +197,7 @@ void Player::resize(float scale)
 {
     size *= scale;
     
-    if (collisionShape && shapeType == SPHERE) {
+    if (collisionShape && shapeType == ShapeType::ST_SPHERE) {
         ((Sphere*)collisionShape)->radius *= scale;
     }
 }

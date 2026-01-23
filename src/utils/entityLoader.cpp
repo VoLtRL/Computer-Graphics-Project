@@ -19,8 +19,9 @@ Player* EntityLoader::CreatePlayer(glm::vec3 position){
     player->Damping = 0.8f;
     player->Friction = 1.0f;
     player->collisionShape = playerShape;
-	player->shapeType = SPHERE;
-    player->canCollide = true;
+	player->shapeType = ShapeType::ST_CAPSULE;
+	player->collisionGroup = CG_PLAYER;
+	player->collisionMask = CG_PRESETS_PLAYER;
     player->name = "Player";
 
     Model* knight = ResourceManager::GetModel("knight");
@@ -54,8 +55,10 @@ Projectile* EntityLoader::CreateProjectile(glm::vec3 pos, glm::vec3 dir, Player*
     proj->SetMass(0.2f);
     proj->kinematic = false;
     proj->collisionShape = proj_shape;
-    proj->shapeType = SPHERE;
-    proj->canCollide = true;
+    proj->shapeType = ShapeType::ST_SPHERE;
+    proj->collisionGroup = CollisionGroup::CG_PLAYER_PROJECTILE;
+    proj->collisionGroup = CG_PLAYER_PROJECTILE;
+	proj->collisionMask = CG_ENEMY | CG_ENVIRONMENT;
     proj->Restitution = 1.0f;
 
     proj->setFrontVector(shootDirection);
@@ -68,7 +71,7 @@ Projectile* EntityLoader::CreateProjectile(glm::vec3 pos, glm::vec3 dir, Player*
 Enemy* EntityLoader::CreateEnemy(glm::vec3 position){
     Shader* StandardShader = ResourceManager::GetShader("standard");
 
-    Shape* enemyShape = new Sphere(StandardShader, 0.5f, 20);
+    Shape* enemyShape = new Capsule(StandardShader, 0.5f, 2.0f);
     enemyShape->color = glm::vec3(0.9f, 0.1f, 0.1f);
     enemyShape->useCheckerboard = false;
 
@@ -76,10 +79,10 @@ Enemy* EntityLoader::CreateEnemy(glm::vec3 position){
     enemy->SetMass(50.0f);
     enemy->Damping = 1.0f;
     enemy->Friction = 1.0f;
-    enemy->canCollide = true;
     enemy->collisionShape = enemyShape;
-    enemy->shapeType = SPHERE;
-    enemy->canCollide = true;
+    enemy->shapeType = ShapeType::ST_CAPSULE;
+    enemy->collisionGroup = CollisionGroup::CG_ENEMY;
+    enemy->collisionMask = CollisionGroup::CG_PRESETS_ENEMY;
     enemy->name = "Enemy1";
     enemy->setSpeed(2.0f);
     enemy->setAttackSpeed(1.0f);
@@ -98,8 +101,9 @@ PhysicShapeObject* EntityLoader::CreateTestBox(glm::vec3 position){
     testBox->Damping = 1.0f;
     testBox->Friction = 1.0f;
     testBox->collisionShape = testBoxShape;
-    testBox->shapeType = BOX;
-    testBox->canCollide = true;
+    testBox->shapeType = ShapeType::ST_BOX;
+    testBox->collisionGroup = CollisionGroup::CG_PRESETS_MAP;
+    testBox->collisionMask = CollisionGroup::CG_PRESETS_MAP;
     testBox->name = "TestBox";
 
     return testBox;
