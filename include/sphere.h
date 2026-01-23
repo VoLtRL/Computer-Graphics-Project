@@ -12,6 +12,9 @@ public:
     float radius;
     void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection);
     virtual ~Sphere();
+    virtual Shape* clone() const override {
+        return new Sphere(*this);
+    }
 
 
 private:

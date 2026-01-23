@@ -77,3 +77,7 @@ void Mesh::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection) {
     glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 }
+
+Shape* Mesh::clone() const {
+    return new Mesh(*this);
+}

@@ -3,8 +3,11 @@
 #include <GLFW/glfw3.h>
 #include "handlePhysics.h"
 #include "sphere.h"
+#include "sprite.h"
 
 #include "model.h"
+#include "entityLoader.h"
+#include "constants.h"
 
 Game::Game(Viewer* v) : viewer(v) {
     handlePhysics = new HandlePhysics();
@@ -12,8 +15,6 @@ Game::Game(Viewer* v) : viewer(v) {
 
 Game::~Game() {
     delete handlePhysics;
-    delete player;
-    delete map;
     delete crosshair;
 }
 
@@ -23,8 +24,11 @@ void Game::Init() {
 
     ResourceManager::LoadShader(shaderDir + "standard.vert", shaderDir + "standard.frag", "standard");
     ResourceManager::LoadTexture(imageDir + "crosshair.png", "crosshair");
+    ResourceManager::LoadShader(shaderDir + "sprite.vert", shaderDir + "sprite.frag", "sprite");
 
     Shader* StandardShader = ResourceManager::GetShader("standard");
+
+    spriteRenderer = new Sprite(ResourceManager::GetShader("sprite"));
 
     glm::vec4 fogColor(0.2f, 0.2f, 0.2f, 1.0f);
     float fogStart = 10.0f;
@@ -38,60 +42,17 @@ void Game::Init() {
     //Load map
     Map* map = new Map(StandardShader, viewer->scene_root);
     
-    Shape* playerShape = new Sphere(StandardShader, 0.5f, 20);
-  
-    playerShape->color = glm::vec3(0.22f, 0.65f, 0.92f);
-    playerShape->useCheckerboard = false;
-    
-
-    player = new Player(playerShape, glm::vec3(0.0f, 10.0f, 0.0f), StandardShader);
-    player->SetMass(70.0f);
-    player->setHealth(500.0f);
-    player->Damping = 0.8f;
-    player->Friction = 1.0f;
-    player->collisionShape = playerShape;
-	player->shapeType = SPHERE;
-    player->canCollide = true;
-    player->name = "Player";
-
-    Model* knight = new Model(imageDir + "Knight_V2.glb", StandardShader);
-    if (knight->rootNode) {
-        player->setModel(knight->rootNode);
-    }
-
+    //Load player
+    player = EntityLoader::CreatePlayer(glm::vec3(0.0f, 5.0f, 0.0f));
     viewer->scene_root->add(player);
 
 
     // Test Cube
-    Box* testBoxShape = new Box(StandardShader, 5.0f, 5.0f, 5.0f);
-    testBoxShape->color = glm::vec3(0.8f, 0.3f, 0.3f);
-    PhysicShapeObject* testBox = new PhysicShapeObject(testBoxShape, glm::vec3(2.0f, 5.0f, 0.0f));
-    testBox->SetMass(50.0f);
-    testBox->Damping = 1.0f;
-    testBox->Friction = 1.0f;
-    testBox->collisionShape = testBoxShape;
-    testBox->shapeType = BOX;
-    testBox->canCollide = true;
-    testBox->name = "TestBox";
+    PhysicShapeObject* testBox = EntityLoader::CreateTestBox(glm::vec3(2.0f, 10.0f, 2.0f));
     viewer->scene_root->add(testBox);
 
     // Enemy
-    Shape* enemyShape = new Sphere(StandardShader, 0.5f, 20);
-    enemyShape->color = glm::vec3(0.9f, 0.1f, 0.1f);
-    enemyShape->useCheckerboard = false;
-
-    Enemy *enemy = new Enemy(enemyShape, glm::vec3(-5.0f, 10.0f, -5.0f), StandardShader);
-    enemy->SetMass(50.0f);
-    enemy->Damping = 1.0f;
-    enemy->Friction = 1.0f;
-    enemy->canCollide = true;
-    enemy->collisionShape = enemyShape;
-    enemy->shapeType = SPHERE;
-    enemy->canCollide = true;
-    enemy->name = "Enemy1";
-    enemy->setSpeed(1.0f);
-    enemy->setAttackSpeed(0.5f);
-    enemy->setPower(50);
+    Enemy* enemy = EntityLoader::CreateEnemy(glm::vec3(10.0f, 5.0f, 10.0f));
     enemies.push_back(enemy);
 
 
@@ -102,6 +63,10 @@ void Game::Init() {
 
     crosshair = new Crosshair(0.1f);
     crosshairTexture = ResourceManager::GetTexture("crosshair");
+
+    // Load Textures
+    gameOverTexture = ResourceManager::LoadTexture(imageDir + "game_over.png", "gameOver");
+    healthBarTexture = ResourceManager::LoadTexture(imageDir + "health_bar.png", "healthBar");
 }
 
 void Game::ProcessInput(float deltaTime) {
@@ -154,7 +119,6 @@ void Game::Update() {
 
     for(auto enemy : enemies){
         enemy->moveTowardsPlayer(player->Position, deltaTime);
-        enemy->attack(player, deltaTime);
     }
 
     // Handle Light
@@ -209,13 +173,54 @@ void Game::Update() {
 }
 
 void Game::RenderUI() {
-    float aspectRatio = static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT);
-        glDisable(GL_DEPTH_TEST); // Turn off depth test for UI
-        glEnable(GL_BLEND);       // Enable blending for transparency
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    float aspectRatio = static_cast<float>(Config::SCR_WIDTH) / static_cast<float>(Config::SCR_HEIGHT);
+    
+    // HUD rendering
+    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        crosshair->draw(crosshairTexture, aspectRatio);
+    // crosshair
+    crosshair->draw(crosshairTexture, aspectRatio);
 
-        glDisable(GL_BLEND);
-        glEnable(GL_DEPTH_TEST);
+    // sprite renderer setup
+    Shader* spriteShader = ResourceManager::GetShader("sprite");
+    // set the sprite shader
+    glUseProgram(spriteShader->get_id());
+
+    glm::mat4 projection = Sprite::getProjection(aspectRatio);
+    glUniformMatrix4fv(glGetUniformLocation(spriteShader->get_id(), "projection"), 1, GL_FALSE, &projection[0][0]);
+    glUniform1i(glGetUniformLocation(spriteShader->get_id(), "image"), 0);
+
+    // game over screen
+    if (player->getHealth() <= 0.0f) {
+        spriteRenderer->draw(gameOverTexture, glm::vec2(0.0f, 0.0f), glm::vec2(1.5f * aspectRatio, 1.5f));
+    }
+    
+    // health bar
+    else {
+        float healthPct = player->getHealth() / player->getMaxHealth();
+        healthPct = glm::clamp(healthPct, 0.0f, 1.0f);
+        std::cout << "Health Percentage: " << healthPct << std::endl;
+        std::cout << "Current Health: " << player->getHealth() << std::endl;
+
+        float barWidth = 0.8f;
+        float barHeight = 0.05f;
+        
+        float margin = 0.1f;
+        float currentWidth = barWidth * healthPct;
+        float xPos = -aspectRatio + margin + (currentWidth / 2.0f); 
+        float yPos = -0.9f;
+
+        float bgXPos = -aspectRatio + margin + (barWidth / 2.0f);
+
+        spriteRenderer->draw(healthBarTexture, glm::vec2(xPos, yPos), glm::vec2(currentWidth, barHeight), 0.0f, glm::vec3(0.1f, 0.67f, 0.1f));
+
+        spriteRenderer->draw(healthBarTexture, glm::vec2(bgXPos, yPos), glm::vec2(barWidth, barHeight), 0.0f, glm::vec3(0.8f, 0.1f, 0.1f));
+
+    }
+
+    // Restore state
+    glDisable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
 }

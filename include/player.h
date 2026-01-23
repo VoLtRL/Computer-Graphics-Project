@@ -33,11 +33,14 @@ public:
     
     // getters
     float getHealth() const { return health; }
+    float getMaxHealth() const { return maxHealth; }
     void setHealth(float newHealth) { health = newHealth; }
     bool isAlive() const { return health > 0.0f; }
     float getSpeed() const { return movementSpeed; }
     float getSize() const { return size; }
     std::vector<Projectile*> getActiveProjectiles() const { return activeProjectiles; }
+    float getProjectileSpeed() const { return projectileSpeed; }
+    float getAttackDamage() const { return attackDamage; }
 
     // resizing
     void resize(float scale);
@@ -88,6 +91,8 @@ private:
     // states
     bool isJumping;
     float attackCooldown;
+    bool isDead = false;
+    float deathTimer = 0.0f;
 
     // temp
     float groundDamping;

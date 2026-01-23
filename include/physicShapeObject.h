@@ -16,6 +16,8 @@ public:
 
 	// Constructor
 	PhysicShapeObject(Shape* shape = nullptr, glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f)); // Default : no shape, at origin.
+	// Destructor
+	virtual ~PhysicShapeObject();
 
 	// The shape representing the object.
 	Shape* shape; // May be nullptr.

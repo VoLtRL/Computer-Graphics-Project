@@ -18,7 +18,7 @@ public:
     bool useCheckerboard;
     bool isEmissive;
 
-    Shape* clone() const {
+    virtual Shape* clone() const{
         return new Shape(*this);
     }
 

@@ -7,6 +7,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "resourceManager.h"
 #include "shader.h"
+#include "constants.h"
 
 
 Viewer::Viewer(int width, int height)
@@ -143,7 +144,7 @@ void Viewer::run()
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         // Normal rendering 
-        glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+        glViewport(0, 0,Config::SCR_WIDTH,Config::SCR_HEIGHT);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         if(shader) {
@@ -161,7 +162,7 @@ void Viewer::run()
 
         camera->UpdatePhysics(deltaTime);
         glm::mat4 view = camera->GetViewMatrix();
-        float aspectRatio = (float) SCR_WIDTH / (float) SCR_HEIGHT;
+        float aspectRatio = (float) Config::SCR_WIDTH / (float) Config::SCR_HEIGHT;
         glm::mat4 projection = camera->GetProjectionMatrix(aspectRatio);
 
         scene_root->draw(model, view, projection);
@@ -174,7 +175,6 @@ void Viewer::run()
         glfwSwapBuffers(win);
     }
 
-    glfwTerminate();
 }
 
 // keyboard handler

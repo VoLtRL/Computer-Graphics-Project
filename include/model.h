@@ -20,6 +20,8 @@ public:
 
     void Draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection);
 
+    Model* clone(Shader* shader);
+
 private:
     Shader* shader;
     std::string directory;

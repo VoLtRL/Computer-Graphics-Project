@@ -8,6 +8,7 @@
 #include "crosshair.h"
 #include "enemy.h"
 #include <vector>
+#include "sprite.h"
 
 class Game {
 public:
@@ -23,11 +24,17 @@ public:
 
 private:
     Viewer* viewer;
+    Sprite* spriteRenderer;
+
 
     Player* player;
     std::vector<Enemy*> enemies;
     Map* map;
     Crosshair* crosshair;
-    unsigned int crosshairTexture;
     HandlePhysics* handlePhysics;
+
+    unsigned int gameOverTexture;
+    unsigned int healthBarTexture;
+    unsigned int crosshairTexture;
+
 };
