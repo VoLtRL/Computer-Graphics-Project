@@ -21,6 +21,13 @@ void Node::add(PhysicShapeObject* pso) {
 	children_physic_shape_.push_back(pso);  
 }
 
+void Node::remove(PhysicShapeObject* pso) {
+    auto it = std::find(children_physic_shape_.begin(), children_physic_shape_.end(), pso);
+    if (it != children_physic_shape_.end()) {
+        children_physic_shape_.erase(it);
+    }
+}
+
 void Node::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection) {
     glm::mat4 updatedModel = model * transform_;
 
@@ -83,4 +90,13 @@ Node::~Node() {
         delete pso;
     }
     children_physic_shape_.clear();
+}
+
+void Node::setAlpha(float alpha) {
+    for (auto shape : children_shape_) {
+        shape->alpha = alpha;
+    }
+    for (auto child : children_) {
+        child->setAlpha(alpha);
+    }
 }

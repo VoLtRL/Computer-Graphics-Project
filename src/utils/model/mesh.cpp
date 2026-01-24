@@ -69,12 +69,34 @@ void Mesh::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection) {
     else if (materialName.find("Dark") != std::string::npos || materialName.find("Leather") != std::string::npos) {
         finalColor = glm::vec3(0.15f, 0.15f, 0.15f); 
     }
+    // void
+    else if (materialName.find("VOID") != std::string::npos) {
+        finalColor = glm::vec3(0.1f, 0.0f, 0.2f); 
+    }
 
     glUniform3fv(glGetUniformLocation(shader_program_, "objectColor"), 1, glm::value_ptr(finalColor));
     glUniform1i(glGetUniformLocation(shader_program_, "useCheckerboard"), 0);
+    glUniform1i(glGetUniformLocation(shader_program_, "isEmissive"), 0);
+
+    glUniform1f(glGetUniformLocation(shader_program_, "alpha"), alpha);
+    
+     glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(model)));
+     glUniformMatrix3fv(glGetUniformLocation(shader_program_, "normalMatrix"), 1, GL_FALSE, glm::value_ptr(normalMatrix));
 
     glBindVertexArray(VAO);
+
+    if (alpha < 1.0f) {
+        glDepthMask(GL_FALSE); 
+        glUniform1i(glGetUniformLocation(shader_program_, "isShadowPass"), false);
+
+    }
+
     glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
+
+    if (alpha < 1.0f) {
+        glDepthMask(GL_TRUE); 
+    }
+
     glBindVertexArray(0);
 }
 

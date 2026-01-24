@@ -108,6 +108,7 @@ void Viewer::run()
     // sunlight position
     glm::vec3 lightPos(-20.0f, 50.0f, -20.0f);
 
+
     while (!glfwWindowShouldClose(win))
     {
         float currentFrame = (float)glfwGetTime();
@@ -129,6 +130,8 @@ void Viewer::run()
         glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
         glClear(GL_DEPTH_BUFFER_BIT);
+        glEnable(GL_BLEND); 
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         if(shader) {
             glUseProgram(shader->get_id());
@@ -173,7 +176,12 @@ void Viewer::run()
 
         glfwPollEvents();
         glfwSwapBuffers(win);
+        glDisable(GL_BLEND);
     }
+
+    // cleanup
+    glfwDestroyWindow(win);
+    glfwTerminate();
 
 }
 

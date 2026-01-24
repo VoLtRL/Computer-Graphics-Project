@@ -118,7 +118,7 @@ void Player::draw(glm::mat4& view, glm::mat4& projection){
     // Draw
     this->model->draw(model, view, projection);
 
-    // Projectiles ?
+    // Projectiles
     for (auto p : activeProjectiles) {
         p->draw(view, projection);
     }

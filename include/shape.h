@@ -15,6 +15,7 @@ public:
 
     virtual ~Shape() = default;
     glm::vec3 color;
+    float alpha = 1.0f;
     bool useCheckerboard;
     bool isEmissive;
 

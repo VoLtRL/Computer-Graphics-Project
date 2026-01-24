@@ -1,6 +1,7 @@
 #pragma once
 #include "physicShapeObject.h"
 #include "player.h"
+#include "node.h"
 
 class Enemy : public PhysicShapeObject { 
 public:
@@ -8,6 +9,9 @@ public:
     ~Enemy();
     void attack(Player* player, float deltaTime);
     void moveTowardsPlayer(glm::vec3 playerPosition, float deltaTime);
+
+    void setModel(Node* modelNode);
+    void draw(glm::mat4& view, glm::mat4& projection) override;
 
     void setSpeed(float newSpeed) { speed = newSpeed; }
     float getSpeed() const { return speed; }
@@ -19,8 +23,10 @@ public:
     int getPower() const { return power; }
 
     float getHealth() const { return health; }
-    void takeDamage(int damage) { health -= damage; if (health < 0) health = 0; }
+    void takeDamage(int damage);
     bool isAlive() const { return health > 0; }
+
+    void OnCollide(PhysicObject* other, CollisionInfo info, float deltaTime) override;
 
 private:
     int health;
@@ -30,4 +36,7 @@ private:
     float attackCooldown;
     float attackSpeed;
     
+    Node* model = nullptr;
+
+
  };

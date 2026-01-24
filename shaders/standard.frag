@@ -20,8 +20,13 @@ uniform vec3 lightPos[MAX_LIGHTS];
 uniform vec3 lightColors[MAX_LIGHTS];
 uniform float lightIntensities[MAX_LIGHTS];
 
+// alpha value for transparency
+uniform float alpha = 1.0;
+
+// shadow map
 uniform sampler2D shadowMap;
 uniform vec3 dirLightPos;
+// flag to indicate if the object is being rendered in the shadow pass
 uniform bool isShadowPass;
 
 float shadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir)
@@ -110,5 +115,5 @@ void main() {
     
     vec3 finalColorRGB = ambient + (baseColor * sunLighting) + (baseColor * pointLightContribution);
     
-    out_color = applyFog(vec4(finalColorRGB, 1.0), visibility);
+    out_color = applyFog(vec4(finalColorRGB, alpha), visibility);
 }

@@ -70,6 +70,7 @@ Projectile* EntityLoader::CreateProjectile(glm::vec3 pos, glm::vec3 dir, Player*
 
 Enemy* EntityLoader::CreateEnemy(glm::vec3 position){
     Shader* StandardShader = ResourceManager::GetShader("standard");
+    std::string imageDir = IMAGE_DIR;
 
     Shape* enemyShape = new Capsule(StandardShader, 0.5f, 2.0f);
     enemyShape->color = glm::vec3(0.9f, 0.1f, 0.1f);
@@ -87,6 +88,19 @@ Enemy* EntityLoader::CreateEnemy(glm::vec3 position){
     enemy->setSpeed(2.0f);
     enemy->setAttackSpeed(1.0f);
     enemy->setPower(10);
+
+    Model* ghostT1 = ResourceManager::GetModel("ghostT1");
+    if(ghostT1 == nullptr){
+        ghostT1 = ResourceManager::LoadModel( imageDir + "Mob_T1.glb", "ghostT1", StandardShader);
+    }
+
+    if (ghostT1->rootNode) {
+        Node* ghostT1ModelNode = ghostT1->rootNode->clone();
+
+        ghostT1ModelNode->setAlpha(0.5f);
+
+        enemy->setModel(ghostT1ModelNode);
+}
 
     return enemy;
 }

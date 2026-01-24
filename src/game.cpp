@@ -117,12 +117,20 @@ void Game::Update() {
     ProcessInput(deltaTime);
     player->update(deltaTime);
 
-    for(auto enemy : enemies){
-        enemy->moveTowardsPlayer(player->Position, deltaTime);
+    auto it = enemies.begin();
+    while (it != enemies.end()) {
+        Enemy* enemy = *it;
+        if (!enemy->isAlive()) {
+            viewer->scene_root->remove(enemy);
+            delete enemy;
+            it = enemies.erase(it);
+        } else {
+            enemy->moveTowardsPlayer(player->Position, deltaTime);
+            it++;
+        }
     }
 
     // Handle Light
-
     Shader* standardShader = ResourceManager::GetShader("standard");
     glUseProgram(standardShader->get_id());
 
