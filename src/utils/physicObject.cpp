@@ -2,20 +2,116 @@
 
 #include "box.h"
 #include "sphere.h"
+#include "capsule.h"
 
 
 float PhysicObject::Length2(const glm::vec3& v) {
 	return glm::dot(v, v);
 }
 
-float ProjectOBB(const OBBCollision& box, const glm::vec3& axis) {
+float PhysicObject::ProjectOBB(const OBBCollision& box, const glm::vec3& axis) {
 	return
-		box.halfExtents.x * abs(glm::dot(axis, box.rotation[0])) +
-		box.halfExtents.y * abs(glm::dot(axis, box.rotation[1])) +
-		box.halfExtents.z * abs(glm::dot(axis, box.rotation[2]));
+		box.halfExtents.x * glm::abs(glm::dot(axis, box.rotation[0])) +
+		box.halfExtents.y * glm::abs(glm::dot(axis, box.rotation[1])) +
+		box.halfExtents.z * glm::abs(glm::dot(axis, box.rotation[2]));
 }
 
+glm::vec3 PhysicObject::ClosestPointAABB(
+	const glm::vec3& p,
+	const glm::vec3& min,
+	const glm::vec3& max
+) {
+	return glm::clamp(p, min, max);
+}
 
+void ClosestPointsSegmentSegment(
+	const glm::vec3& p1, const glm::vec3& q1,
+	const glm::vec3& p2, const glm::vec3& q2,
+	glm::vec3& c1, glm::vec3& c2
+) {
+	glm::vec3 d1 = q1 - p1;
+	glm::vec3 d2 = q2 - p2;
+	glm::vec3 r = p1 - p2;
+
+	float a = glm::dot(d1, d1);
+	float e = glm::dot(d2, d2);
+	float f = glm::dot(d2, r);
+
+	float s, t;
+
+	if (a <= 1e-6f && e <= 1e-6f) {
+		c1 = p1;
+		c2 = p2;
+		return;
+	}
+
+	if (a <= 1e-6f) {
+		s = 0.0f;
+		t = glm::clamp(f / e, 0.0f, 1.0f);
+	}
+	else {
+		float c = glm::dot(d1, r);
+
+		if (e <= 1e-6f) {
+			t = 0.0f;
+			s = glm::clamp(-c / a, 0.0f, 1.0f);
+		}
+		else {
+			float b = glm::dot(d1, d2);
+			float denom = a * e - b * b;
+
+			if (denom != 0.0f)
+				s = glm::clamp((b * f - c * e) / denom, 0.0f, 1.0f);
+			else
+				s = 0.0f;
+
+			t = (b * s + f) / e;
+
+			if (t < 0.0f) {
+				t = 0.0f;
+				s = glm::clamp(-c / a, 0.0f, 1.0f);
+			}
+			else if (t > 1.0f) {
+				t = 1.0f;
+				s = glm::clamp((b - c) / a, 0.0f, 1.0f);
+			}
+		}
+	}
+
+	c1 = p1 + d1 * s;
+	c2 = p2 + d2 * t;
+}
+
+glm::vec3 PhysicObject::ClosestPointSegmentAABB(
+	const glm::vec3& A,
+	const glm::vec3& B,
+	const glm::vec3& boxMin,
+	const glm::vec3& boxMax
+) {
+	float t = 0.0f;
+	glm::vec3 d = B - A;
+
+	glm::vec3 p = A;
+
+	for (int i = 0; i < 3; ++i) {
+		if (std::abs(d[i]) < 1e-6f) {
+			p[i] = glm::clamp(A[i], boxMin[i], boxMax[i]);
+		}
+		else {
+			float ood = 1.0f / d[i];
+			float t1 = (boxMin[i] - A[i]) * ood;
+			float t2 = (boxMax[i] - A[i]) * ood;
+
+			if (t1 > t2) std::swap(t1, t2);
+
+			t = glm::max(t, t1);
+			t = glm::min(t, t2);
+		}
+	}
+
+	t = glm::clamp(t, 0.0f, 1.0f);
+	return A + d * t;
+}
 
 PhysicObject::PhysicObject(glm::vec3 position)
 {
@@ -36,10 +132,9 @@ PhysicObject::PhysicObject(glm::vec3 position)
 	kinematic = false;								// default : false
 
 	// Collisions
-	canCollide = true;								// default : true
 	forcesApplied = glm::vec3(0.0f, 0.0f, 0.0f);	// default : 0 N
 	Restitution = 0.1f;							// default : 0.5
-	shapeType = INVALID;								// default : BOX
+	shapeType = ShapeType::ST_INVALID;								// default : BOX
 	collisionShape = nullptr;					// default : nullptr
 
 	PhysicObject::allPhysicObjects.push_back(this); // Add this instance to the static list
@@ -56,62 +151,102 @@ PhysicObject::~PhysicObject() {
 void PhysicObject::ResolveCollision(
 	PhysicObject* A,
 	PhysicObject* B,
-	const CollisionInfo& c
+	const CollisionInfo& c,
+	float deltaTime
 ) {
 	if (!c.hit) return;
 	//std::cout << "Collision detected with penetration: " << c.penetration << std::endl;
 
-	A->BeforeCollide(B, c);
-	B->BeforeCollide(A, c);
+	CollisionResponse repA = A->collisionResponse;
+	CollisionResponse repB = B->collisionResponse;
 
-	float invMassSum = A->InvMass + B->InvMass;
-	if (invMassSum == 0.0f) return;
+	bool doPhysical = (repA == CollisionResponse::CR_PHYSICAL || repA == CollisionResponse::CR_BOTH)
+		&& (repB == CollisionResponse::CR_PHYSICAL || repB == CollisionResponse::CR_BOTH);
 
-	// --- S�curiser la normale ---
-	glm::vec3 normal = c.normal;
-	glm::vec3 AB = B->Position - A->Position;
-	if (glm::dot(normal, AB) < 0.0f)
-		normal = -normal;
+	bool doTrigger = (repA == CollisionResponse::CR_TRIGGER || repA == CollisionResponse::CR_BOTH)
+		&& (repB == CollisionResponse::CR_TRIGGER || repB == CollisionResponse::CR_BOTH);
 
-	// --- Correction de position ---
-	float percent = 0.8f;
-	float slop = 0.01f;
+	if (!doPhysical && !doTrigger) return;
+	if (doTrigger){
+		A->BeforeCollide(B, c);
+		B->BeforeCollide(A, c);
+	}
 
-	glm::vec3 correction =
-		std::max(c.penetration - slop, 0.0f)
-		/ invMassSum
-		* percent
-		* normal;
+	if (doPhysical){
+		float invMassSum = A->InvMass + B->InvMass;
+		if (invMassSum == 0.0f) return;
 
-	A->Position -= correction * A->InvMass;
-	B->Position += correction * B->InvMass;
+		// --- S�curiser la normale ---
+		glm::vec3 normal = c.normal;
+		glm::vec3 AB = B->Position - A->Position;
+		if (glm::dot(normal, AB) < 0.0f)
+			normal = -normal;
 
-	// --- V�locit� relative ---
-	glm::vec3 rv = B->Velocity - A->Velocity;
-	float velAlongNormal = glm::dot(rv, normal);
+		// --- Correction de position ---
+		float percent = 0.8f;
+		float slop = 0.01f;
 
-	if (velAlongNormal > 0.0f) return;
+		glm::vec3 correction =
+			std::max(c.penetration - slop, 0.0f)
+			/ invMassSum
+			* percent
+			* normal;
 
-	float e = std::min(A->Restitution, B->Restitution);
+		A->Position -= correction * A->InvMass;
+		B->Position += correction * B->InvMass;
 
-	float j = -(1.0f + e) * velAlongNormal;
-	j /= invMassSum;
+		// --- V�locit� relative ---
+		glm::vec3 rv = B->Velocity - A->Velocity;
+		float velAlongNormal = glm::dot(rv, normal);
 
-	glm::vec3 impulse = j * normal;
+		if (velAlongNormal > 0.0f) return;
 
-	// IMPULSION CORRECTE
-	A->Velocity -= impulse * A->InvMass;
-	B->Velocity += impulse * B->InvMass;
+		float e = std::min(A->Restitution, B->Restitution);
 
-	A->OnCollide(B, c);
-	B->OnCollide(A, c);
+		float j = -(1.0f + e) * velAlongNormal;
+		j /= invMassSum;
+
+		glm::vec3 impulse = j * normal;
+
+		// IMPULSION CORRECTE
+		A->Velocity -= impulse * A->InvMass;
+		B->Velocity += impulse * B->InvMass;
+
+		// --- FRICTION ---
+		glm::vec3 tangent =
+			rv - glm::dot(rv, normal) * normal;
+
+		if (PhysicObject::Length2(tangent) > 1e-6f) {
+			tangent = glm::normalize(tangent);
+
+			float mu = std::sqrt(A->Friction * B->Friction);
+
+			float jt = -glm::dot(rv, tangent);
+			jt /= (A->InvMass + B->InvMass);
+
+			float maxFriction = j * mu;
+			jt = glm::clamp(jt, -maxFriction, maxFriction);
+
+			glm::vec3 frictionImpulse = jt * tangent;
+
+			A->Velocity -= frictionImpulse * A->InvMass;
+			B->Velocity += frictionImpulse * B->InvMass;
+		}
+	}
+
+	if (doTrigger)
+	{
+	A->OnCollide(B, c, deltaTime);
+	B->OnCollide(A, c, deltaTime);
+	}
+
 }
 
 
 
 // Update physics state
 
-void PhysicObject::OnCollide(PhysicObject* other, CollisionInfo info) {
+void PhysicObject::OnCollide(PhysicObject* other, CollisionInfo info, float deltaTime) {
 	// Placeholder for after-collision response logic
 	return;
 }
@@ -198,13 +333,13 @@ CollisionInfo PhysicObject::Box2Box(PhysicObject* objA, PhysicObject* objB) {
 
 		axis = glm::normalize(axis);
 
-		float dist = abs(glm::dot(d, axis));
+		float dist = glm::abs(glm::dot(d, axis));
 		float rA = ProjectOBB(A, axis);
 		float rB = ProjectOBB(B, axis);
 
 		float overlap = rA + rB - dist;
 		if (overlap < 0) {
-			return result; // s�paration
+			return result; // séparation
 		}
 
 		if (overlap < minPenetration) {
@@ -290,17 +425,84 @@ CollisionInfo PhysicObject::Box2Sphere(PhysicObject* boxObj, PhysicObject* spher
 	result.normal =
 		glm::normalize(glm::vec3(box.rotation * glm::vec4(localNormal, 0.0f)));
 
-	// 8. P�n�tration
+	// 8. Pénétration
 	result.penetration = sphere.radius - distance;
 
 	return result;
 }
 
 CollisionInfo PhysicObject::Box2Capsule(PhysicObject* objA, PhysicObject* objB) {
-	// Placeholder for Box to Capsule collision detection logic
 	CollisionInfo result;
 
-	return result; // No collision detected
+	Box* boxShape = static_cast<Box*>(objA->collisionShape);
+	Capsule* capShape = static_cast<Capsule*>(objB->collisionShape);
+
+	OBBCollision box;
+	box.center = objA->Position;
+	box.halfExtents = glm::vec3(boxShape->w, boxShape->h, boxShape->d);
+	box.rotation = glm::mat3(objA->RotationMatrix);
+
+	CapsuleCollision cap;
+	cap.A = objB->Position + objB->GetUpVector() * (capShape->height / 2.0f);
+	cap.B = objB->Position - objB->GetUpVector() * (capShape->height / 2.0f);
+	cap.radius = capShape->radius;
+
+
+	// 1️⃣ Rotation pure (plus stable que inverse(mat4))
+	glm::mat3 rot = glm::mat3(box.rotation);
+	glm::mat3 invRot = glm::transpose(rot);
+
+	// 2️⃣ Capsule en espace local de la boîte
+	glm::vec3 localA = invRot * (cap.A - box.center);
+	glm::vec3 localB = invRot * (cap.B - box.center);
+
+	glm::vec3 boxMin = -box.halfExtents;
+	glm::vec3 boxMax = box.halfExtents;
+
+	// 3️⃣ Point du segment le plus proche de la boîte
+	glm::vec3 closest = ClosestPointSegmentAABB(
+		localA, localB, boxMin, boxMax
+	);
+
+	// 4️⃣ Point le plus proche SUR la boîte
+	glm::vec3 boxPoint = ClosestPointAABB(
+		closest, boxMin, boxMax
+	);
+
+	// 5️⃣ Distance capsule ↔ boîte
+	glm::vec3 delta = closest - boxPoint;
+	float distSq = glm::dot(delta, delta);
+
+	if (distSq > cap.radius * cap.radius)
+		return result; // pas collision 🌱
+
+	// 6️⃣ Collision confirmée
+	float distance = std::sqrt(distSq);
+
+	result.hit = true;
+	result.penetration = cap.radius - distance;
+
+	// Normale locale
+	glm::vec3 localNormal;
+	if (distance < 1e-6f) {
+		// Capsule au cœur de la boîte → on pousse vers la sortie
+		glm::vec3 d = glm::abs(closest) - box.halfExtents;
+
+		if (d.x > d.y && d.x > d.z)
+			localNormal = glm::vec3(glm::sign(closest.x), 0, 0);
+		else if (d.y > d.z)
+			localNormal = glm::vec3(0, glm::sign(closest.y), 0);
+		else
+			localNormal = glm::vec3(0, 0, glm::sign(closest.z));
+	}
+	else {
+		localNormal = glm::normalize(delta);
+	}
+
+	// 7️⃣ Normale en espace monde
+	result.normal = glm::normalize(rot * localNormal);
+
+	return result;
 }
 
 CollisionInfo PhysicObject::Sphere2Sphere(PhysicObject* objA, PhysicObject* objB) {
@@ -334,37 +536,139 @@ CollisionInfo PhysicObject::Sphere2Sphere(PhysicObject* objA, PhysicObject* objB
 }
 
 CollisionInfo PhysicObject::Sphere2Capsule(PhysicObject* objA, PhysicObject* objB) {
-	// Placeholder for Sphere to Capsule collision detection logic
 	CollisionInfo result;
 
-	return result; // No collision detected
+	Sphere* sphShape = static_cast<Sphere*>(objA->collisionShape);
+	Capsule* capShape = static_cast<Capsule*>(objB->collisionShape);
+
+	SphereCollision sph;
+	sph.center = objA->Position;
+	sph.radius = sphShape->radius;
+
+	CapsuleCollision cap;
+	cap.A = objB->Position + objB->GetUpVector() * (capShape->height / 2.0f);
+	cap.B = objB->Position - objB->GetUpVector() * (capShape->height / 2.0f);
+	cap.radius = capShape->radius;
+
+
+	// 1️⃣ Projection du centre de la sphère sur le segment
+	glm::vec3 AB = cap.B - cap.A;
+	float abLenSq = glm::dot(AB, AB);
+
+	float t = 0.0f;
+	if (abLenSq > 1e-6f) {
+		t = glm::dot(sph.center - cap.A, AB) / abLenSq;
+		t = glm::clamp(t, 0.0f, 1.0f);
+	}
+
+	glm::vec3 closest = cap.A + t * AB;
+
+	// 2️⃣ Distance entre la sphère et la capsule
+	glm::vec3 delta = sph.center - closest;
+	float distSq = glm::dot(delta, delta);
+
+	float radiusSum = cap.radius + sph.radius;
+
+	if (distSq > radiusSum * radiusSum)
+		return result; // pas collision 
+
+	// 3️⃣ Collision confirmée
+	float distance = std::sqrt(distSq);
+
+	result.hit = true;
+	result.penetration = radiusSum - distance;
+
+	// 4️⃣ Normale
+	if (distance < 1e-6f) {
+		// centre pile sur l'axe → normale arbitraire
+		glm::vec3 axis = cap.B - cap.A;
+		result.normal = glm::normalize(axis);
+	}
+	else {
+		result.normal = glm::normalize(delta);
+	}
+
+	return result;
 }
 
 CollisionInfo PhysicObject::Capsule2Capsule(PhysicObject* objA, PhysicObject* objB) {
-	// Placeholder for Capsule to Capsule collision detection logic
 	CollisionInfo result;
 
-	return result; // No collision detected
+	glm::vec3 cA, cB;
+
+	Capsule* capShapeA = static_cast<Capsule*>(objA->collisionShape);
+	Capsule* capShapeB = static_cast<Capsule*>(objB->collisionShape);
+
+	glm::vec3 capA_start = objA->Position + objA->GetUpVector() * (capShapeA->height / 2.0f);
+	glm::vec3 capA_end = objA->Position - objA->GetUpVector() * (capShapeA->height / 2.0f);
+
+	glm::vec3 capB_start = objB->Position + objB->GetUpVector() * (capShapeB->height / 2.0f);
+	glm::vec3 capB_end = objB->Position - objB->GetUpVector() * (capShapeB->height / 2.0f);
+
+
+	// 1️⃣ Points les plus proches entre les deux segments
+	ClosestPointsSegmentSegment(
+		capA_start, capA_end,
+		capB_start, capB_end,
+		cA, cB
+	);
+
+	// 2️⃣ Distance entre ces points
+	glm::vec3 delta = cB - cA;
+	float distSq = glm::dot(delta, delta);
+
+	float radiusSum = capShapeA->radius + capShapeB->radius;
+
+	if (distSq > radiusSum * radiusSum)
+		return result; // pas de collision 🌿
+
+	// 3️⃣ Collision confirmée
+	float distance = std::sqrt(distSq);
+
+	result.hit = true;
+
+	// Cas dégénéré : segments parfaitement alignés
+	if (distance < 1e-6f) {
+		glm::vec3 axis = capA_end - capA_start;
+		result.normal = glm::normalize(axis);
+		result.penetration = radiusSum;
+	}
+	else {
+		result.normal = glm::normalize(delta);
+		result.penetration = radiusSum - distance;
+	}
+
+	return result;
 }
 
 CollisionInfo PhysicObject::checkCollision(PhysicObject* objA, PhysicObject* objB) {
-	if (!objA->canCollide || !objB->canCollide) {
-		std::cout << "One of the PhysicObjects cannot collide." << std::endl;
+
+	if (!objA || !objB) {
+		std::cout << "One of the PhysicObjects is null." << std::endl;
+		CollisionInfo result;
+		return result; // No collision detected
+	}
+
+	CollisionResponse repA = objA->collisionResponse;
+	CollisionResponse repB = objB->collisionResponse;
+
+	bool doPhysical = (repA == CollisionResponse::CR_PHYSICAL || repA == CollisionResponse::CR_BOTH) 
+		&& (repB == CollisionResponse::CR_PHYSICAL || repB == CollisionResponse::CR_BOTH);
+
+	bool doTrigger = (repA == CollisionResponse::CR_TRIGGER || repA == CollisionResponse::CR_BOTH) 
+		&& (repB == CollisionResponse::CR_TRIGGER || repB == CollisionResponse::CR_BOTH);
+
+	if (!doPhysical && !doTrigger) {
+		std::cout << "One of the PhysicObjects cannot collide and cannot touch." << std::endl;
 		CollisionInfo result;
 		return result; // No collision detected
 	}
 
 	std::cout << "Checking collision between " << objA->name << " and " << objB->name << std::endl;
 
-	if(!objA || !objB) {
-		std::cout << "One of the PhysicObjects is null." << std::endl;
-		CollisionInfo result;
-		return result; // No collision detected
-	}
-
 	ShapeType typeA = objA->shapeType;
 	ShapeType typeB = objB->shapeType;
-	if (typeA == INVALID || typeB == INVALID) {
+	if (typeA == ShapeType::ST_INVALID || typeB == ShapeType::ST_INVALID) {
 		std::cout << "One of the PhysicObjects has an invalid ShapeType." << std::endl;
 		CollisionInfo result;
 		return result; // No collision detected
@@ -379,39 +683,45 @@ CollisionInfo PhysicObject::checkCollision(PhysicObject* objA, PhysicObject* obj
 	}
 
 
-	if (typeA == BOX) {
+	if (!((objA->collisionMask & objB->collisionGroup) && (objB->collisionMask & objA->collisionGroup))) {
+		std::cout << "These objects can't collide with each others." << std::endl;
+		CollisionInfo result;
+		return result; // No collision detected
+	}
+
+	if (typeA == ShapeType::ST_BOX) {
 		// old was safely casted to NewType
-		if (typeB == BOX) {
+		if (typeB == ShapeType::ST_BOX) {
 			return Box2Box(objA, objB);
 		}
-		else if (typeB == SPHERE) {
+		else if (typeB == ShapeType::ST_SPHERE) {
 			return Box2Sphere(objA, objB);
 		}
-		else if (typeB == CAPSULE) {
+		else if (typeB == ShapeType::ST_CAPSULE) {
 			return Box2Capsule(objA, objB);
 		}
 	}
-	else if (typeA == SPHERE) {
+	else if (typeA == ShapeType::ST_SPHERE) {
 		// old was safely casted to NewType
-		if (typeB == BOX) {
+		if (typeB == ShapeType::ST_BOX) {
 			return Box2Sphere(objB, objA); // Reverse order
 		}
-		else if (typeB == SPHERE) {
+		else if (typeB == ShapeType::ST_SPHERE) {
 			return Sphere2Sphere(objA, objB);
 		}
-		else if (typeB == CAPSULE) {
+		else if (typeB == ShapeType::ST_CAPSULE) {
 			return Sphere2Capsule(objA, objB);
 		}
 	}
-	else if (typeA == CAPSULE) {
+	else if (typeA == ShapeType::ST_CAPSULE) {
 		// old was safely casted to NewType
-		if (typeB == BOX) {
+		if (typeB == ShapeType::ST_BOX) {
 			return Box2Capsule(objB, objA); // Reverse order
 		}
-		else if (typeB == SPHERE) {
+		else if (typeB == ShapeType::ST_SPHERE) {
 			return Sphere2Capsule(objB, objA); // Reverse order
 		}
-		else if (typeB == CAPSULE) {
+		else if (typeB == ShapeType::ST_CAPSULE) {
 			return Capsule2Capsule(objA, objB);
 		}
 		
@@ -423,15 +733,6 @@ CollisionInfo PhysicObject::checkCollision(PhysicObject* objA, PhysicObject* obj
 
 }
 
-std::string PhysicObject::ShapeTypeToString(ShapeType type) {
-	switch (type) {
-	case ShapeType::SPHERE:    return "SPHERE";
-	case ShapeType::BOX:	   return "BOX";
-	case ShapeType::CAPSULE:   return "CAPSULE";
-	default:                   return "Unknown";
-	}
-}
-
 std::ostream& operator<<(std::ostream& os, const PhysicObject& obj) {
 	os << "PhysicObject(Name : " << obj.name
 		<< "   \n\tPosition: [" << obj.Position.x << ", " << obj.Position.y << ", " << obj.Position.z
@@ -439,8 +740,51 @@ std::ostream& operator<<(std::ostream& os, const PhysicObject& obj) {
 		<< "], \n\tAcceleration: [" << obj.Acceleration.x << ", " << obj.Acceleration.y << ", " << obj.Acceleration.z
 		<< "], \n\tMass: " << obj.Mass
 		<< ", \n\tKinematic: " << obj.kinematic
-		<< ", \n\tCanCollide: " << obj.canCollide
-		<< ", \n\tShapeType: " << PhysicObject::ShapeTypeToString(obj.shapeType)
+		<< ", \n\tCollisionResponde: " << obj.collisionResponse
+		<< ", \n\tShapeType: " << obj.shapeType
 		<< ")";
+	return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const CollisionResponse& cr) {
+	switch (cr) {
+	case CollisionResponse::CR_NONE:
+		os << "NONE";
+		break;
+	case CollisionResponse::CR_TRIGGER:
+		os << "TRIGGER";
+		break;
+	case CollisionResponse::CR_PHYSICAL:
+		os << "PHYSICAL";
+		break;
+	case CollisionResponse::CR_BOTH:
+		os << "BOTH";
+		break;
+	default:
+		os << "Unknown CollisionResponse";
+		break;
+	}
+	return os;
+}
+
+
+std::ostream& operator<<(std::ostream& os, const ShapeType& st) {
+	switch (st) {
+	case ShapeType::ST_BOX:
+		os << "BOX";
+		break;
+	case ShapeType::ST_SPHERE:
+		os << "SPHERE";
+		break;
+	case ShapeType::ST_CAPSULE:
+		os << "CAPSULE";
+		break;
+	case ShapeType::ST_INVALID:
+		os << "INVALID";
+		break;
+	default:
+		os << "Unknown ShapeType";
+		break;
+	}
 	return os;
 }
