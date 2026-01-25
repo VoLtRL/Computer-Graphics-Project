@@ -9,6 +9,7 @@
 #include "enemy.h"
 #include <vector>
 #include "sprite.h"
+#include "enemySpawner.h"
 
 class Game {
 public:
@@ -29,6 +30,7 @@ private:
 
     Player* player;
     std::vector<Enemy*> enemies;
+    std::vector<EnemySpawner*> enemySpawners;
     Map* map;
     Crosshair* crosshair;
     HandlePhysics* handlePhysics;

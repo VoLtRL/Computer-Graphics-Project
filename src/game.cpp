@@ -51,15 +51,10 @@ void Game::Init() {
     PhysicShapeObject* testBox = EntityLoader::CreateTestBox(glm::vec3(2.0f, 10.0f, 2.0f));
     viewer->scene_root->add(testBox);
 
-    // Enemy
-    Enemy* enemy = EntityLoader::CreateEnemy(glm::vec3(10.0f, 5.0f, 10.0f));
-    enemies.push_back(enemy);
-
-
-
-    for(auto e : enemies){
-        viewer->scene_root->add(e);
-    }
+    // Mob Spawner
+    EnemySpawner* spawner = EntityLoader::CreateEnemySpawner(viewer->scene_root, glm::vec3(0.0f, 1.0f, 0.0f), enemies);
+    viewer->scene_root->add(spawner);
+    enemySpawners.push_back(spawner);
 
     crosshair = new Crosshair(0.1f);
     crosshairTexture = ResourceManager::GetTexture("crosshair");
@@ -102,7 +97,7 @@ void Game::ProcessInput(float deltaTime) {
         glm::vec3 cameraFront = viewer->camera->Front;
         glm::vec3 aimPoint = cameraPos + (cameraFront * aimDistance);
 
-        glm::vec3 playerGunPos = player->Position + glm::vec3(0.0f, 0.0f, 0.0f);
+        glm::vec3 playerGunPos = player->Position + glm::vec3(0.3f, 0.5f, -0.2f);
 
         glm::vec3 shootDirection = glm::normalize(aimPoint - playerGunPos);
 
@@ -116,6 +111,10 @@ void Game::Update() {
 
     ProcessInput(deltaTime);
     player->update(deltaTime);
+
+    for(auto spawner : enemySpawners){
+        spawner->Update(deltaTime);
+    }
 
     auto it = enemies.begin();
     while (it != enemies.end()) {
@@ -166,7 +165,7 @@ void Game::Update() {
         glUniform1fv(glGetUniformLocation(standardShader->get_id(), "lightIntensities"), activeCount, lightIntensities.data());
     }
 
-    glm::vec3 camOffset(0.0f, 1.4f, 0.0f);
+    glm::vec3 camOffset(0.0f, 2.5f, 0.0f);
 
     viewer->camera->SetTarget(player->Position + camOffset);
 

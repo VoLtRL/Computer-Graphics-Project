@@ -14,7 +14,7 @@ Player::Player(Shape* shape, glm::vec3 position,Shader* projectileShader)
       movementSpeed(5.0f),
       jumpStrength(10.0f),
       attackDamage(20.0f),
-      attackSpeed(50.0f),
+      attackSpeed(2.0f),
       size(1.0f),
       isJumping(false),
       attackCooldown(0.0f),

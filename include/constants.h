@@ -32,4 +32,11 @@ namespace Config {
         constexpr int POWER = 10;
         constexpr glm::vec3 COLOR = glm::vec3(0.9f, 0.1f, 0.1f);
     }
+
+    namespace EnemySpawner {
+        constexpr float SPAWN_INTERVAL = 6.0f;
+        constexpr float SPAWN_RADIUS = 15.0f;
+
+        constexpr int MAX_ENEMIES = 20;
+    }
 }

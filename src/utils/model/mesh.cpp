@@ -73,6 +73,18 @@ void Mesh::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection) {
     else if (materialName.find("VOID") != std::string::npos) {
         finalColor = glm::vec3(0.1f, 0.0f, 0.2f); 
     }
+    else if (materialName.find("SPECTRAL_T1") != std::string::npos) {
+        finalColor = glm::vec3(0.5f, 0.95f, 1.0f);
+    }
+    else if (materialName.find("SPECTRAL_T2") != std::string::npos) {
+        finalColor = glm::vec3(0.85f, 0.50f, 1.0f);
+    }
+    else if (materialName.find("SPECTRAL_T3") != std::string::npos) {
+        finalColor = glm::vec3(1.0f, 0.2f, 0.40f);
+    }
+    else if (materialName.find("SPECTRAL_T4") != std::string::npos) {
+        finalColor = glm::vec3 (0.0f, 0.0f, 0.0f);
+    }
 
     glUniform3fv(glGetUniformLocation(shader_program_, "objectColor"), 1, glm::value_ptr(finalColor));
     glUniform1i(glGetUniformLocation(shader_program_, "useCheckerboard"), 0);

@@ -10,7 +10,7 @@ Player* EntityLoader::CreatePlayer(glm::vec3 position){
     Shader* StandardShader = ResourceManager::GetShader("standard");
     std::string imageDir = IMAGE_DIR;
 
-    Shape* playerShape = new Sphere(StandardShader, 0.5f, 20);
+    Shape* playerShape = new Capsule(StandardShader, 0.8f, 1.0f);
     playerShape->color = glm::vec3(0.22f, 0.65f, 0.92f);
     playerShape->useCheckerboard = false;
     
@@ -68,13 +68,11 @@ Projectile* EntityLoader::CreateProjectile(glm::vec3 pos, glm::vec3 dir, Player*
     return proj;
 }
 
-Enemy* EntityLoader::CreateEnemy(glm::vec3 position){
+Enemy* EntityLoader::CreateEnemy(glm::vec3 position,int tier){
     Shader* StandardShader = ResourceManager::GetShader("standard");
     std::string imageDir = IMAGE_DIR;
 
-    Shape* enemyShape = new Capsule(StandardShader, 0.5f, 2.0f);
-    enemyShape->color = glm::vec3(0.9f, 0.1f, 0.1f);
-    enemyShape->useCheckerboard = false;
+    Shape* enemyShape = new Capsule(StandardShader, 0.5f, 1.2f);
 
     Enemy *enemy = new Enemy(enemyShape, glm::vec3(-5.0f, 10.0f, -5.0f), StandardShader);
     enemy->SetMass(50.0f);
@@ -85,22 +83,96 @@ Enemy* EntityLoader::CreateEnemy(glm::vec3 position){
     enemy->collisionGroup = CollisionGroup::CG_ENEMY;
     enemy->collisionMask = CollisionGroup::CG_PRESETS_ENEMY;
     enemy->name = "Enemy1";
-    enemy->setSpeed(2.0f);
-    enemy->setAttackSpeed(1.0f);
-    enemy->setPower(10);
+    switch (tier)
+    {
+    case 1:
+        {
+        enemy->setSpeed(2.0f);
+        enemy->setAttackSpeed(1.0f);
+        enemy->setPower(10);
+        enemy->setTier(1);
 
-    Model* ghostT1 = ResourceManager::GetModel("ghostT1");
-    if(ghostT1 == nullptr){
-        ghostT1 = ResourceManager::LoadModel( imageDir + "Mob_T1.glb", "ghostT1", StandardShader);
+        Model* ghostT1 = ResourceManager::GetModel("ghostT1");
+
+        if(ghostT1 == nullptr){
+            ghostT1 = ResourceManager::LoadModel( imageDir + "Mob_T1.glb", "ghostT1", StandardShader);
+        }
+
+        if (ghostT1->rootNode) {
+            Node* ghostT1ModelNode = ghostT1->rootNode->clone();
+
+            ghostT1ModelNode->setAlpha(1.0f);
+
+            enemy->setModel(ghostT1ModelNode);
+        }
+
+        break;
     }
+    case 2:
+        {
+        enemy->setSpeed(3.0f);
+        enemy->setAttackSpeed(1.5f);
+        enemy->setPower(20);
+        enemy->setTier(2);
 
-    if (ghostT1->rootNode) {
-        Node* ghostT1ModelNode = ghostT1->rootNode->clone();
+        Model* ghostT2 = ResourceManager::GetModel("ghostT2");
+        if(ghostT2 == nullptr){
+            ghostT2 = ResourceManager::LoadModel( imageDir + "Mob_T2.glb", "ghostT2", StandardShader);
+        }
+        if (ghostT2->rootNode) {
+            Node* ghostT2ModelNode = ghostT2->rootNode->clone();
 
-        ghostT1ModelNode->setAlpha(0.5f);
+            ghostT2ModelNode->setAlpha(1.0f);
 
-        enemy->setModel(ghostT1ModelNode);
-}
+            enemy->setModel(ghostT2ModelNode);
+        }
+
+        break;
+    }
+    case 3:
+        {
+        enemy->setSpeed(4.0f);
+        enemy->setAttackSpeed(2.0f);
+        enemy->setPower(30);
+        enemy->setTier(3);
+
+        Model* ghostT3 = ResourceManager::GetModel("ghostT3");
+        if(ghostT3 == nullptr){
+            ghostT3 = ResourceManager::LoadModel( imageDir + "Mob_T3.glb", "ghostT3", StandardShader);
+        }
+        if (ghostT3->rootNode) {
+            Node* ghostT3ModelNode = ghostT3->rootNode->clone();
+            ghostT3ModelNode->setAlpha(1.0f);
+            enemy->setModel(ghostT3ModelNode);
+        }
+
+        break;
+    }
+    case 4:
+        {
+        enemy->setSpeed(5.0f);
+        enemy->setAttackSpeed(2.5f);
+        enemy->setPower(40);
+        enemy->setTier(4);
+
+        Model* ghostT4 = ResourceManager::GetModel("ghostT4");
+        if(ghostT4 == nullptr){
+            ghostT4 = ResourceManager::LoadModel( imageDir + "Mob_T4.glb", "ghostT4", StandardShader);
+        }
+        if (ghostT4->rootNode) {
+            Node* ghostT4ModelNode = ghostT4->rootNode->clone();
+            ghostT4ModelNode->setAlpha(1.0f);
+            enemy->setModel(ghostT4ModelNode);
+        }
+
+        break;
+    }
+    default:
+        enemy->setSpeed(2.0f);
+        enemy->setAttackSpeed(1.0f);
+        enemy->setPower(10);
+        break;
+    }
 
     return enemy;
 }
@@ -121,4 +193,14 @@ PhysicShapeObject* EntityLoader::CreateTestBox(glm::vec3 position){
     testBox->name = "TestBox";
 
     return testBox;
+}
+
+EnemySpawner* EntityLoader::CreateEnemySpawner(Node* sceneRoot, glm::vec3 position, std::vector<Enemy*>& enemyList){
+    EnemySpawner* spawner = new EnemySpawner(sceneRoot, position, enemyList);
+    spawner->name = "EnemySpawner";
+    spawner->collisionGroup = CG_NONE;
+    spawner->collisionMask = CG_NONE;
+    spawner->SetMass(0.0f); // Immovable
+    spawner->kinematic = true;
+    return spawner;
 }

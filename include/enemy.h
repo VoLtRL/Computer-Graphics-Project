@@ -25,6 +25,8 @@ public:
     float getHealth() const { return health; }
     void takeDamage(int damage);
     bool isAlive() const { return health > 0; }
+    int getTier() const { return tier; }
+    void setTier(int newTier) { tier = newTier; }
 
     void OnCollide(PhysicObject* other, CollisionInfo info, float deltaTime) override;
 
@@ -35,6 +37,7 @@ private:
     float speed;
     float attackCooldown;
     float attackSpeed;
+    int tier;
     
     Node* model = nullptr;
 
