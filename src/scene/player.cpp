@@ -106,7 +106,7 @@ void Player::draw(glm::mat4& view, glm::mat4& projection){
     // Position
     model = glm::translate(model, this->Position);
     //For good positioning on the platform
-    model = glm::translate(model, glm::vec3(0.0f, 1.0f, 0.0f));
+    model = glm::translate(model, glm::vec3(0.0f, 0.4f, 0.0f));
 
     // Orientation
     glm::mat4 rotation = glm::inverse(glm::lookAt(glm::vec3(0.0f), this->GetFrontVector(), glm::vec3(0.0f, 1.0f, 0.0f)));
@@ -139,8 +139,8 @@ void Player::shoot(glm::vec3 shootDirection){
 
     if(attackCooldown <= 0.0f){
         
-        glm::vec3 shootingOrigin = Position + (GetUpVector() * 1.2f) + (GetFrontVector() * 0.5f);
-
+        glm::vec3 shootingOrigin = Position + (GetUpVector() * 0.6f) + (GetFrontVector() * 0.5f);
+        
         float spawnDistance = 0.5f;
         glm::vec3 spawnPos = shootingOrigin + (shootDirection * spawnDistance);
 

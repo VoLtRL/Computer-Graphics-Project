@@ -121,12 +121,23 @@ void Game::Update() {
     }
 
     auto it = enemies.begin();
-    while (it != enemies.end()) {
+while (it != enemies.end()) {
         Enemy* enemy = *it;
         if (!enemy->isAlive()) {
+            enemyKilled++;
+            glm::vec3 startColor = glm::vec3(0.2f, 0.2f, 0.2f); // gray
+            glm::vec3 endColor   = glm::vec3(0.53f, 0.81f, 0.92f); // blue
+
+            float ratio = (float)enemyKilled / (float)Config::Game::EnemiesToWin;
+            ratio = glm::clamp(ratio, 0.0f, 1.0f);
+            glm::vec3 newColor = glm::mix(startColor, endColor, ratio);
+
+            this->fogColor = glm::vec4(newColor, 1.0f);
+            viewer->backgroundColor = newColor;
+
             fogStart += 0.5f;
             fogEnd += 2.0f;
-            fogColor = glm::vec4(1.0f, 0.5f, 0.5f, 1.0f);
+
             viewer->scene_root->remove(enemy);
             delete enemy;
             it = enemies.erase(it);

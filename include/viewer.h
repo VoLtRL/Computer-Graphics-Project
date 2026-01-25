@@ -37,6 +37,8 @@ public:
     std::function<void()> update_callback; // Fonction de rappel pour les mises à jour par frame
     std::function<void()> draw_ui_callback; // Draw UI callback
 
+    glm::vec3 backgroundColor = glm::vec3(0.2f, 0.2f, 0.2f);
+
 private:
     GLFWwindow* win;
 

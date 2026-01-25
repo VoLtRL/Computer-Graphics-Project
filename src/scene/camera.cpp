@@ -4,11 +4,11 @@ Camera::Camera(glm::vec3 center, glm::vec3 up, float yaw, float pitch)
     : Front(glm::vec3(0.0f, 0.0f, -1.0f)), 
       MovementSpeed(10.0f), 
       MouseSensitivity(0.1f), 
-      Zoom(45.0f),
+      Zoom(60.0f),
       Velocity(glm::vec3(0.0f)), 
       Acceleration(40.0f), 
       Damping(45.0f),
-      Distance(12.0f)
+      Distance(8.0f)
 {
     Target = center;
     WorldUp = up;

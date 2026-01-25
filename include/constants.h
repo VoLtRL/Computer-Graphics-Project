@@ -10,7 +10,7 @@ namespace Config {
 
     // game constants
     namespace Game {
-        constexpr int EnemiesToWin = 10;
+        constexpr int EnemiesToWin = 15;
     }
     
     // physics constants
@@ -39,9 +39,9 @@ namespace Config {
     }
 
     namespace EnemySpawner {
-        constexpr float SPAWN_INTERVAL = 6.0f;
+        constexpr float SPAWN_INTERVAL = 0.1f;
         constexpr float SPAWN_RADIUS = 15.0f;
 
-        constexpr int MAX_ENEMIES = 20;
+        constexpr int MAX_ENEMIES = 2000;
     }
 }

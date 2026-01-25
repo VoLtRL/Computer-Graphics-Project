@@ -59,8 +59,6 @@ Viewer::Viewer(int width, int height)
               << glGetString(GL_SHADING_LANGUAGE_VERSION) << ", Renderer "
               << glGetString(GL_RENDERER) << std::endl;
 
-    // initialize GL by setting viewport and default render characteristics
-    glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
     /* tell GL to only draw onto a pixel if the shape is closer to the viewer
     than anything already drawn at that pixel */
@@ -70,7 +68,7 @@ Viewer::Viewer(int width, int height)
 
 
     // Initialize camera
-    camera = new Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, -26.0f);
+    camera = new Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, -15.0f);
     lastX = width / 2.0f;
     lastY = height / 2.0f;
     firstMouse = true; 
@@ -119,6 +117,9 @@ void Viewer::run()
             update_callback();
         }
         this->process_input(deltaTime);
+
+        glClearColor(backgroundColor.x, backgroundColor.y, backgroundColor.z, 1.0f);
+        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
 
         Shader* shader = ResourceManager::GetShader("standard"); 
 
