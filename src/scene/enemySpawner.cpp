@@ -11,7 +11,7 @@ EnemySpawner::EnemySpawner(Node* sceneRoot, glm::vec3 position, std::vector<Enem
 }
 
 void EnemySpawner::SpawnEnemy() {
-    if (enemyCount >= Config::EnemySpawner::MAX_ENEMIES) {
+    if (enemyList.size() >= Config::EnemySpawner::MAX_ENEMIES) {
         return;
     }
     float randValue = static_cast<float>(std::rand()) / RAND_MAX;
@@ -27,20 +27,17 @@ void EnemySpawner::SpawnEnemy() {
 
     // random position within radius around spawner position
     float angle = static_cast<float>(std::rand()) / RAND_MAX * 2.0f * 3.14159265f;
-    float distance = static_cast<float>(std::rand()) / RAND_MAX * radius;
+    float random01 = static_cast<float>(std::rand()) / RAND_MAX;
+    float distance = std::sqrt(random01) * radius;
 
     glm::vec3 offset = glm::vec3(std::cos(angle) * distance, 0.0f, std::sin(angle) * distance);
 
-    glm::vec3 finalPos = this->Position + offset;
+    glm::vec3 finalPos = Position + offset;
 
     Enemy* newEnemy = EntityLoader::CreateEnemy(finalPos, tier);
 
     enemyList.push_back(newEnemy);
     sceneRoot->add(newEnemy);
-
-    std::cout << "Spawned Enemy of Tier " << tier << " at position (" 
-              << finalPos.x << ", " << finalPos.y << ", " << finalPos.z << ")\n";
-    enemyCount++;
 }
 
 void EnemySpawner::Update(float deltaTime) {

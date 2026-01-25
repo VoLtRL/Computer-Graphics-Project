@@ -30,14 +30,10 @@ void Game::Init() {
 
     spriteRenderer = new Sprite(ResourceManager::GetShader("sprite"));
 
-    glm::vec4 fogColor(0.2f, 0.2f, 0.2f, 1.0f);
-    float fogStart = 10.0f;
-    float fogEnd = 75.0f;
-
     glUseProgram(StandardShader->get_id());
-    glUniform4fv(glGetUniformLocation(StandardShader->get_id(), "fogColor"), 1, &fogColor[0]);
-    glUniform1f(glGetUniformLocation(StandardShader->get_id(), "fogStart"), fogStart);
-    glUniform1f(glGetUniformLocation(StandardShader->get_id(), "fogEnd"), fogEnd);
+    this->fogColorLocation = glGetUniformLocation(StandardShader->get_id(), "fogColor");
+    this->fogStartLocation = glGetUniformLocation(StandardShader->get_id(), "fogStart");
+    this->fogEndLocation = glGetUniformLocation(StandardShader->get_id(), "fogEnd");
 
     //Load map
     Map* map = new Map(StandardShader, viewer->scene_root);
@@ -105,7 +101,15 @@ void Game::ProcessInput(float deltaTime) {
 }
 
 void Game::Update() {
+
+
     float deltaTime = viewer->deltaTime;
+
+    // send fog parameters to shader
+    glUseProgram(ResourceManager::GetShader("standard")->get_id());
+    glUniform4fv(fogColorLocation, 1, &fogColor[0]);
+    glUniform1f(fogStartLocation, fogStart);
+    glUniform1f(fogEndLocation, fogEnd);
 
     handlePhysics->Update(deltaTime);
 
@@ -120,6 +124,9 @@ void Game::Update() {
     while (it != enemies.end()) {
         Enemy* enemy = *it;
         if (!enemy->isAlive()) {
+            fogStart += 0.5f;
+            fogEnd += 2.0f;
+            fogColor = glm::vec4(1.0f, 0.5f, 0.5f, 1.0f);
             viewer->scene_root->remove(enemy);
             delete enemy;
             it = enemies.erase(it);

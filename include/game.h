@@ -39,4 +39,16 @@ private:
     unsigned int healthBarTexture;
     unsigned int crosshairTexture;
 
+    glm::vec4 fogColor = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
+    float fogStart = 3.0f;
+    float fogEnd = 20.0f;
+
+    GLint fogColorLocation;
+    GLint fogStartLocation;
+    GLint fogEndLocation;
+
+    glm::vec3 skyColor = glm::vec3(0.5f, 0.5f, 0.5f);
+
+    int enemyKilled = 0;
+
 };

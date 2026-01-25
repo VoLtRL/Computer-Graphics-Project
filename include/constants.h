@@ -7,6 +7,11 @@ namespace Config {
     // window dimensions
     constexpr int SCR_WIDTH = 1920;
     constexpr int SCR_HEIGHT = 1080;
+
+    // game constants
+    namespace Game {
+        constexpr int EnemiesToWin = 10;
+    }
     
     // physics constants
     namespace Physics {

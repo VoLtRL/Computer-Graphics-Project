@@ -74,9 +74,9 @@ Enemy* EntityLoader::CreateEnemy(glm::vec3 position,int tier){
 
     Shape* enemyShape = new Capsule(StandardShader, 0.5f, 1.2f);
 
-    Enemy *enemy = new Enemy(enemyShape, glm::vec3(-5.0f, 10.0f, -5.0f), StandardShader);
+    Enemy *enemy = new Enemy(enemyShape, position, StandardShader);
     enemy->SetMass(50.0f);
-    enemy->Damping = 1.0f;
+    enemy->Damping = 3.0f;
     enemy->Friction = 1.0f;
     enemy->collisionShape = enemyShape;
     enemy->shapeType = ShapeType::ST_CAPSULE;
@@ -101,7 +101,7 @@ Enemy* EntityLoader::CreateEnemy(glm::vec3 position,int tier){
         if (ghostT1->rootNode) {
             Node* ghostT1ModelNode = ghostT1->rootNode->clone();
 
-            ghostT1ModelNode->setAlpha(1.0f);
+            ghostT1ModelNode->setAlpha(0.2f);
 
             enemy->setModel(ghostT1ModelNode);
         }
@@ -122,7 +122,7 @@ Enemy* EntityLoader::CreateEnemy(glm::vec3 position,int tier){
         if (ghostT2->rootNode) {
             Node* ghostT2ModelNode = ghostT2->rootNode->clone();
 
-            ghostT2ModelNode->setAlpha(1.0f);
+            ghostT2ModelNode->setAlpha(0.2f);
 
             enemy->setModel(ghostT2ModelNode);
         }
@@ -142,7 +142,7 @@ Enemy* EntityLoader::CreateEnemy(glm::vec3 position,int tier){
         }
         if (ghostT3->rootNode) {
             Node* ghostT3ModelNode = ghostT3->rootNode->clone();
-            ghostT3ModelNode->setAlpha(1.0f);
+            ghostT3ModelNode->setAlpha(0.2f);
             enemy->setModel(ghostT3ModelNode);
         }
 
@@ -161,7 +161,7 @@ Enemy* EntityLoader::CreateEnemy(glm::vec3 position,int tier){
         }
         if (ghostT4->rootNode) {
             Node* ghostT4ModelNode = ghostT4->rootNode->clone();
-            ghostT4ModelNode->setAlpha(1.0f);
+            ghostT4ModelNode->setAlpha(0.2f);
             enemy->setModel(ghostT4ModelNode);
         }
 
