@@ -134,7 +134,6 @@ PhysicObject::PhysicObject(glm::vec3 position)
 	// Collisions
 	forcesApplied = glm::vec3(0.0f, 0.0f, 0.0f);	// default : 0 N
 	Restitution = 0.1f;							// default : 0.5
-	shapeType = ShapeType::ST_INVALID;								// default : BOX
 	collisionShape = nullptr;					// default : nullptr
 
 	PhysicObject::allPhysicObjects.push_back(this); // Add this instance to the static list
@@ -168,8 +167,8 @@ void PhysicObject::ResolveCollision(
 
 	if (!doPhysical && !doTrigger) return;
 	if (doTrigger){
-		A->BeforeCollide(B, c);
-		B->BeforeCollide(A, c);
+		A->BeforeCollide(B, c, deltaTime);
+		B->BeforeCollide(A, c, deltaTime);
 	}
 
 	if (doPhysical){
@@ -251,7 +250,7 @@ void PhysicObject::OnCollide(PhysicObject* other, CollisionInfo info, float delt
 	return;
 }
 
-void PhysicObject::BeforeCollide(PhysicObject* other, CollisionInfo info) {
+void PhysicObject::BeforeCollide(PhysicObject* other, CollisionInfo info, float deltaTime) {
 	// Placeholder for pre-collision logic
 	return;
 }
@@ -649,6 +648,13 @@ CollisionInfo PhysicObject::checkCollision(PhysicObject* objA, PhysicObject* obj
 		return result; // No collision detected
 	}
 
+
+	if (!((objA->collisionMask & objB->collisionGroup) && (objB->collisionMask & objA->collisionGroup))) {
+		std::cout << "These objects can't collide with each others." << std::endl;
+		CollisionInfo result;
+		return result; // No collision detected
+	}
+
 	CollisionResponse repA = objA->collisionResponse;
 	CollisionResponse repB = objB->collisionResponse;
 
@@ -666,14 +672,6 @@ CollisionInfo PhysicObject::checkCollision(PhysicObject* objA, PhysicObject* obj
 
 	std::cout << "Checking collision between " << objA->name << " and " << objB->name << std::endl;
 
-	ShapeType typeA = objA->shapeType;
-	ShapeType typeB = objB->shapeType;
-	if (typeA == ShapeType::ST_INVALID || typeB == ShapeType::ST_INVALID) {
-		std::cout << "One of the PhysicObjects has an invalid ShapeType." << std::endl;
-		CollisionInfo result;
-		return result; // No collision detected
-	}
-
 	Shape* shapeA = objA->collisionShape;
 	Shape* shapeB = objB->collisionShape;
 	if (!shapeA || !shapeB) {
@@ -682,9 +680,10 @@ CollisionInfo PhysicObject::checkCollision(PhysicObject* objA, PhysicObject* obj
 		return result; // No collision detected
 	}
 
-
-	if (!((objA->collisionMask & objB->collisionGroup) && (objB->collisionMask & objA->collisionGroup))) {
-		std::cout << "These objects can't collide with each others." << std::endl;
+	ShapeType typeA = shapeA->shapeType;
+	ShapeType typeB = shapeB->shapeType;
+	if (typeA == ShapeType::ST_INVALID || typeB == ShapeType::ST_INVALID) {
+		std::cout << "One of the PhysicObjects has an invalid ShapeType." << std::endl;
 		CollisionInfo result;
 		return result; // No collision detected
 	}
@@ -741,7 +740,7 @@ std::ostream& operator<<(std::ostream& os, const PhysicObject& obj) {
 		<< "], \n\tMass: " << obj.Mass
 		<< ", \n\tKinematic: " << obj.kinematic
 		<< ", \n\tCollisionResponde: " << obj.collisionResponse
-		<< ", \n\tShapeType: " << obj.shapeType
+		<< ", \n\tShapeType: " << obj.collisionShape->shapeType
 		<< ")";
 	return os;
 }
