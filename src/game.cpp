@@ -161,7 +161,7 @@ void Game::Update() {
             this->fogColor = glm::vec4(newColor, 1.0f);
             viewer->backgroundColor = newColor;
 
-            fogStart += 0.5f;
+            fogStart += 1.0f;
             fogEnd += 2.0f;
 
             viewer->scene_root->remove(enemy);

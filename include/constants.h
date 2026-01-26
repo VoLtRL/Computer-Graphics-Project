@@ -11,8 +11,8 @@ namespace Config {
     // game constants
     namespace Game {
         constexpr int EnemiesToWin = 15;
-        constexpr float fogStartDistance = 8.0f;
-        constexpr float fogEndDistance = 35.0f;
+        constexpr float fogStartDistance = 1.0f;
+        constexpr float fogEndDistance = 25.0f;
         constexpr glm::vec4 fogColor = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
     }
     

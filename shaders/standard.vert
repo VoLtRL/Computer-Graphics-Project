@@ -11,7 +11,6 @@ uniform mat3 normalMatrix;
 uniform mat4 lightSpaceMatrix;
 
 out vec3 fragPos;
-out float dist;
 out vec3 normal;
 out vec4 fragPosLightSpace;
 
@@ -21,8 +20,6 @@ void main() {
     fragPos = vec3(model * vec4(position, 1.0));
 
     normal = normalize(normalMatrix * anormal);
-
-    dist = length(cameraSpacePos.xyz);
 
     fragPosLightSpace = lightSpaceMatrix * vec4(position, 1.0);
 }
