@@ -58,6 +58,13 @@ void Game::Init() {
     // Load Textures
     gameOverTexture = ResourceManager::LoadTexture(imageDir + "game_over.png", "gameOver");
     healthBarTexture = ResourceManager::LoadTexture(imageDir + "health_bar.png", "healthBar");
+
+    Shape* camShape = new Sphere(StandardShader, 0.5f);
+    viewer->camera->collisionShape = camShape;
+    viewer->camera->shapeType = ShapeType::ST_SPHERE;
+    viewer->camera->collisionGroup = CG_PLAYER;
+    viewer->camera->collisionMask = CG_ENVIRONMENT;
+    viewer->camera->SetMass(1.0f);
 }
 
 void Game::ProcessInput(float deltaTime) {
@@ -129,18 +136,9 @@ void Game::ProcessInput(float deltaTime) {
 }
 
 void Game::Update() {
-
-
     float deltaTime = viewer->deltaTime;
 
-    // send fog parameters to shader
-    glUseProgram(ResourceManager::GetShader("standard")->get_id());
-    glUniform4fv(fogColorLocation, 1, &fogColor[0]);
-    glUniform1f(fogStartLocation, fogStart);
-    glUniform1f(fogEndLocation, fogEnd);
-
-    handlePhysics->Update(deltaTime);
-
+    // Process inputs
     ProcessInput(deltaTime);
     player->update(deltaTime);
 
@@ -149,7 +147,7 @@ void Game::Update() {
     }
 
     auto it = enemies.begin();
-while (it != enemies.end()) {
+    while (it != enemies.end()) {
         Enemy* enemy = *it;
         if (!enemy->isAlive()) {
             enemyKilled++;
@@ -175,9 +173,31 @@ while (it != enemies.end()) {
         }
     }
 
-    // Handle Light
+    glm::vec3 camOffset(0.0f, 2.5f, 0.0f);
+    viewer->camera->SetTarget(player->Position + camOffset);
+
+    glm::vec3 camFront = viewer->camera->Front;
+    camFront.y = 0.0f;
+    camFront = glm::normalize(camFront);
+
+    player->setFrontVector(camFront);
+    for(auto enemy : enemies){
+        glm::vec3 directionToPlayer = -glm::normalize(player->Position - enemy->Position);
+        enemy->setFrontVector(directionToPlayer);
+    }
+    
+    player->setRightVector(glm::normalize(glm::cross(player->GetFrontVector(), glm::vec3(0.0f, 1.0f, 0.0f))));
+    player->setUpVector(glm::normalize(glm::cross(player->GetRightVector(), player->GetFrontVector())));
+
+    handlePhysics->Update(deltaTime);
+
     Shader* standardShader = ResourceManager::GetShader("standard");
     glUseProgram(standardShader->get_id());
+    
+    // send fog parameters to shader
+    glUniform4fv(fogColorLocation, 1, &fogColor[0]);
+    glUniform1f(fogStartLocation, fogStart);
+    glUniform1f(fogEndLocation, fogEnd);
 
     int activeCount = 0;
     int MAX_LIGHTS = 100;
@@ -186,7 +206,6 @@ while (it != enemies.end()) {
     std::vector<float> lightColors;
     std::vector<float> lightIntensities;
 
-    
     for (auto proj : player->getActiveProjectiles()) {
         if (proj->isActive() && activeCount < MAX_LIGHTS) {
             lightPos.push_back(proj->Position.x);
@@ -210,23 +229,6 @@ while (it != enemies.end()) {
         glUniform3fv(glGetUniformLocation(standardShader->get_id(), "lightColors"), activeCount, lightColors.data());
         glUniform1fv(glGetUniformLocation(standardShader->get_id(), "lightIntensities"), activeCount, lightIntensities.data());
     }
-
-    glm::vec3 camOffset(0.0f, 2.5f, 0.0f);
-
-    viewer->camera->SetTarget(player->Position + camOffset);
-
-    glm::vec3 camFront = viewer->camera->Front;
-    camFront.y = 0.0f;
-    camFront = glm::normalize(camFront);
-
-    player->setFrontVector(camFront);
-    for(auto enemy : enemies){
-        glm::vec3 directionToPlayer = -glm::normalize(player->Position - enemy->Position);
-        enemy->setFrontVector(directionToPlayer);
-    }
-    
-    player->setRightVector(glm::normalize(glm::cross(player->GetFrontVector(), glm::vec3(0.0f, 1.0f, 0.0f))));
-    player->setUpVector(glm::normalize(glm::cross(player->GetRightVector(), player->GetFrontVector())));
 }
 
 void Game::RenderUI() {
@@ -258,8 +260,6 @@ void Game::RenderUI() {
     else {
         float healthPct = player->getHealth() / player->getMaxHealth();
         healthPct = glm::clamp(healthPct, 0.0f, 1.0f);
-        std::cout << "Health Percentage: " << healthPct << std::endl;
-        std::cout << "Current Health: " << player->getHealth() << std::endl;
 
         float barWidth = 0.8f;
         float barHeight = 0.05f;

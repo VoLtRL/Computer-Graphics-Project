@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
+#include "physicShapeObject.h"
 
 enum Camera_Movement {
     FORWARD,
@@ -11,12 +12,9 @@ enum Camera_Movement {
     RIGHT
 };
 
-class Camera {
-public:
-    glm::vec3 Position;
-    glm::vec3 Velocity;
-    float Acceleration;     
-    float Damping;
+class Camera : public PhysicShapeObject {
+public:    
+    float InputAcceleration; // Renamed from Acceleration to avoid conflict with PhysicObject::Acceleration
     glm::vec3 Front;
     glm::vec3 Up;
     glm::vec3 Right;
@@ -36,7 +34,7 @@ public:
     glm::mat4 GetProjectionMatrix(float aspectRatio);
     void ProcessMouseMovement(float xoffset, float yoffset, bool constrainPitch = true);
     void ProcessKeyboard(Camera_Movement direction, float deltaTime);
-    void UpdatePhysics(float deltaTime);
+    void UpdatePhysics(float deltaTime) override; // Override to custom handle or disable gravity
     void SetTarget(glm::vec3 newTarget);
 
 private:

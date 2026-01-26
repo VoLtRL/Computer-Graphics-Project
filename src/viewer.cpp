@@ -164,8 +164,6 @@ void Viewer::run()
             glUniformMatrix4fv(glGetUniformLocation(shader->get_id(), "lightSpaceMatrix"), 1, GL_FALSE, &lightSpaceMatrix[0][0]);
             glUniform3fv(glGetUniformLocation(shader->get_id(), "dirLightPos"), 1, &lightPos[0]);
         }
-
-        camera->UpdatePhysics(deltaTime);
         glm::mat4 view = camera->GetViewMatrix();
         float aspectRatio = (float) Config::SCR_WIDTH / (float) Config::SCR_HEIGHT;
         glm::mat4 projection = camera->GetProjectionMatrix(aspectRatio);
@@ -255,4 +253,3 @@ void Viewer::mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 
     viewer->camera->ProcessMouseMovement(xoffset, yoffset);
 }
-

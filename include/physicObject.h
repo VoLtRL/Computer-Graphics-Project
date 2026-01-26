@@ -69,7 +69,7 @@ class PhysicObject {
 
 public:
     PhysicObject(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f));
-    virtual ~PhysicObject(); // Added virtual destructor
+    virtual ~PhysicObject(); 
 
     std::string name = "";
 
@@ -101,7 +101,7 @@ public:
     uint32_t  collisionMask = CG_NONE;
 
     // Update physics state (Integration only)
-    void UpdatePhysics(float deltaTime);
+    virtual void UpdatePhysics(float deltaTime);
 
     void SetMass(float mass) {
         Mass = mass;
