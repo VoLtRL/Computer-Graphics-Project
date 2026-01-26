@@ -1,0 +1,10 @@
+^C:\USERS\UTILISATEUR\DOCUMENTS\POLYTECH\ET3\INFO GRAPHIQUE\CG_INTRO_PUBLIC-BRANCH\CG_INTRO_PUBLIC-BRANCH\COMPUTER-GRAPHICS-PROJECT\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" "-SC:/Users/Utilisateur/Documents/Polytech/ET3/Info graphique/cg_intro_public-branch/cg_intro_public-branch/Computer-Graphics-Project" "-BC:/Users/Utilisateur/Documents/Polytech/ET3/Info graphique/cg_intro_public-branch/cg_intro_public-branch/Computer-Graphics-Project" --check-stamp-file "C:/Users/Utilisateur/Documents/Polytech/ET3/Info graphique/cg_intro_public-branch/cg_intro_public-branch/Computer-Graphics-Project/CMakeFiles/generate.stamp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

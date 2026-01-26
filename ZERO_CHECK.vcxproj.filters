@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\Utilisateur\Documents\Polytech\ET3\Info graphique\cg_intro_public-branch\cg_intro_public-branch\Computer-Graphics-Project\CMakeFiles\25d59fd31d9de9111976abda399f6e08\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{E2D7F6A7-803E-32D0-9326-B84D8022BA2F}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

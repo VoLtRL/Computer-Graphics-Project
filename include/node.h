@@ -12,6 +12,7 @@ class PhysicShapeObject;
 class Node {
 public:
     Node(const glm::mat4& transform = glm::mat4(1.0f));
+    const std::vector<Node*>& getChildren() const;
     void add(Node* node);
     void add(Shape* shape);
     void add(PhysicShapeObject* pso);

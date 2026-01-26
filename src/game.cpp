@@ -43,7 +43,7 @@ void Game::Init() {
     Map* map = new Map(StandardShader, viewer->scene_root);
     
     //Load player
-    player = EntityLoader::CreatePlayer(glm::vec3(0.0f, 5.0f, 0.0f));
+    player = EntityLoader::CreatePlayer(glm::vec3(0.0f, 10.0f, 0.0f));
     viewer->scene_root->add(player);
 
 

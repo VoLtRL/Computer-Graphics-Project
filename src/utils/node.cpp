@@ -84,3 +84,8 @@ Node::~Node() {
     }
     children_physic_shape_.clear();
 }
+
+const std::vector<Node*>& Node::getChildren() const 
+{
+    return children_;
+}
