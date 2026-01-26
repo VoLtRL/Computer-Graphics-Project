@@ -220,6 +220,10 @@ while (it != enemies.end()) {
     camFront = glm::normalize(camFront);
 
     player->setFrontVector(camFront);
+    for(auto enemy : enemies){
+        glm::vec3 directionToPlayer = -glm::normalize(player->Position - enemy->Position);
+        enemy->setFrontVector(directionToPlayer);
+    }
     
     player->setRightVector(glm::normalize(glm::cross(player->GetFrontVector(), glm::vec3(0.0f, 1.0f, 0.0f))));
     player->setUpVector(glm::normalize(glm::cross(player->GetRightVector(), player->GetFrontVector())));

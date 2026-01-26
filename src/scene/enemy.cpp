@@ -33,14 +33,15 @@ void Enemy::setModel(Node* modelNode) {
 }
 
 void Enemy::draw(glm::mat4& view, glm::mat4& projection) {
-    if (model) {
-        glm::mat4 modelMatrix = glm::mat4(1.0f);
-        modelMatrix = glm::translate(modelMatrix, Position);
-        modelMatrix *= RotationMatrix;
-        model->draw(modelMatrix, view, projection);
-    }else{
-        PhysicShapeObject::draw(view, projection);
-    }
+    glm::mat4 model = glm::mat4(1.0f);
+    
+    model = glm::translate(model, this->Position);
+    model = glm::translate(model, glm::vec3(0.0f, 0.4f, 0.0f));
+
+    glm::mat4 rotation = glm::inverse(glm::lookAt(glm::vec3(0.0f), this->GetFrontVector(), glm::vec3(0.0f, 1.0f, 0.0f)));
+    model = model * rotation;
+
+    this->model->draw(model, view, projection);
 }
 
 void Enemy::attack(Player* player , float deltaTime) {
