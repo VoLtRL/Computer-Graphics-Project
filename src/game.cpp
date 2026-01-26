@@ -30,14 +30,10 @@ void Game::Init() {
 
     spriteRenderer = new Sprite(ResourceManager::GetShader("sprite"));
 
-    glm::vec4 fogColor(0.2f, 0.2f, 0.2f, 1.0f);
-    float fogStart = 10.0f;
-    float fogEnd = 75.0f;
-
     glUseProgram(StandardShader->get_id());
-    glUniform4fv(glGetUniformLocation(StandardShader->get_id(), "fogColor"), 1, &fogColor[0]);
-    glUniform1f(glGetUniformLocation(StandardShader->get_id(), "fogStart"), fogStart);
-    glUniform1f(glGetUniformLocation(StandardShader->get_id(), "fogEnd"), fogEnd);
+    this->fogColorLocation = glGetUniformLocation(StandardShader->get_id(), "fogColor");
+    this->fogStartLocation = glGetUniformLocation(StandardShader->get_id(), "fogStart");
+    this->fogEndLocation = glGetUniformLocation(StandardShader->get_id(), "fogEnd");
 
     //Load map
     Map* map = new Map(StandardShader, viewer->scene_root);
@@ -51,15 +47,10 @@ void Game::Init() {
     PhysicShapeObject* testBox = EntityLoader::CreateTestBox(glm::vec3(2.0f, 10.0f, 2.0f));
     viewer->scene_root->add(testBox);
 
-    // Enemy
-    Enemy* enemy = EntityLoader::CreateEnemy(glm::vec3(10.0f, 5.0f, 10.0f));
-    enemies.push_back(enemy);
-
-
-
-    for(auto e : enemies){
-        viewer->scene_root->add(e);
-    }
+    // Mob Spawner
+    EnemySpawner* spawner = EntityLoader::CreateEnemySpawner(viewer->scene_root, glm::vec3(0.0f, 1.0f, 0.0f), enemies);
+    viewer->scene_root->add(spawner);
+    enemySpawners.push_back(spawner);
 
     crosshair = new Crosshair(0.1f);
     crosshairTexture = ResourceManager::GetTexture("crosshair");
@@ -67,6 +58,13 @@ void Game::Init() {
     // Load Textures
     gameOverTexture = ResourceManager::LoadTexture(imageDir + "game_over.png", "gameOver");
     healthBarTexture = ResourceManager::LoadTexture(imageDir + "health_bar.png", "healthBar");
+
+    Shape* camShape = new Sphere(StandardShader, 0.5f);
+    viewer->camera->collisionShape = camShape;
+    viewer->camera->shapeType = ShapeType::ST_SPHERE;
+    viewer->camera->collisionGroup = CG_PLAYER;
+    viewer->camera->collisionMask = CG_ENVIRONMENT;
+    viewer->camera->SetMass(1.0f);
 }
 
 void Game::ProcessInput(float deltaTime) {
@@ -95,36 +93,111 @@ void Game::ProcessInput(float deltaTime) {
 
     if (viewer->keymap[GLFW_KEY_SPACE]) player->jump();
 
-    if (viewer->keymap[GLFW_KEY_F]){
+    if (viewer->keymap[GLFW_MOUSE_BUTTON_LEFT]){
 
-        float aimDistance = 100.0f;
+        float aimDistance = 25.0f;
         glm::vec3 cameraPos = viewer->camera->Position;
         glm::vec3 cameraFront = viewer->camera->Front;
         glm::vec3 aimPoint = cameraPos + (cameraFront * aimDistance);
 
-        glm::vec3 playerGunPos = player->Position + glm::vec3(0.0f, 0.0f, 0.0f);
+        glm::vec3 playerGunPos = player->Position + glm::vec3(0.3f, 0.5f, -0.2f);
 
         glm::vec3 shootDirection = glm::normalize(aimPoint - playerGunPos);
 
-        player->shoot(shootDirection);}
+        player->shoot(shootDirection);
+    }
+    // enable fullscreen toggle
+    if (viewer->keymap[GLFW_KEY_F]) {
+        static bool isFullscreen = false;
+        static int windowedWidth = Config::SCR_WIDTH;
+        static int windowedHeight = Config::SCR_HEIGHT;
+        static int windowedPosX = 100;
+        static int windowedPosY = 100;
+
+        GLFWwindow* window = glfwGetCurrentContext();
+
+        if (!isFullscreen) {
+            glfwGetWindowPos(window, &windowedPosX, &windowedPosY);
+            glfwGetWindowSize(window, &windowedWidth, &windowedHeight);
+
+            GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
+            const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);
+
+            // Switch to fullscreen
+            glfwSetWindowMonitor(window, primaryMonitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+        } else {
+            // Switch back to windowed mode
+            glfwSetWindowMonitor(window, nullptr, windowedPosX, windowedPosY, windowedWidth, windowedHeight, 0);
+        }
+        isFullscreen = !isFullscreen;
+
+        viewer->keymap[GLFW_KEY_F] = false;
+    }
 }
 
 void Game::Update() {
     float deltaTime = viewer->deltaTime;
 
-    handlePhysics->Update(deltaTime);
-
+    // Process inputs
     ProcessInput(deltaTime);
     player->update(deltaTime);
 
-    for(auto enemy : enemies){
-        enemy->moveTowardsPlayer(player->Position, deltaTime);
+    for(auto spawner : enemySpawners){
+        spawner->Update(deltaTime);
     }
 
-    // Handle Light
+    auto it = enemies.begin();
+    while (it != enemies.end()) {
+        Enemy* enemy = *it;
+        if (!enemy->isAlive()) {
+            enemyKilled++;
+            glm::vec3 startColor = glm::vec3(0.2f, 0.2f, 0.2f); // gray
+            glm::vec3 endColor   = glm::vec3(0.53f, 0.81f, 0.92f); // blue
+
+            float ratio = (float)enemyKilled / (float)Config::Game::EnemiesToWin;
+            ratio = glm::clamp(ratio, 0.0f, 1.0f);
+            glm::vec3 newColor = glm::mix(startColor, endColor, ratio);
+
+            this->fogColor = glm::vec4(newColor, 1.0f);
+            viewer->backgroundColor = newColor;
+
+            fogStart += 0.5f;
+            fogEnd += 2.0f;
+
+            viewer->scene_root->remove(enemy);
+            delete enemy;
+            it = enemies.erase(it);
+        } else {
+            enemy->moveTowardsPlayer(player->Position, deltaTime);
+            it++;
+        }
+    }
+
+    glm::vec3 camOffset(0.0f, 2.5f, 0.0f);
+    viewer->camera->SetTarget(player->Position + camOffset);
+
+    glm::vec3 camFront = viewer->camera->Front;
+    camFront.y = 0.0f;
+    camFront = glm::normalize(camFront);
+
+    player->setFrontVector(camFront);
+    for(auto enemy : enemies){
+        glm::vec3 directionToPlayer = -glm::normalize(player->Position - enemy->Position);
+        enemy->setFrontVector(directionToPlayer);
+    }
+    
+    player->setRightVector(glm::normalize(glm::cross(player->GetFrontVector(), glm::vec3(0.0f, 1.0f, 0.0f))));
+    player->setUpVector(glm::normalize(glm::cross(player->GetRightVector(), player->GetFrontVector())));
+
+    handlePhysics->Update(deltaTime);
 
     Shader* standardShader = ResourceManager::GetShader("standard");
     glUseProgram(standardShader->get_id());
+    
+    // send fog parameters to shader
+    glUniform4fv(fogColorLocation, 1, &fogColor[0]);
+    glUniform1f(fogStartLocation, fogStart);
+    glUniform1f(fogEndLocation, fogEnd);
 
     int activeCount = 0;
     int MAX_LIGHTS = 100;
@@ -133,7 +206,6 @@ void Game::Update() {
     std::vector<float> lightColors;
     std::vector<float> lightIntensities;
 
-    
     for (auto proj : player->getActiveProjectiles()) {
         if (proj->isActive() && activeCount < MAX_LIGHTS) {
             lightPos.push_back(proj->Position.x);
@@ -157,19 +229,6 @@ void Game::Update() {
         glUniform3fv(glGetUniformLocation(standardShader->get_id(), "lightColors"), activeCount, lightColors.data());
         glUniform1fv(glGetUniformLocation(standardShader->get_id(), "lightIntensities"), activeCount, lightIntensities.data());
     }
-
-    glm::vec3 camOffset(0.0f, 1.4f, 0.0f);
-
-    viewer->camera->SetTarget(player->Position + camOffset);
-
-    glm::vec3 camFront = viewer->camera->Front;
-    camFront.y = 0.0f;
-    camFront = glm::normalize(camFront);
-
-    player->setFrontVector(camFront);
-    
-    player->setRightVector(glm::normalize(glm::cross(player->GetFrontVector(), glm::vec3(0.0f, 1.0f, 0.0f))));
-    player->setUpVector(glm::normalize(glm::cross(player->GetRightVector(), player->GetFrontVector())));
 }
 
 void Game::RenderUI() {
@@ -201,8 +260,6 @@ void Game::RenderUI() {
     else {
         float healthPct = player->getHealth() / player->getMaxHealth();
         healthPct = glm::clamp(healthPct, 0.0f, 1.0f);
-        std::cout << "Health Percentage: " << healthPct << std::endl;
-        std::cout << "Current Health: " << player->getHealth() << std::endl;
 
         float barWidth = 0.8f;
         float barHeight = 0.05f;

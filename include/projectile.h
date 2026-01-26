@@ -15,6 +15,14 @@ public:
 
 	bool isActive() const { return active; }
 
+	float getDamage() const { return damage; }
+
+	float getProjectileSpeed() const { return projectileSpeed; }
+
+	float getTraveledDistance() const { return traveledDistance; }
+
+	void deactivate() { active = false; }
+
 
 private:
 
