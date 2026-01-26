@@ -2,6 +2,7 @@
 
 #include "shader.h"
 #include "node.h"
+#include <physicObject.h>
 
 #include <glm/glm.hpp>
 #include "glm/ext.hpp"
@@ -17,7 +18,7 @@ public:
     glm::vec3 color;
     bool useCheckerboard;
     bool isEmissive;
-
+	ShapeType shapeType = ShapeType::ST_INVALID;
     virtual Shape* clone() const{
         return new Shape(*this);
     }

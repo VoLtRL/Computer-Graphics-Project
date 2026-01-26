@@ -19,7 +19,6 @@ Player* EntityLoader::CreatePlayer(glm::vec3 position){
     player->Damping = 0.8f;
     player->Friction = 1.0f;
     player->collisionShape = playerShape;
-	player->shapeType = ShapeType::ST_CAPSULE;
 	player->collisionGroup = CG_PLAYER;
 	player->collisionMask = CG_PRESETS_PLAYER;
     player->name = "Player";
@@ -55,7 +54,6 @@ Projectile* EntityLoader::CreateProjectile(glm::vec3 pos, glm::vec3 dir, Player*
     proj->SetMass(0.2f);
     proj->kinematic = false;
     proj->collisionShape = proj_shape;
-    proj->shapeType = ShapeType::ST_SPHERE;
     proj->collisionGroup = CollisionGroup::CG_PLAYER_PROJECTILE;
     proj->collisionGroup = CG_PLAYER_PROJECTILE;
 	proj->collisionMask = CG_ENEMY | CG_ENVIRONMENT;
@@ -80,7 +78,6 @@ Enemy* EntityLoader::CreateEnemy(glm::vec3 position){
     enemy->Damping = 1.0f;
     enemy->Friction = 1.0f;
     enemy->collisionShape = enemyShape;
-    enemy->shapeType = ShapeType::ST_CAPSULE;
     enemy->collisionGroup = CollisionGroup::CG_ENEMY;
     enemy->collisionMask = CollisionGroup::CG_PRESETS_ENEMY;
     enemy->name = "Enemy1";
@@ -101,9 +98,8 @@ PhysicShapeObject* EntityLoader::CreateTestBox(glm::vec3 position){
     testBox->Damping = 1.0f;
     testBox->Friction = 1.0f;
     testBox->collisionShape = testBoxShape;
-    testBox->shapeType = ShapeType::ST_BOX;
-    testBox->collisionGroup = CollisionGroup::CG_PRESETS_MAP;
-    testBox->collisionMask = CollisionGroup::CG_PRESETS_MAP;
+    testBox->collisionGroup = CollisionGroup::CG_PROP;
+    testBox->collisionMask = CollisionGroup::CG_PRESETS_PROP;
     testBox->name = "TestBox";
 
     return testBox;

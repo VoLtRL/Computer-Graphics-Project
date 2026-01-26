@@ -52,7 +52,7 @@ public:
     // setters
     void gainJumpStrength(float quantity);
 
-	void BeforeCollide(PhysicObject* other, CollisionInfo info) override;
+	void BeforeCollide(PhysicObject* other, CollisionInfo info, float deltaTime) override;
 	void OnCollide(PhysicObject* other, CollisionInfo info, float deltaTime) override;
 
     void deleteActiveProjectile(Projectile* proj);
@@ -90,6 +90,7 @@ private:
 
     // states
     bool isJumping;
+    bool canJump;
     float attackCooldown;
     bool isDead = false;
     float deathTimer = 0.0f;
