@@ -51,9 +51,11 @@ enum CollisionGroup : uint32_t {
     CG_PLAYER_PROJECTILE = 1 << 2,
     CG_ENEMY_PROJECTILE = 1 << 3,
     CG_ENVIRONMENT = 1 << 4,
-    CG_PRESETS_MAP = CG_PLAYER | CG_ENEMY | CG_PLAYER_PROJECTILE | CG_ENEMY_PROJECTILE | CG_ENVIRONMENT,
-    CG_PRESETS_PLAYER = CG_ENVIRONMENT | CG_ENEMY | CG_ENEMY_PROJECTILE,
-	CG_PRESETS_ENEMY = CG_ENVIRONMENT | CG_PLAYER | CG_PLAYER_PROJECTILE | CG_ENEMY,
+	CG_PROP = 1 << 5,
+    CG_PRESETS_MAP = CG_PLAYER | CG_ENEMY | CG_PLAYER_PROJECTILE | CG_ENEMY_PROJECTILE | CG_PROP,
+	CG_PRESETS_PROP = CG_ENVIRONMENT | CG_PLAYER | CG_ENEMY | CG_PLAYER_PROJECTILE | CG_ENEMY_PROJECTILE | CG_PROP,
+    CG_PRESETS_PLAYER = CG_ENVIRONMENT | CG_ENEMY | CG_ENEMY_PROJECTILE | CG_PROP,
+	CG_PRESETS_ENEMY = CG_ENVIRONMENT | CG_PLAYER | CG_PLAYER_PROJECTILE | CG_PROP
 };
 
 enum class CollisionResponse {
@@ -96,7 +98,6 @@ public:
     glm::vec3 forcesApplied;
     Shape* collisionShape;
     float Restitution;
-    ShapeType shapeType;
     uint32_t  collisionGroup = CG_NONE;
     uint32_t  collisionMask = CG_NONE;
 
@@ -147,7 +148,7 @@ public:
         }
     };
 
-    virtual void BeforeCollide(PhysicObject* other, CollisionInfo info);
+    virtual void BeforeCollide(PhysicObject* other, CollisionInfo info , float deltaTime);
     virtual void OnCollide(PhysicObject* other, CollisionInfo info, float deltaTime);
 
     static float Length2(const glm::vec3& v);

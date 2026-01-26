@@ -10,6 +10,8 @@ Capsule::Capsule(Shader* shader_program, float radius, float height)
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
 
+	shapeType = ShapeType::ST_CAPSULE;
+
     const unsigned int segments = 20;
     const unsigned int rings = 10;
 
