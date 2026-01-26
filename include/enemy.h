@@ -23,6 +23,8 @@ public:
     int getPower() const { return power; }
 
     float getHealth() const { return health; }
+    void setHealth(int newHealth) { health = newHealth; }
+    
     void takeDamage(int damage);
     bool isAlive() const { return health > 0; }
     int getTier() const { return tier; }

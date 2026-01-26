@@ -34,3 +34,4 @@ void Projectile::update(float deltaTime)
               << Position.y << ", " 
               << Position.z << ")" << std::endl;
 }
+

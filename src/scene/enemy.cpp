@@ -19,6 +19,7 @@ void Enemy::OnCollide(PhysicObject* other, CollisionInfo info, float deltaTime)
     Projectile* proj = dynamic_cast<Projectile*>(other);
     if (proj && info.hit) {
         this->takeDamage(proj->getDamage()); // call attack on enemy
+        proj->deactivate();
     }
 }
 

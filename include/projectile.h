@@ -21,6 +21,8 @@ public:
 
 	float getTraveledDistance() const { return traveledDistance; }
 
+	void deactivate() { active = false; }
+
 
 private:
 

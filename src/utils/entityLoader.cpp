@@ -58,7 +58,7 @@ Projectile* EntityLoader::CreateProjectile(glm::vec3 pos, glm::vec3 dir, Player*
     proj->collisionGroup = CollisionGroup::CG_PLAYER_PROJECTILE;
     proj->collisionGroup = CG_PLAYER_PROJECTILE;
 	proj->collisionMask = CG_ENEMY | CG_ENVIRONMENT;
-    proj->Restitution = 1.0f;
+    proj->Restitution = 0.5f;
 
     proj->setFrontVector(shootDirection);
     proj->setRightVector(glm::normalize(glm::cross(proj->GetFrontVector(), glm::vec3(0.0f, 1.0f, 0.0f))));
@@ -71,7 +71,7 @@ Enemy* EntityLoader::CreateEnemy(glm::vec3 position,int tier){
     Shader* StandardShader = ResourceManager::GetShader("standard");
     std::string imageDir = IMAGE_DIR;
 
-    Shape* enemyShape = new Capsule(StandardShader, 0.5f, 1.2f);
+    Shape* enemyShape = new Capsule(StandardShader, Config::Enemy::RADIUS, Config::Enemy::HEIGHT);
 
     Enemy *enemy = new Enemy(enemyShape, position, StandardShader);
     enemy->SetMass(50.0f);
@@ -90,6 +90,7 @@ Enemy* EntityLoader::CreateEnemy(glm::vec3 position,int tier){
         enemy->setAttackSpeed(1.0f);
         enemy->setPower(10);
         enemy->setTier(1);
+        enemy->setHealth(100);
 
         Model* ghostT1 = ResourceManager::GetModel("ghostT1");
 
@@ -113,6 +114,7 @@ Enemy* EntityLoader::CreateEnemy(glm::vec3 position,int tier){
         enemy->setAttackSpeed(1.5f);
         enemy->setPower(20);
         enemy->setTier(2);
+        enemy->setHealth(150);
 
         Model* ghostT2 = ResourceManager::GetModel("ghostT2");
         if(ghostT2 == nullptr){
@@ -134,6 +136,7 @@ Enemy* EntityLoader::CreateEnemy(glm::vec3 position,int tier){
         enemy->setAttackSpeed(2.0f);
         enemy->setPower(30);
         enemy->setTier(3);
+        enemy->setHealth(200);
 
         Model* ghostT3 = ResourceManager::GetModel("ghostT3");
         if(ghostT3 == nullptr){
@@ -149,10 +152,11 @@ Enemy* EntityLoader::CreateEnemy(glm::vec3 position,int tier){
     }
     case 4:
         {
-        enemy->setSpeed(5.0f);
+        enemy->setSpeed(4.5f);
         enemy->setAttackSpeed(2.5f);
         enemy->setPower(40);
         enemy->setTier(4);
+        enemy->setHealth(300);
 
         Model* ghostT4 = ResourceManager::GetModel("ghostT4");
         if(ghostT4 == nullptr){
