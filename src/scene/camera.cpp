@@ -1,30 +1,41 @@
 #include "camera.h"
+#include "physicShapeObject.h"
+#include <iostream>
 
 Camera::Camera(glm::vec3 center, glm::vec3 up, float yaw, float pitch)
-    : Front(glm::vec3(0.0f, 0.0f, -1.0f)), 
+    : PhysicShapeObject(nullptr, center - glm::vec3(0,0,8.0f)),
+      Front(glm::vec3(0.0f, 0.0f, -1.0f)), 
       MovementSpeed(10.0f), 
       MouseSensitivity(0.1f), 
-      Zoom(45.0f),
-      Velocity(glm::vec3(0.0f)), 
-      Acceleration(40.0f), 
-      Damping(45.0f),
-      Distance(12.0f)
+      Zoom(60.0f),
+      InputAcceleration(40.0f),
+      Distance(8.0f)
 {
+    Damping = 10.0f;
+    Mass = 1.0f;
+    Friction = 0.0f;
+    kinematic = false;
+    collisionGroup = CG_NONE;
+    collisionMask = CG_NONE;
+    name = "Camera";
+
     Target = center;
     WorldUp = up;
     Yaw = yaw;
     Pitch = pitch;
     updateCameraVectors();
+    
 }
+
 glm::mat4 Camera::GetViewMatrix()
-    {
-        return glm::lookAt(Position, Target, Up); // Calculate view matrix using LookAt matrix
-    }
+{
+    return glm::lookAt(Position, Position + Front, Up); 
+}
 
 glm::mat4 Camera::GetProjectionMatrix(float aspectRatio)
-    {
-        return glm::perspective(glm::radians(Zoom), aspectRatio, 0.1f, 200.0f); // Perspective projection matrix
-    }
+{
+    return glm::perspective(glm::radians(Zoom), aspectRatio, 0.1f, 1000.0f);
+}
 
 void Camera::updateCameraVectors()
 {
@@ -39,7 +50,6 @@ void Camera::updateCameraVectors()
     // calculate the new Right and Up vectors
     Right = glm::normalize(glm::cross(Front, WorldUp)); 
     Up    = glm::normalize(glm::cross(Right, Front));
-
 
     Position = Target - (Front * Distance);
 }
@@ -65,7 +75,8 @@ void Camera::ProcessMouseMovement(float xoffset, float yoffset, bool constrainPi
 
 void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime)
 {
-    float speedAdd = Acceleration * deltaTime;
+    
+    float speedAdd = InputAcceleration * deltaTime;
 
     if (direction == FORWARD)
         Velocity += Front * speedAdd;
@@ -79,21 +90,26 @@ void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime)
 
 void Camera::UpdatePhysics(float deltaTime)
 {
-    Position += Velocity * deltaTime;
+    if (Mass <= 0.0f) return;
 
-    if (glm::length(Velocity) > 0.0f)
-    {
-        Velocity -= Velocity * Damping * deltaTime;
-        
-        if (glm::length(Velocity) > MovementSpeed) 
-        {
-             Velocity = glm::normalize(Velocity) * MovementSpeed;
-        }
+    if (kinematic) {
+        Position += Velocity * deltaTime;
+    }
+    else {
+        glm::vec3 localAcceleration = forcesApplied / Mass;
+        localAcceleration += Acceleration;
+
+        Velocity += localAcceleration * deltaTime;
+        Velocity *= glm::exp(-Damping * deltaTime);
+
+        Position += Velocity * deltaTime;
+
+        forcesApplied = glm::vec3(0.0f);
     }
 }
 
 void Camera::SetTarget(glm::vec3 newTarget)
 {
     Target = newTarget;
-    updateCameraVectors(); // Calculate new Position based on updated Target
+    updateCameraVectors(); 
 }

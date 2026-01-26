@@ -25,7 +25,7 @@ void Projectile::update(float deltaTime)
     traveledDistance += glm::length(Velocity * deltaTime);
 
     // deactivate if exceeded range
-    if (traveledDistance >= range) {
+    if (traveledDistance >= range || (glm::abs(Velocity.y)<0.01f && glm::abs(Velocity.x)<0.01f && glm::abs(Velocity.z)<0.01f)) {
         active = false;
     }
 
@@ -34,3 +34,4 @@ void Projectile::update(float deltaTime)
               << Position.y << ", " 
               << Position.z << ")" << std::endl;
 }
+
