@@ -10,6 +10,7 @@
 #include <vector>
 #include "sprite.h"
 #include "enemySpawner.h"
+#include "constants.h"
 
 class Game {
 public:
@@ -39,9 +40,9 @@ private:
     unsigned int healthBarTexture;
     unsigned int crosshairTexture;
 
-    glm::vec4 fogColor = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
-    float fogStart = 3.0f;
-    float fogEnd = 20.0f;
+    glm::vec4 fogColor = Config::Game::fogColor;
+    float fogStart = Config::Game::fogStartDistance;
+    float fogEnd = Config::Game::fogEndDistance;
 
     GLint fogColorLocation;
     GLint fogStartLocation;

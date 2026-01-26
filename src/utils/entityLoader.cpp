@@ -5,14 +5,13 @@
 #include "capsule.h"
 #include "projectile.h"
 #include "player.h"
+#include "constants.h"
 
 Player* EntityLoader::CreatePlayer(glm::vec3 position){
     Shader* StandardShader = ResourceManager::GetShader("standard");
     std::string imageDir = IMAGE_DIR;
 
-    Shape* playerShape = new Capsule(StandardShader, 0.4f, 0.6f);
-    playerShape->color = glm::vec3(0.22f, 0.65f, 0.92f);
-    playerShape->useCheckerboard = false;
+    Shape* playerShape = new Capsule(StandardShader, Config::Player::capsuleRadius , Config::Player::capsuleHeight);
     
     Player* player = new Player(playerShape, position, StandardShader);
     player->SetMass(70.0f);
@@ -32,7 +31,7 @@ Player* EntityLoader::CreatePlayer(glm::vec3 position){
     if (knight->rootNode) {
         Node* playerModelNode = knight->rootNode->clone();
 
-        glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.5f));
+        glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(Config::Player::scaleModel));
         playerModelNode->set_transform(scaleMatrix);
 
         player->setModel(playerModelNode);

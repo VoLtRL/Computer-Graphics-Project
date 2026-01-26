@@ -48,6 +48,7 @@ private:
     
     static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
     static void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
+    static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
     void process_input(float deltaTime);
 };
 

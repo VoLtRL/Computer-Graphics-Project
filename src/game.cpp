@@ -88,7 +88,7 @@ void Game::ProcessInput(float deltaTime) {
 
     if (viewer->keymap[GLFW_MOUSE_BUTTON_LEFT]){
 
-        float aimDistance = 100.0f;
+        float aimDistance = 25.0f;
         glm::vec3 cameraPos = viewer->camera->Position;
         glm::vec3 cameraFront = viewer->camera->Front;
         glm::vec3 aimPoint = cameraPos + (cameraFront * aimDistance);

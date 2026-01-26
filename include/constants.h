@@ -11,6 +11,9 @@ namespace Config {
     // game constants
     namespace Game {
         constexpr int EnemiesToWin = 15;
+        constexpr float fogStartDistance = 5.0f;
+        constexpr float fogEndDistance = 25.0f;
+        constexpr glm::vec4 fogColor = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
     }
     
     // physics constants
@@ -26,6 +29,9 @@ namespace Config {
         constexpr float SPEED = 5.0f;
         constexpr glm::vec3 SPAWN_POS = glm::vec3(0.0f, 10.0f, 0.0f);
         constexpr glm::vec3 COLOR = glm::vec3(0.22f, 0.65f, 0.92f);
+        constexpr float scaleModel = 1.5f;
+        constexpr float capsuleHeight = 2.2f;
+        constexpr float capsuleRadius = 0.5f;
     }
 
     // enemy constants

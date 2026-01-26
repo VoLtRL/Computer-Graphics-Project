@@ -48,6 +48,7 @@ Viewer::Viewer(int width, int height)
 
     // register event handlers
     glfwSetKeyCallback(win, key_callback);
+    glfwSetMouseButtonCallback(win, mouse_button_callback);
 
     // Mouse movement callback
     glfwSetCursorPosCallback(win, mouse_callback);
@@ -190,19 +191,23 @@ void Viewer::run()
 void Viewer::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     Viewer* viewer = static_cast<Viewer*>(glfwGetWindowUserPointer(window));
-    int state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
-    
-    if (state == GLFW_PRESS) {
-        viewer->keymap[GLFW_MOUSE_BUTTON_LEFT] = true;
-    } else {
-        viewer->keymap[GLFW_MOUSE_BUTTON_LEFT] = false;
-    }
 
     // update the keymap based on key action
     if (action == GLFW_PRESS) {
         viewer->keymap[key] = true;
     } else if (action == GLFW_RELEASE) {
         viewer->keymap[key] = false;
+    }
+}
+
+void Viewer::mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+    Viewer* viewer = static_cast<Viewer*>(glfwGetWindowUserPointer(window));
+    
+    if (action == GLFW_PRESS) {
+        viewer->keymap[button] = true;
+    } else if (action == GLFW_RELEASE) {
+        viewer->keymap[button] = false;
     }
 }
 
