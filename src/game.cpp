@@ -86,7 +86,7 @@ void Game::ProcessInput(float deltaTime) {
 
     if (viewer->keymap[GLFW_KEY_SPACE]) player->jump();
 
-    if (viewer->keymap[GLFW_KEY_F]){
+    if (viewer->keymap[GLFW_MOUSE_BUTTON_LEFT]){
 
         float aimDistance = 100.0f;
         glm::vec3 cameraPos = viewer->camera->Position;
@@ -97,7 +97,35 @@ void Game::ProcessInput(float deltaTime) {
 
         glm::vec3 shootDirection = glm::normalize(aimPoint - playerGunPos);
 
-        player->shoot(shootDirection);}
+        player->shoot(shootDirection);
+    }
+    // enable fullscreen toggle
+    if (viewer->keymap[GLFW_KEY_F]) {
+        static bool isFullscreen = false;
+        static int windowedWidth = Config::SCR_WIDTH;
+        static int windowedHeight = Config::SCR_HEIGHT;
+        static int windowedPosX = 100;
+        static int windowedPosY = 100;
+
+        GLFWwindow* window = glfwGetCurrentContext();
+
+        if (!isFullscreen) {
+            glfwGetWindowPos(window, &windowedPosX, &windowedPosY);
+            glfwGetWindowSize(window, &windowedWidth, &windowedHeight);
+
+            GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
+            const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);
+
+            // Switch to fullscreen
+            glfwSetWindowMonitor(window, primaryMonitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+        } else {
+            // Switch back to windowed mode
+            glfwSetWindowMonitor(window, nullptr, windowedPosX, windowedPosY, windowedWidth, windowedHeight, 0);
+        }
+        isFullscreen = !isFullscreen;
+
+        viewer->keymap[GLFW_KEY_F] = false;
+    }
 }
 
 void Game::Update() {

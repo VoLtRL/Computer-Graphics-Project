@@ -21,7 +21,7 @@ public:
     float deltaTime = 0.0f; 
     float lastFrame = 0.0f;
 
-    std::map<int, bool> keymap = {{GLFW_KEY_W, false}, {GLFW_KEY_A, false}, {GLFW_KEY_S, false}, {GLFW_KEY_D, false}, {GLFW_KEY_ESCAPE, false}, {GLFW_KEY_SPACE, false}, {GLFW_KEY_F, false}};
+    std::map<int, bool> keymap = {{GLFW_KEY_W, false}, {GLFW_KEY_A, false}, {GLFW_KEY_S, false}, {GLFW_KEY_D, false}, {GLFW_KEY_ESCAPE, false}, {GLFW_KEY_SPACE, false}, {GLFW_KEY_F, false}, {GLFW_MOUSE_BUTTON_LEFT, false}};
     unsigned int depthMapFBO;
     unsigned int depthMap;
     const unsigned int SHADOW_WIDTH = 2048, SHADOW_HEIGHT = 2048;

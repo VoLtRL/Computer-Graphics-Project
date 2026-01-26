@@ -190,6 +190,13 @@ void Viewer::run()
 void Viewer::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     Viewer* viewer = static_cast<Viewer*>(glfwGetWindowUserPointer(window));
+    int state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+    
+    if (state == GLFW_PRESS) {
+        viewer->keymap[GLFW_MOUSE_BUTTON_LEFT] = true;
+    } else {
+        viewer->keymap[GLFW_MOUSE_BUTTON_LEFT] = false;
+    }
 
     // update the keymap based on key action
     if (action == GLFW_PRESS) {
