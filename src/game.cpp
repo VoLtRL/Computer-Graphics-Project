@@ -103,17 +103,16 @@ void Game::ProcessInput(float deltaTime) {
     if (viewer->keymap[GLFW_KEY_SPACE]) player->jump();
 
     if (viewer->keymap[GLFW_MOUSE_BUTTON_LEFT]){
+        float rayLength = 25.0f;
+        glm::vec3 camPos = viewer->camera->Position;
+        glm::vec3 camFront = viewer->camera->Front;
+        
+        glm::vec3 worldTarget = camPos + (camFront * rayLength);
 
-        float aimDistance = 25.0f;
-        glm::vec3 cameraPos = viewer->camera->Position;
-        glm::vec3 cameraFront = viewer->camera->Front;
-        glm::vec3 aimPoint = cameraPos + (cameraFront * aimDistance);
+        glm::vec3 gunSpawnPos = player->Position + glm::vec3(0.3f, 0.5f, -0.2f);
+        glm::vec3 finalShootDir = glm::normalize(worldTarget - gunSpawnPos);
 
-        glm::vec3 playerGunPos = player->Position + glm::vec3(0.3f, 0.5f, -0.2f);
-
-        glm::vec3 shootDirection = glm::normalize(aimPoint - playerGunPos);
-
-        player->shoot(shootDirection);
+        player->shoot(finalShootDir);
     }
     // enable fullscreen toggle
     if (viewer->keymap[GLFW_KEY_F]) {
