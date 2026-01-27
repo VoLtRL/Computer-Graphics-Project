@@ -249,7 +249,8 @@ void Player::setModel(Node* modelNode) {
 void Player::updateAnimation(float deltaTime) {
     if (!model) return;
 
-    // Physics inputs
+
+    // get current orientation and speed
     glm::vec3 currentFront = glm::normalize(this->GetFrontVector());
     glm::vec3 currentUp    = glm::normalize(this->GetUpVector()); 
     
@@ -286,7 +287,7 @@ void Player::updateAnimation(float deltaTime) {
     float targetDrop = 0.0f;
     float targetHead = 0.0f;
 
-    // Landing impact logic
+    // handle landing impact
     if (wasInAir && !isInAir) landingImpact = 1.0f;
     wasInAir = isInAir;
     landingImpact = glm::mix(landingImpact, 0.0f, deltaTime * 5.0f);
@@ -364,7 +365,8 @@ void Player::updateAnimation(float deltaTime) {
     targetKnee += landingImpact * 1.5f;
     targetHead += landingImpact * 0.3f;
 
-    // Smooth values over time
+
+    // smooth transitions
     float smooth = deltaTime * 10.0f;
     currentLegAngle = glm::mix(currentLegAngle, targetLeg, smooth);
     currentArmAngle = glm::mix(currentArmAngle, targetArmLeft, smooth);
@@ -390,7 +392,8 @@ void Player::updateAnimation(float deltaTime) {
     static float currentHead = 0.0f;
     currentHead = glm::mix(currentHead, targetHead, smooth);
 
-    // Apply transforms to nodes
+
+    // apply transforms to body parts
     if (torso) {
         glm::mat4 t = torsoOrig;
         t = glm::translate(t, glm::vec3(0, currentDrop, 0));
@@ -472,17 +475,17 @@ Node* recursiveFind(Node* node, std::string name) {
 void Player::setModel(Node* modelNode) {
     this->model = modelNode;
 
-    //Find body parts
+    // find body parts
     armLeft = recursiveFind(model, "Arm_upper_L");
     armRight = recursiveFind(model, "Arm_upper_R");
     legLeft = recursiveFind(model, "Leg_upper_L");
     legRight = recursiveFind(model, "Leg_upper_R");
 
-    //Save initial transforms
-    if(armLeft) armLeftOrig = armLeft->get_transform();
-    if(armRight) armRightOrig = armRight->get_transform();
-    if(legLeft) legLeftOrig = legLeft->get_transform();
-    if(legRight) legRightOrig = legRight->get_transform();
+    // Save initial transforms
+    if (armLeft) armLeftOrig = armLeft->get_transform();
+    if (armRight) armRightOrig = armRight->get_transform();
+    if (legLeft) legLeftOrig = legLeft->get_transform();
+    if (legRight) legRightOrig = legRight->get_transform();
 }
 
 void Player::deleteActiveProjectile(Projectile* proj){
