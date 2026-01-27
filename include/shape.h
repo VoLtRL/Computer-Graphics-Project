@@ -2,6 +2,7 @@
 
 #include "shader.h"
 #include "node.h"
+#include <physicObject.h>
 
 #include <glm/glm.hpp>
 #include "glm/ext.hpp"
@@ -12,6 +13,16 @@ public:
     Shape(Shader *shader_program);
 
     virtual void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection);
+
+    virtual ~Shape() = default;
+    glm::vec3 color;
+    float alpha = 1.0f;
+    bool useCheckerboard;
+    bool isEmissive;
+	ShapeType shapeType = ShapeType::ST_INVALID;
+    virtual Shape* clone() const{
+        return new Shape(*this);
+    }
 
 protected:
     GLuint shader_program_;

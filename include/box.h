@@ -6,7 +6,11 @@
 class Box : public Shape {
 public:
     Box(Shader *shader_program, float width = 1.0f, float height = 1.0f, float depth = 1.0f);
+	float h, w, d; // dimensions
     void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection) override;
+    virtual Shape* clone() const override {
+        return new Box(*this);
+    }
 private:
     unsigned int num_indices;
     GLuint VAO;

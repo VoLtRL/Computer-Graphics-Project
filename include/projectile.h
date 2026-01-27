@@ -1,20 +1,37 @@
+#pragma once
+
+#include "physicShapeObject.h"
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
 
-class Projectile {
+class Projectile : public PhysicShapeObject {
 
 public:
-	Projectile(float x, float y, float speed, float direction);
-	glm::vec3 Position;
-	glm::vec3 Velocity;
-	glm::vec3 Acceleration;
+	Projectile(Shape* shape = nullptr, glm::vec3 position = glm::vec3(0.0f), float speed = 20.0f, float damage = 10.0f, float range = 50.0f);
 
-	void UpdatePhysics(float deltaTime);
+	void update(float deltaTime);
+
+	bool isActive() const { return active; }
+
+	float getDamage() const { return damage; }
+
+	float getProjectileSpeed() const { return projectileSpeed; }
+
+	float getTraveledDistance() const { return traveledDistance; }
+
+	void deactivate() { active = false; }
 
 
 private:
 
-	float direction; // in degrees
 	bool active;
+	// effects on hit, damage, speed, size, etc.
+	float projectileSpeed;
+	float damage;
+	float size;
+	float range;
+	float traveledDistance;
+
 };

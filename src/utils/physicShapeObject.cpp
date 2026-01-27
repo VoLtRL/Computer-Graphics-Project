@@ -12,6 +12,13 @@ PhysicShapeObject::PhysicShapeObject(Shape* newShape, glm::vec3 position)
 	// Nothing else to do here
 }
 
+PhysicShapeObject::~PhysicShapeObject() {
+    if (shape) {
+        delete shape;
+        shape = nullptr;
+    }
+}
+
 void PhysicShapeObject::draw(glm::mat4& view,glm::mat4& projection)
 {
     if (!shape) {
@@ -24,12 +31,8 @@ void PhysicShapeObject::draw(glm::mat4& view,glm::mat4& projection)
     model = glm::translate(model, Position);    // Move to object's position
 
 	// Create rotation matrix from orientation vectors
-    glm::mat3 rotation(
-        glm::normalize(RightVector),   // X-axis
-        glm::normalize(UpVector),      // Y-axis
-        glm::normalize(FrontVector)    // Z-axis
-    );
-    model *= glm::mat4(rotation);
+
+	model *= RotationMatrix;            // Apply rotation
 
     // Draw the shape with model/view/projection
     shape->draw(model, view, projection);

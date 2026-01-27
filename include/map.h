@@ -6,5 +6,5 @@
 
 class Map {
 public:
-    Map(Shader* shader, Node* sceneRoot, std::vector<PhysicObject*>& physicsList);
+    Map(Shader* shader, Node* sceneRoot);
 };
