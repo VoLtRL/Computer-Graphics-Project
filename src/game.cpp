@@ -150,6 +150,9 @@ void Game::ProcessInput(float deltaTime) {
 }
 
 void Game::Update() {
+    if (!player->isAlive()) {
+        return;
+    }
     float deltaTime = viewer->deltaTime;
 
     // Process inputs
@@ -245,6 +248,34 @@ void Game::Update() {
     }
 }
 
+void Game::RenderDeathUI() {
+    if(!recordedDeathTime) {
+        recordedDeathTime = true;
+        deathTime = glfwGetTime();
+    }
+    float aspectRatio = static_cast<float>(Config::SCR_WIDTH) / static_cast<float>(Config::SCR_HEIGHT);
+    
+    // sprite renderer setup
+    Shader* spriteShader = ResourceManager::GetShader("sprite");
+    // set the sprite shader
+    glUseProgram(spriteShader->get_id());
+
+    glm::mat4 projection = Sprite::getProjection(aspectRatio);
+    glUniformMatrix4fv(glGetUniformLocation(spriteShader->get_id(), "projection"), 1, GL_FALSE, &projection[0][0]);
+    glUniform1i(glGetUniformLocation(spriteShader->get_id(), "image"), 0);
+
+    // game over screen
+    spriteRenderer->draw(gameOverTexture, glm::vec2(0.0f, 0.0f), glm::vec2(1.5f * aspectRatio, 1.5f));
+
+    // Time survived
+    int totalSeconds = static_cast<int>(deathTime);
+    int minutes = totalSeconds / 60;
+    int seconds = totalSeconds % 60;
+    char timeBuffer[30];
+    std::snprintf(timeBuffer, sizeof(timeBuffer), "Time Survived: %02d:%02d", minutes, seconds);
+    textRenderer->RenderText(timeBuffer, (Config::SCR_WIDTH / 2) - 150.0f, (Config::SCR_HEIGHT / 2) - 150.0f, 1.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+}
+
 void Game::RenderUI() {
     float aspectRatio = static_cast<float>(Config::SCR_WIDTH) / static_cast<float>(Config::SCR_HEIGHT);
     
@@ -290,32 +321,24 @@ void Game::RenderUI() {
     glm::mat4 projection = Sprite::getProjection(aspectRatio);
     glUniformMatrix4fv(glGetUniformLocation(spriteShader->get_id(), "projection"), 1, GL_FALSE, &projection[0][0]);
     glUniform1i(glGetUniformLocation(spriteShader->get_id(), "image"), 0);
-
-    // game over screen
-    if (player->getHealth() <= 0.0f) {
-        spriteRenderer->draw(gameOverTexture, glm::vec2(0.0f, 0.0f), glm::vec2(1.5f * aspectRatio, 1.5f));
-    }
     
     // health bar
-    else {
-        float healthPct = player->getHealth() / player->getMaxHealth();
-        healthPct = glm::clamp(healthPct, 0.0f, 1.0f);
+    float healthPct = player->getHealth() / player->getMaxHealth();
+    healthPct = glm::clamp(healthPct, 0.0f, 1.0f);
 
-        float barWidth = 0.8f;
-        float barHeight = 0.05f;
+    float barWidth = 0.8f;
+    float barHeight = 0.05f;
         
-        float margin = 0.1f;
-        float currentWidth = barWidth * healthPct;
-        float xPos = -aspectRatio + margin + (currentWidth / 2.0f); 
-        float yPos = -0.9f;
+    float margin = 0.1f;
+    float currentWidth = barWidth * healthPct;
+    float xPos = -aspectRatio + margin + (currentWidth / 2.0f); 
+    float yPos = -0.9f;
 
-        float bgXPos = -aspectRatio + margin + (barWidth / 2.0f);
+    float bgXPos = -aspectRatio + margin + (barWidth / 2.0f);
 
-        spriteRenderer->draw(healthBarTexture, glm::vec2(xPos, yPos), glm::vec2(currentWidth, barHeight), 0.0f, glm::vec3(0.1f, 0.67f, 0.1f));
+    spriteRenderer->draw(healthBarTexture, glm::vec2(xPos, yPos), glm::vec2(currentWidth, barHeight), 0.0f, glm::vec3(0.1f, 0.67f, 0.1f));
 
-        spriteRenderer->draw(healthBarTexture, glm::vec2(bgXPos, yPos), glm::vec2(barWidth, barHeight), 0.0f, glm::vec3(0.8f, 0.1f, 0.1f));
-
-    }
+    spriteRenderer->draw(healthBarTexture, glm::vec2(bgXPos, yPos), glm::vec2(barWidth, barHeight), 0.0f, glm::vec3(0.8f, 0.1f, 0.1f));
 
     // Restore state
     glDisable(GL_BLEND);

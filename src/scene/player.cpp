@@ -137,10 +137,6 @@ void Player::jump(){
     }
 }
 
-void Player::gainJumpStrength(float quantity){
-    jumpStrength += quantity;
-}
-
 void Player::shoot(glm::vec3 shootDirection) {
 
     lastShootTime = glfwGetTime();

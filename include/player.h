@@ -31,27 +31,35 @@ public:
     void heal(float amount);
     void die();
     
-    // getters
+    // health getters/setters
     float getHealth() const { return health; }
-    float getMaxHealth() const { return maxHealth; }
     void setHealth(float newHealth) { health = newHealth; }
+    float getMaxHealth() const { return maxHealth; }
     bool isAlive() const { return health > 0.0f; }
-    float getSpeed() const { return movementSpeed; }
-    float getSize() const { return size; }
-    std::vector<Projectile*> getActiveProjectiles() const { return activeProjectiles; }
-    float getProjectileSpeed() const { return projectileSpeed; }
-    float getAttackDamage() const { return attackDamage; }
-    float getAttackSpeed() const { return attackSpeed; }
-    float getJumpStrength() const { return jumpStrength; }
 
-    // resizing
+    // speed setter/getter
+    void setSpeed(float speed) { movementSpeed = speed; }
+    float getSpeed() const { return movementSpeed; }
+
+    // size getter/setter
+    float getSize() const { return size; }
+    void setSize(float newSize) { size = newSize; }
     void resize(float scale);
 
+    // projectile setter/getter
+    std::vector<Projectile*> getActiveProjectiles() const { return activeProjectiles; }
+    float getProjectileSpeed() const { return projectileSpeed; }
+    // attack getter/setter
+    float getAttackDamage() const { return attackDamage; }
+    void setAttackDamage(float damage) { attackDamage = damage; }
+    float getAttackSpeed() const { return attackSpeed; }
+    void setAttackSpeed(float speed) { attackSpeed = speed; }
+    // jump strength getter/setter
+    float getJumpStrength() const { return jumpStrength; }
+    void setJumpStrength(float strength) { jumpStrength = strength; }
+    
     // internal updates
     void updateAnimation(float deltaTime);
-
-    // setters
-    void gainJumpStrength(float quantity);
 
 	void BeforeCollide(PhysicObject* other, CollisionInfo info, float deltaTime) override;
 	void OnCollide(PhysicObject* other, CollisionInfo info, float deltaTime) override;
