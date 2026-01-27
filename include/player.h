@@ -57,7 +57,6 @@ public:
 
     void deleteActiveProjectile(Projectile* proj);
 
-
 	// Position and velocity register
     glm::vec3 PreviousPosition;
 	glm::vec3 PreviousVelocity;
@@ -127,6 +126,10 @@ private:
 
     const float WALK_FREQ = 10.0f;
     const float SWING_AMP = 0.8f;
+
+    float lastShootTime = -10.0f;
+    float recoilForce = 0.0f;
+    float combatBlend = 0.0f;
 
     // helper function to find nodes by name
     // Recursive search for a node by name
