@@ -14,9 +14,10 @@ Player::Player(Shape* shape, glm::vec3 position,Shader* projectileShader)
       movementSpeed(5.0f),
       jumpStrength(10.0f),
       attackDamage(20.0f),
-      attackSpeed(50.0f),
+      attackSpeed(2.0f),
       size(1.0f),
       isJumping(false),
+      canJump(false),
       attackCooldown(0.0f),
       groundDamping(8.0f),
       projectileSpeed(30.0f),
@@ -30,13 +31,21 @@ Player::Player(Shape* shape, glm::vec3 position,Shader* projectileShader)
               << position.z << ")" << std::endl;
 }
 
-void Player::BeforeCollide(PhysicObject* other, CollisionInfo info)
+void Player::BeforeCollide(PhysicObject* other, CollisionInfo info, float deltaTime)
 {
     // Placeholder for any pre-collision logic
     if (info.hit) {
         PreviousPosition = Position;
         PreviousVelocity = Velocity;
 	}
+    Enemy* enemy = dynamic_cast<Enemy*>(other);
+    if (enemy && info.hit) {
+        enemy->attack(this, deltaTime); // call attack on enemy
+    }
+
+	if (glm::dot(this->GetUpVector(), info.normal) > 0.7f) {
+		canJump = true;
+    }
 }
 
 void Player::OnCollide(PhysicObject* other, CollisionInfo info, float deltaTime)
@@ -45,10 +54,6 @@ void Player::OnCollide(PhysicObject* other, CollisionInfo info, float deltaTime)
     if (isJumping && info.hit && isGround && PhysicObject::Length2(PreviousPosition-Position) < 0.05f) {
         isJumping = false; // Reset jumping state when colliding with ground
     }
-    Enemy* enemy = dynamic_cast<Enemy*>(other);
-    if (enemy && info.hit) {
-        enemy->attack(this, deltaTime); // call attack on enemy
-    }
     else {
         //std::cout << PhysicObject::Length2(PreviousPosition - Position) << std::endl;
     }
@@ -56,6 +61,7 @@ void Player::OnCollide(PhysicObject* other, CollisionInfo info, float deltaTime)
 
 void Player::update(float deltaTime)
 {
+	canJump = false; // reset jump ability each frame
     if (isDead) {
         if (model && deathTimer == 0.0f) {
             glm::mat4 current = model->get_transform();
@@ -106,7 +112,7 @@ void Player::draw(glm::mat4& view, glm::mat4& projection){
     // Position
     model = glm::translate(model, this->Position);
     //For good positioning on the platform
-    model = glm::translate(model, glm::vec3(0.0f, 1.0f, 0.0f));
+    model = glm::translate(model, glm::vec3(0.0f, 0.4f, 0.0f));
 
     // Orientation
     glm::mat4 rotation = glm::inverse(glm::lookAt(glm::vec3(0.0f), this->GetFrontVector(), glm::vec3(0.0f, 1.0f, 0.0f)));
@@ -118,14 +124,14 @@ void Player::draw(glm::mat4& view, glm::mat4& projection){
     // Draw
     this->model->draw(model, view, projection);
 
-    // Projectiles ?
+    // Projectiles
     for (auto p : activeProjectiles) {
         p->draw(view, projection);
     }
 }
 
 void Player::jump(){
-    if(!isJumping){
+    if(!isJumping && canJump){
         Velocity.y += jumpStrength; // basic jump impulse
         isJumping = true; // set jumping state
     }
@@ -139,8 +145,8 @@ void Player::shoot(glm::vec3 shootDirection){
 
     if(attackCooldown <= 0.0f){
         
-        glm::vec3 shootingOrigin = Position + (GetUpVector() * 1.2f) + (GetFrontVector() * 0.5f);
-
+        glm::vec3 shootingOrigin = Position + (GetUpVector() * 0.6f) + (GetFrontVector() * 0.5f);
+        
         float spawnDistance = 0.5f;
         glm::vec3 spawnPos = shootingOrigin + (shootDirection * spawnDistance);
 
@@ -153,21 +159,18 @@ void Player::shoot(glm::vec3 shootDirection){
 
 void Player::move(glm::vec3 direction)
 {
-    if(!isJumping){
-        glm::vec3 normDir = glm::normalize(direction);
-        // Update velocity
-        Velocity.x = normDir.x * movementSpeed;
-        Velocity.z = normDir.z * movementSpeed;
-        // Update orientation vectors
-        glm::vec3 FrontVector = glm::normalize(glm::vec3(normDir.x, 0.0f, normDir.z));
-        glm::vec3 RightVector = glm::normalize(glm::cross(FrontVector, WorldUpVector));
-        glm::vec3 UpVector = glm::normalize(glm::cross(RightVector, FrontVector));
-		RotationMatrix = glm::mat4(1.0f);
-		RotationMatrix[0] = glm::vec4(RightVector, 0.0f);
-		RotationMatrix[1] = glm::vec4(UpVector, 0.0f);
-		RotationMatrix[2] = glm::vec4(-FrontVector, 0.0f);
-        
-    }
+    glm::vec3 normDir = glm::normalize(direction);
+    // Update velocity
+    Velocity.x = normDir.x * movementSpeed;
+    Velocity.z = normDir.z * movementSpeed;
+    // Update orientation vectors
+    glm::vec3 FrontVector = glm::normalize(glm::vec3(normDir.x, 0.0f, normDir.z));
+    glm::vec3 RightVector = glm::normalize(glm::cross(FrontVector, WorldUpVector));
+    glm::vec3 UpVector = glm::normalize(glm::cross(RightVector, FrontVector));
+	RotationMatrix = glm::mat4(1.0f);
+	RotationMatrix[0] = glm::vec4(RightVector, 0.0f);
+	RotationMatrix[1] = glm::vec4(UpVector, 0.0f);
+	RotationMatrix[2] = glm::vec4(-FrontVector, 0.0f);
 }
 
 void Player::takeDamage(float damage)
@@ -197,7 +200,7 @@ void Player::resize(float scale)
 {
     size *= scale;
     
-    if (collisionShape && shapeType == ShapeType::ST_SPHERE) {
+    if (collisionShape &&collisionShape->shapeType == ShapeType::ST_SPHERE) {
         ((Sphere*)collisionShape)->radius *= scale;
     }
 }

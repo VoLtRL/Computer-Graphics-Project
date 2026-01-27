@@ -48,6 +48,7 @@ Viewer::Viewer(int width, int height)
 
     // register event handlers
     glfwSetKeyCallback(win, key_callback);
+    glfwSetMouseButtonCallback(win, mouse_button_callback);
 
     // Mouse movement callback
     glfwSetCursorPosCallback(win, mouse_callback);
@@ -59,8 +60,6 @@ Viewer::Viewer(int width, int height)
               << glGetString(GL_SHADING_LANGUAGE_VERSION) << ", Renderer "
               << glGetString(GL_RENDERER) << std::endl;
 
-    // initialize GL by setting viewport and default render characteristics
-    glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
     /* tell GL to only draw onto a pixel if the shape is closer to the viewer
     than anything already drawn at that pixel */
@@ -70,7 +69,7 @@ Viewer::Viewer(int width, int height)
 
 
     // Initialize camera
-    camera = new Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, -26.0f);
+    camera = new Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, -15.0f);
     lastX = width / 2.0f;
     lastY = height / 2.0f;
     firstMouse = true; 
@@ -108,6 +107,7 @@ void Viewer::run()
     // sunlight position
     glm::vec3 lightPos(-20.0f, 50.0f, -20.0f);
 
+
     while (!glfwWindowShouldClose(win))
     {
         float currentFrame = (float)glfwGetTime();
@@ -119,6 +119,9 @@ void Viewer::run()
         }
         this->process_input(deltaTime);
 
+        glClearColor(backgroundColor.x, backgroundColor.y, backgroundColor.z, 1.0f);
+        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+
         Shader* shader = ResourceManager::GetShader("standard"); 
 
         glm::mat4 lightProjection = glm::ortho(-30.0f, 30.0f, -30.0f, 30.0f, 1.0f, 100.0f);
@@ -129,6 +132,8 @@ void Viewer::run()
         glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
         glClear(GL_DEPTH_BUFFER_BIT);
+        glEnable(GL_BLEND); 
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         if(shader) {
             glUseProgram(shader->get_id());
@@ -159,8 +164,6 @@ void Viewer::run()
             glUniformMatrix4fv(glGetUniformLocation(shader->get_id(), "lightSpaceMatrix"), 1, GL_FALSE, &lightSpaceMatrix[0][0]);
             glUniform3fv(glGetUniformLocation(shader->get_id(), "dirLightPos"), 1, &lightPos[0]);
         }
-
-        camera->UpdatePhysics(deltaTime);
         glm::mat4 view = camera->GetViewMatrix();
         float aspectRatio = (float) Config::SCR_WIDTH / (float) Config::SCR_HEIGHT;
         glm::mat4 projection = camera->GetProjectionMatrix(aspectRatio);
@@ -173,7 +176,12 @@ void Viewer::run()
 
         glfwPollEvents();
         glfwSwapBuffers(win);
+        glDisable(GL_BLEND);
     }
+
+    // cleanup
+    glfwDestroyWindow(win);
+    glfwTerminate();
 
 }
 
@@ -187,6 +195,17 @@ void Viewer::key_callback(GLFWwindow* window, int key, int scancode, int action,
         viewer->keymap[key] = true;
     } else if (action == GLFW_RELEASE) {
         viewer->keymap[key] = false;
+    }
+}
+
+void Viewer::mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+    Viewer* viewer = static_cast<Viewer*>(glfwGetWindowUserPointer(window));
+    
+    if (action == GLFW_PRESS) {
+        viewer->keymap[button] = true;
+    } else if (action == GLFW_RELEASE) {
+        viewer->keymap[button] = false;
     }
 }
 
@@ -234,4 +253,3 @@ void Viewer::mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 
     viewer->camera->ProcessMouseMovement(xoffset, yoffset);
 }
-

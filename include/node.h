@@ -16,6 +16,7 @@ public:
     void add(Node* node);
     void add(Shape* shape);
     void add(PhysicShapeObject* pso);
+    void remove(PhysicShapeObject* pso);
     void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection);
     void set_transform(const glm::mat4 &transform); // sets local transform
     std::vector<Node *> children_;
@@ -24,6 +25,7 @@ public:
     void key_handler(int key) const;
     Node* clone() const;
     ~Node();
+    void setAlpha(float alpha);
 
 private:
     glm::mat4 transform_;

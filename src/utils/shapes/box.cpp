@@ -12,6 +12,8 @@ Box::Box(Shader *shader_program, float width, float height, float depth)
     h = height * 0.5f;
     d = depth * 0.5f;
 
+    shapeType = ShapeType::ST_BOX;
+
     // define vertices
     std::vector<float> vertices = {
         -w, -h,  d,  0.0f, 0.0f, 1.0f,
