@@ -472,22 +472,6 @@ Node* recursiveFind(Node* node, std::string name) {
     return nullptr;
 }
 
-void Player::setModel(Node* modelNode) {
-    this->model = modelNode;
-
-    // find body parts
-    armLeft = recursiveFind(model, "Arm_upper_L");
-    armRight = recursiveFind(model, "Arm_upper_R");
-    legLeft = recursiveFind(model, "Leg_upper_L");
-    legRight = recursiveFind(model, "Leg_upper_R");
-
-    // Save initial transforms
-    if (armLeft) armLeftOrig = armLeft->get_transform();
-    if (armRight) armRightOrig = armRight->get_transform();
-    if (legLeft) legLeftOrig = legLeft->get_transform();
-    if (legRight) legRightOrig = legRight->get_transform();
-}
-
 void Player::deleteActiveProjectile(Projectile* proj){
     auto it = std::find(activeProjectiles.begin(), activeProjectiles.end(), proj);
     if (it != activeProjectiles.end()) {
