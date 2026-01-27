@@ -51,4 +51,10 @@ namespace Config {
 
         constexpr int MAX_ENEMIES = 20;
     }
+
+    namespace StatsMenu {
+        constexpr float START_X = 20.0f;
+        constexpr float START_Y = SCR_HEIGHT / 2.0f;
+        constexpr float SCALE = 1.0f;
+    }
 }

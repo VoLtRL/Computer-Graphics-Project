@@ -11,6 +11,8 @@
 #include "sprite.h"
 #include "enemySpawner.h"
 #include "constants.h"
+#include "textRenderer.h"
+#include "statsMenu.h"
 
 class Game {
 public:
@@ -27,9 +29,11 @@ public:
 private:
     Viewer* viewer;
     Sprite* spriteRenderer;
+    TextRenderer* textRenderer;
 
 
     Player* player;
+    StatsMenu* statsMenu;
     std::vector<Enemy*> enemies;
     std::vector<EnemySpawner*> enemySpawners;
     Map* map;

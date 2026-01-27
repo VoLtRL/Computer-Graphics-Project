@@ -21,10 +21,16 @@ Game::~Game() {
 void Game::Init() {
     std::string shaderDir = SHADER_DIR;
     std::string imageDir = IMAGE_DIR;
+    std::string fontDir = FONT_DIR;
 
     ResourceManager::LoadShader(shaderDir + "standard.vert", shaderDir + "standard.frag", "standard");
     ResourceManager::LoadTexture(imageDir + "crosshair.png", "crosshair");
     ResourceManager::LoadShader(shaderDir + "sprite.vert", shaderDir + "sprite.frag", "sprite");
+    ResourceManager::LoadShader(shaderDir + "text.vert", shaderDir + "text.frag", "text");
+
+    // load font
+    textRenderer = new TextRenderer(Config::SCR_WIDTH, Config::SCR_HEIGHT);
+    textRenderer->Load(fontDir + "JetBrains-Mono-Nerd-Font-Complete.ttf", 24);
 
     Shader* StandardShader = ResourceManager::GetShader("standard");
 
@@ -41,6 +47,9 @@ void Game::Init() {
     //Load player
     player = EntityLoader::CreatePlayer(glm::vec3(0.0f, 5.0f, 0.0f));
     viewer->scene_root->add(player);
+
+    // load stats menu
+    statsMenu = new StatsMenu(textRenderer, player);
 
 
     // Test Cube
@@ -131,6 +140,12 @@ void Game::ProcessInput(float deltaTime) {
         isFullscreen = !isFullscreen;
 
         viewer->keymap[GLFW_KEY_F] = false;
+    }
+
+    // display stats menu
+    if (viewer->keymap[GLFW_KEY_V]) {
+        statsMenu->setVisible(!statsMenu->getIsVisible());
+        viewer->keymap[GLFW_KEY_V] = false;
     }
 }
 
@@ -240,6 +255,32 @@ void Game::RenderUI() {
 
     // crosshair
     crosshair->draw(crosshairTexture, aspectRatio);
+
+    // render level count left bottom corner
+    std::string levelText = "Level : " + std::to_string(enemyKilled);
+    textRenderer->RenderText(levelText, 50.0f, 85.0f, 1.0f, glm::vec3(1.0f));
+
+    // render kill count top right corner
+    std::string killText = "Kills: " + std::to_string(enemyKilled);
+    textRenderer->RenderText(killText, Config::SCR_WIDTH - 500.0f, Config::SCR_HEIGHT - 50.0f, 1.0f, glm::vec3(1.0f));
+
+    // render purification progress right top corner
+    float purificationPct = static_cast<float>(enemyKilled) / static_cast<float>(Config::Game::EnemiesToWin);
+    purificationPct = glm::clamp(purificationPct, 0.0f, 1.0f);
+    int pctDisplay = static_cast<int>(purificationPct * 100.0f);
+    std::string pctText = "Purification of the world : " + std::to_string(pctDisplay) + "%";
+    textRenderer->RenderText(pctText, Config::SCR_WIDTH - 500.0f, Config::SCR_HEIGHT - 20.0f , 1.0f, glm::vec3(1.0f));
+
+    // render in-game timer center top
+    int totalSeconds = static_cast<int>(glfwGetTime());
+    int minutes = totalSeconds / 60;
+    int seconds = totalSeconds % 60;
+    char timeBuffer[6];
+    std::snprintf(timeBuffer, sizeof(timeBuffer), "%02d:%02d", minutes, seconds);
+    textRenderer->RenderText(timeBuffer, (Config::SCR_WIDTH / 2) - 50.0f, Config::SCR_HEIGHT - 20.0f, 1.0f, glm::vec3(1.0f));
+
+    // render stats menu
+    statsMenu->renderMenu();
 
     // sprite renderer setup
     Shader* spriteShader = ResourceManager::GetShader("sprite");

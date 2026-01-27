@@ -41,13 +41,14 @@ public:
     std::vector<Projectile*> getActiveProjectiles() const { return activeProjectiles; }
     float getProjectileSpeed() const { return projectileSpeed; }
     float getAttackDamage() const { return attackDamage; }
+    float getAttackSpeed() const { return attackSpeed; }
+    float getJumpStrength() const { return jumpStrength; }
 
     // resizing
     void resize(float scale);
 
     // internal updates
     void updateAnimation(float deltaTime);
-    void updateOrientation();
 
     // setters
     void gainJumpStrength(float quantity);
