@@ -94,6 +94,7 @@ void TextRenderer::RenderText(std::string text, float x, float y, float scale, g
     glUseProgram(TextShader.get_id());
     glUniform3f(glGetUniformLocation(TextShader.get_id(), "textColor"), color.x, color.y, color.z);
     glActiveTexture(GL_TEXTURE0);
+    glEnable(GL_BLEND);
     glBindVertexArray(VAO);
 
     // iterate through all characters
@@ -130,4 +131,5 @@ void TextRenderer::RenderText(std::string text, float x, float y, float scale, g
     }
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
+    glDisable(GL_BLEND);
 }

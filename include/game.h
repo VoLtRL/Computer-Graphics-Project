@@ -12,6 +12,7 @@
 #include "enemySpawner.h"
 #include "constants.h"
 #include "textRenderer.h"
+#include "statsMenu.h"
 
 class Game {
 public:
@@ -32,6 +33,7 @@ private:
 
 
     Player* player;
+    StatsMenu* statsMenu;
     std::vector<Enemy*> enemies;
     std::vector<EnemySpawner*> enemySpawners;
     Map* map;
