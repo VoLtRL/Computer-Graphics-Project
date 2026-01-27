@@ -24,8 +24,11 @@ public:
     void Update();
     void RenderUI();
     void RenderDeathUI();
+    void RenderWinUI();
     
     Player* getPlayer() const { return player; }
+    bool getHasWon() const { return hasWon; }
+    void setHasWon(bool won) { hasWon = won; }
 
     void ProcessInput(float deltaTime);
 
@@ -42,10 +45,11 @@ private:
     Crosshair* crosshair;
     HandlePhysics* handlePhysics;
 
-    bool recordedDeathTime = false;
-    double deathTime = 0.0;
+    bool isTimeRecorded = false;
+    double timeRecorded = 0.0;
 
     unsigned int gameOverTexture;
+    unsigned int victoryTexture;
     unsigned int healthBarTexture;
     unsigned int crosshairTexture;
 
@@ -60,5 +64,6 @@ private:
     glm::vec3 skyColor = glm::vec3(0.5f, 0.5f, 0.5f);
 
     int enemyKilled = 0;
+    bool hasWon = false;
 
 };
