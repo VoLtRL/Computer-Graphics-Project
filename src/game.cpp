@@ -61,7 +61,6 @@ void Game::Init() {
 
     Shape* camShape = new Sphere(StandardShader, 0.5f);
     viewer->camera->collisionShape = camShape;
-    viewer->camera->shapeType = ShapeType::ST_SPHERE;
     viewer->camera->collisionGroup = CG_PLAYER;
     viewer->camera->collisionMask = CG_ENVIRONMENT;
     viewer->camera->SetMass(1.0f);
