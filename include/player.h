@@ -67,16 +67,23 @@ private:
     Node* model = nullptr;
 
     // body parts for animation
+    Node* torso = nullptr;
+    Node* head = nullptr;
     Node* armLeft = nullptr;
     Node* armRight = nullptr;
     Node* legLeft = nullptr;
     Node* legRight = nullptr;
+    Node* armLowerLeft = nullptr;
+    Node* armLowerRight = nullptr;
+    Node* legLowerLeft = nullptr;
+    Node* legLowerRight = nullptr;
     
     // original transforms for resetting after animation
-    glm::mat4 armLeftOrig;
-    glm::mat4 armRightOrig;
-    glm::mat4 legLeftOrig;
-    glm::mat4 legRightOrig;
+    glm::mat4 torsoOrig, headOrig;
+    glm::mat4 armLeftOrig, armRightOrig;
+    glm::mat4 legLeftOrig, legRightOrig;
+    glm::mat4 armLowerLeftOrig, armLowerRightOrig;
+    glm::mat4 legLowerLeftOrig, legLowerRightOrig;
 
     // stats
     float health;
@@ -103,9 +110,28 @@ private:
     // projectile storage
     std::vector<Projectile*> activeProjectiles;
 
-    // helper functions
+    // animation
+    float animTime = 0.0f;
+    float currentLegAngle = 0.0f;
+    float currentArmAngle = 0.0f;
+    float currentLean = 0.0f;
+    float currentTilt = 0.0f;
+    float currentElbow = 0.0f;
+    float currentKnee = 0.0f;
+    float currentDrop = 0.0f;
+
+    float landingImpact = 0.0f;
+    bool wasInAir = false;
+
+    glm::vec3 movementReferenceForward = glm::vec3(0, 0, 1);
+
+    const float WALK_FREQ = 10.0f;
+    const float SWING_AMP = 0.8f;
+
+    // helper function to find nodes by name
     Node* findNode(Node* current, std::string targetName) {
         if (current->name == targetName) return current;
             return nullptr;
     }
 };
+
