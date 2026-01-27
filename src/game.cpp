@@ -42,10 +42,11 @@ void Game::Init() {
     player = EntityLoader::CreatePlayer(glm::vec3(0.0f, 10.0f, 0.0f));
     viewer->scene_root->add(player);
 
-
+    /*
     // Test Cube
     PhysicShapeObject* testBox = EntityLoader::CreateTestBox(glm::vec3(2.0f, 10.0f, 2.0f));
     viewer->scene_root->add(testBox);
+    */
 
     // Mob Spawner
     EnemySpawner* spawner = EntityLoader::CreateEnemySpawner(viewer->scene_root, glm::vec3(0.0f, 1.0f, 0.0f), enemies);

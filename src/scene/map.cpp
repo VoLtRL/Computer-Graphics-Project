@@ -5,26 +5,6 @@
 #include "constants.h"
 #include <glm/gtc/matrix_transform.hpp>
 
-<<<<<<< HEAD
-#include "model.h"  
-#include "constants.h"
-#include <glm/gtc/matrix_transform.hpp>
-
-Map::Map(Shader* shader, Node* sceneRoot)
-{
-    std::string mapPath = IMAGE_DIR + std::string("map.glb");
-
-    Box* groundShape = new Box(shader, 50.0f, 1.0f, 50.0f);
-    PhysicShapeObject* ground =
-        new PhysicShapeObject(groundShape, glm::vec3(0.0f, -0.5f, 0.0f));
-
-    groundShape->useCheckerboard = true;
-    ground->SetMass(0.0f);
-    ground->kinematic = false;
-    ground->name = "Ground";
-    ground->shapeType = ShapeType::ST_BOX;
-    ground->collisionShape = groundShape;
-=======
 Map::Map(Shader* shader, Node* sceneRoot)
 {
     std::string mapPath = IMAGE_DIR + std::string("map.glb");
@@ -39,12 +19,10 @@ Map::Map(Shader* shader, Node* sceneRoot)
     ground->Friction = 0.5f;
 	ground->collisionShape = groundShape;
     ground->Restitution = 1.0f;
->>>>>>> main
     ground->collisionGroup = CG_ENVIRONMENT;
     ground->collisionMask = CG_PRESETS_MAP;
 
     sceneRoot->add(ground);
-<<<<<<< HEAD
 
     Model* gameMap = new Model(mapPath, shader);
 
@@ -82,23 +60,22 @@ void Map::processNodeRecursive(Node* node, Shader* shader)
     if (name.find("COLLIDER_BOX") != std::string::npos)
     {
         Box* box = new Box(shader, 1.0f, 1.0f, 1.0f);
-        PhysicShapeObject* collider = new PhysicShapeObject(box, glm::vec3(0.0f, -0.5f, 0.0f));
+        PhysicObject* collider = new PhysicObject(glm::vec3(0.0f, -0.5f, 0.0f));
         collider->SetMass(0.0f);
         collider->kinematic = false;
         collider->name = "Ground";
-        collider->shapeType = ShapeType::ST_BOX;
         collider->collisionShape = box;
         collider->collisionGroup = CG_ENVIRONMENT;
         collider->collisionMask = CG_PRESETS_MAP;
+		collider->collisionResponse = CollisionResponse::CR_BOTH;
     }
+    else if (name.find("NOCOLLISION") != std::string::npos) {
+        Box* box = new Box(shader, 1.0f, 1.0f, 1.0f);
+        node->add(box)
+;    }
 
     for (Node* child : node->getChildren())
     {
         processNodeRecursive(child, shader);
     }
 }
-
-=======
-
-}
->>>>>>> main

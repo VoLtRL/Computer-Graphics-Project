@@ -643,14 +643,14 @@ CollisionInfo PhysicObject::Capsule2Capsule(PhysicObject* objA, PhysicObject* ob
 CollisionInfo PhysicObject::checkCollision(PhysicObject* objA, PhysicObject* objB) {
 
 	if (!objA || !objB) {
-		std::cout << "One of the PhysicObjects is null." << std::endl;
+		//std::cout << "One of the PhysicObjects is null." << std::endl;
 		CollisionInfo result;
 		return result; // No collision detected
 	}
 
 
 	if (!((objA->collisionMask & objB->collisionGroup) && (objB->collisionMask & objA->collisionGroup))) {
-		std::cout << "These objects can't collide with each others." << std::endl;
+		//std::cout << "These objects can't collide with each others." << std::endl;
 		CollisionInfo result;
 		return result; // No collision detected
 	}
@@ -665,17 +665,17 @@ CollisionInfo PhysicObject::checkCollision(PhysicObject* objA, PhysicObject* obj
 		&& (repB == CollisionResponse::CR_TRIGGER || repB == CollisionResponse::CR_BOTH);
 
 	if (!doPhysical && !doTrigger) {
-		std::cout << "One of the PhysicObjects cannot collide and cannot touch." << std::endl;
+		//std::cout << "One of the PhysicObjects cannot collide and cannot touch." << std::endl;
 		CollisionInfo result;
 		return result; // No collision detected
 	}
 
-	std::cout << "Checking collision between " << objA->name << " and " << objB->name << std::endl;
+	//std::cout << "Checking collision between " << objA->name << " and " << objB->name << std::endl;
 
 	Shape* shapeA = objA->collisionShape;
 	Shape* shapeB = objB->collisionShape;
 	if (!shapeA || !shapeB) {
-		std::cout << "One of the PhysicObjects has a null collision shape." << std::endl;
+		//std::cout << "One of the PhysicObjects has a null collision shape." << std::endl;
 		CollisionInfo result;
 		return result; // No collision detected
 	}
@@ -683,7 +683,7 @@ CollisionInfo PhysicObject::checkCollision(PhysicObject* objA, PhysicObject* obj
 	ShapeType typeA = shapeA->shapeType;
 	ShapeType typeB = shapeB->shapeType;
 	if (typeA == ShapeType::ST_INVALID || typeB == ShapeType::ST_INVALID) {
-		std::cout << "One of the PhysicObjects has an invalid ShapeType." << std::endl;
+		//std::cout << "One of the PhysicObjects has an invalid ShapeType." << std::endl;
 		CollisionInfo result;
 		return result; // No collision detected
 	}
