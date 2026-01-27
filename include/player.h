@@ -129,9 +129,14 @@ private:
     const float SWING_AMP = 0.8f;
 
     // helper function to find nodes by name
-    Node* findNode(Node* current, std::string targetName) {
-        if (current->name == targetName) return current;
-            return nullptr;
+    // Recursive search for a node by name
+    Node* recursiveFind(Node* node, std::string name) {
+    if (node->name.find(name) != std::string::npos) return node;
+    for (auto child : node->children_) { 
+        Node* res = recursiveFind(child, name);
+        if (res) return res;
     }
+    return nullptr;
+}
 };
 

@@ -236,7 +236,7 @@ void Player::setModel(Node* modelNode) {
 void Player::updateAnimation(float deltaTime) {
     if (!model) return;
 
-    // 1. Physics Data
+    // get current orientation and speed
     glm::vec3 currentFront = glm::normalize(this->GetFrontVector());
     glm::vec3 currentUp    = glm::normalize(this->GetUpVector()); 
     
@@ -246,24 +246,24 @@ void Player::updateAnimation(float deltaTime) {
     bool isMoving = rawSpeed > 0.1f;
     bool isInAir = isJumping || std::abs(Velocity.y) > 0.5f;
 
-    // 2. Reference System (Latch Logic)
+    // reference forward vector for movement direction
     if (!isMoving) {
         // Reset reference when stopped
         movementReferenceForward = currentFront;
     }
     else {
-        // Slowly rotate reference to allow strafe detection
+        // slowly adapt reference to current movement direction
         movementReferenceForward = glm::mix(movementReferenceForward, currentFront, deltaTime * 2.0f);
         movementReferenceForward = glm::normalize(movementReferenceForward);
     }
     
     glm::vec3 referenceRight = glm::normalize(glm::cross(currentUp, movementReferenceForward));
 
-    // 3. Calculate Relative Speeds
+    // calculate speed components
     float speedFwd  = glm::dot(flatVel, movementReferenceForward); 
     float speedSide = glm::dot(flatVel, referenceRight);
 
-    // 4. Calculate Targets
+    // calculate target angles/positions
     float targetLeg = 0.0f;
     float targetArm = 0.0f;
     float targetLean = 0.0f;   
@@ -273,7 +273,7 @@ void Player::updateAnimation(float deltaTime) {
     float targetDrop = 0.0f;
     float targetHead = 0.0f;
 
-    // Handle Landing Impact
+    // handle landing impact
     if (wasInAir && !isInAir) landingImpact = 1.0f;
     wasInAir = isInAir;
     landingImpact = glm::mix(landingImpact, 0.0f, deltaTime * 5.0f);
@@ -324,7 +324,7 @@ void Player::updateAnimation(float deltaTime) {
     targetKnee += landingImpact * 1.5f;
     targetHead += landingImpact * 0.3f;
 
-    // 5. Smoothing (Lerp)
+    // smooth transitions
     float smooth = deltaTime * 10.0f;
     currentLegAngle = glm::mix(currentLegAngle, targetLeg, smooth);
     currentArmAngle = glm::mix(currentArmAngle, targetArm, smooth);
@@ -337,7 +337,7 @@ void Player::updateAnimation(float deltaTime) {
     static float currentHead = 0.0f;
     currentHead = glm::mix(currentHead, targetHead, smooth);
 
-    // 6. Apply Transforms
+    // apply transforms to body parts
     if (torso) {
         glm::mat4 t = torsoOrig;
         t = glm::translate(t, glm::vec3(0, currentDrop, 0));
@@ -400,65 +400,6 @@ void Player::updateAnimation(float deltaTime) {
         tR = glm::rotate(tR, rE, glm::vec3(1, 0, 0));
         armLowerRight->set_transform(tR);
     }
-}
-
-
-void Player::updateOrientation()
-{
-    // TODO
-void Player::updateAnimation(float deltaTime)
-{
-    if (!model) return;
-
-    //Player moving check
-    bool isMoving = glm::length(glm::vec2(Velocity.x, Velocity.z)) > 0.1f;
-
-    if (isMoving) {
-
-        float speed = 10.0f; 
-        float time = glfwGetTime();
-        
-        float angle = glm::sin(time * speed) * 0.8f; 
-
-        // Rotation + base
-        if (armLeft)  armLeft->set_transform(glm::rotate(armLeftOrig, angle, glm::vec3(1, 0, 0)));
-        if (armRight) armRight->set_transform(glm::rotate(armRightOrig, -angle, glm::vec3(1, 0, 0)));
-        if (legLeft)  legLeft->set_transform(glm::rotate(legLeftOrig, -angle, glm::vec3(1, 0, 0)));
-        if (legRight) legRight->set_transform(glm::rotate(legRightOrig, angle, glm::vec3(1, 0, 0)));
-    } 
-    else {
-        // Reset
-        if (armLeft)  armLeft->set_transform(armLeftOrig);
-        if (armRight) armRight->set_transform(armRightOrig);
-        if (legLeft)  legLeft->set_transform(legLeftOrig);
-        if (legRight) legRight->set_transform(legRightOrig);
-    }
-}
-
-// Recursive search for a node by name
-Node* recursiveFind(Node* node, std::string name) {
-    if (node->name.find(name) != std::string::npos) return node;
-    for (auto child : node->children_) { 
-        Node* res = recursiveFind(child, name);
-        if (res) return res;
-    }
-    return nullptr;
-}
-
-void Player::setModel(Node* modelNode) {
-    this->model = modelNode;
-
-    //Find body parts
-    armLeft = recursiveFind(model, "Arm_upper_L");
-    armRight = recursiveFind(model, "Arm_upper_R");
-    legLeft = recursiveFind(model, "Leg_upper_L");
-    legRight = recursiveFind(model, "Leg_upper_R");
-
-    //Save initial transforms
-    if(armLeft) armLeftOrig = armLeft->get_transform();
-    if(armRight) armRightOrig = armRight->get_transform();
-    if(legLeft) legLeftOrig = legLeft->get_transform();
-    if(legRight) legRightOrig = legRight->get_transform();
 }
 
 void Player::deleteActiveProjectile(Projectile* proj){

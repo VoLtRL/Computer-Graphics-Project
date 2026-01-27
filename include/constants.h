@@ -37,7 +37,7 @@ namespace Config {
     // enemy constants
     namespace Enemy {
         constexpr float MASS = 50.0f;
-        constexpr float RADIUS = 0.5f;
+        constexpr float RADIUS = 0.3f;
         constexpr float HEIGHT = 1.8f;
         constexpr float SPEED = 2.0f;
         constexpr float ATTACK_SPEED = 1.0f;
