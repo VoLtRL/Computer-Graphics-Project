@@ -21,10 +21,16 @@ Game::~Game() {
 void Game::Init() {
     std::string shaderDir = SHADER_DIR;
     std::string imageDir = IMAGE_DIR;
+    std::string fontDir = FONT_DIR;
 
     ResourceManager::LoadShader(shaderDir + "standard.vert", shaderDir + "standard.frag", "standard");
     ResourceManager::LoadTexture(imageDir + "crosshair.png", "crosshair");
     ResourceManager::LoadShader(shaderDir + "sprite.vert", shaderDir + "sprite.frag", "sprite");
+    ResourceManager::LoadShader(shaderDir + "text.vert", shaderDir + "text.frag", "text");
+
+    // load font
+    textRenderer = new TextRenderer(Config::SCR_WIDTH, Config::SCR_HEIGHT);
+    textRenderer->Load(fontDir + "OCRAEXT.TTF", 24);
 
     Shader* StandardShader = ResourceManager::GetShader("standard");
 
@@ -249,6 +255,9 @@ void Game::RenderUI() {
     glm::mat4 projection = Sprite::getProjection(aspectRatio);
     glUniformMatrix4fv(glGetUniformLocation(spriteShader->get_id(), "projection"), 1, GL_FALSE, &projection[0][0]);
     glUniform1i(glGetUniformLocation(spriteShader->get_id(), "image"), 0);
+
+    textRenderer->RenderText("Hello", 50.0f, 1000.0f, 1.0f, glm::vec3(1.0f));
+    
 
     // game over screen
     if (player->getHealth() <= 0.0f) {

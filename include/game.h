@@ -11,6 +11,7 @@
 #include "sprite.h"
 #include "enemySpawner.h"
 #include "constants.h"
+#include "textRenderer.h"
 
 class Game {
 public:
@@ -27,6 +28,7 @@ public:
 private:
     Viewer* viewer;
     Sprite* spriteRenderer;
+    TextRenderer* textRenderer;
 
 
     Player* player;

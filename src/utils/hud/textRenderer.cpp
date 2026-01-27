@@ -3,15 +3,13 @@
 # include FT_FREETYPE_H
 # include <iostream>
 
-TextRenderer::TextRenderer(unsigned int width, unsigned int height)
-{
+TextRenderer::TextRenderer(unsigned int width, unsigned int height){
     // configure shader
-    ResourceManager::LoadShader("shaders/text.vert", "shaders/text.frag", "text");
-    TextShader = *ResourceManager::GetShader("text");
+    Shader& TextShader = *ResourceManager::GetShader("text");
     glUseProgram(TextShader.get_id());
     glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(width), 0.0f, static_cast<float>(height));
-    TextShader.setMat4("projection", projection);
-    TextShader.setInt("text", 0);
+    glUniformMatrix4fv(glGetUniformLocation(TextShader.get_id(), "projection"), 1, GL_FALSE, &projection[0][0]);
+    glUniform1i(glGetUniformLocation(TextShader.get_id(), "text"), 0);
     // configure VAO/VBO for texture quads
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -88,19 +86,13 @@ void TextRenderer::Load(std::string font, unsigned int fontSize)
     FT_Done_FreeType(ft);
 }
 
-TextRenderer::~TextRenderer()
-{
-    // delete textures
-    for (auto& pair : Characters) {
-        glDeleteTextures(1, &pair.second.TextureID);
-    }
-}
 
-TextRenderer::RenderText(std::string text, float x, float y, float scale, glm::vec3 color)
+void TextRenderer::RenderText(std::string text, float x, float y, float scale, glm::vec3 color)
 {
+    Shader& TextShader = *ResourceManager::GetShader("text");
     // activate corresponding render state	
-    TextShader.use();
-    TextShader.setVec3("textColor", color);
+    glUseProgram(TextShader.get_id());
+    glUniform3f(glGetUniformLocation(TextShader.get_id(), "textColor"), color.x, color.y, color.z);
     glActiveTexture(GL_TEXTURE0);
     glBindVertexArray(VAO);
 

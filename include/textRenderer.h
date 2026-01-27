@@ -6,6 +6,7 @@
 
 #include "shader.h"
 #include "resourceManager.h"
+#include "textRenderer.h"
 
 
 struct Character {
@@ -19,7 +20,6 @@ class TextRenderer
 {
 public:
     std::map<char, Character> Characters; // holds all precompiled characters
-    Shader TextShader; // shader used for text rendering
     TextRenderer(unsigned int width, unsigned int height); // constructor
     void Load(std::string font, unsigned int fontSize); // pre-compiles a list of characters from the given font
     void RenderText(std::string text, float x, float y, float scale, glm::vec3 color = glm::vec3(1.0f)); // renders a string of text using the precompiled list of characters

@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_compile_definitions(SHADER_DIR="${CMAKE_CURRENT_SOURCE_DIR}/shaders/")
 add_compile_definitions(IMAGE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/images/")
+add_compile_definitions(FONT_DIR="${CMAKE_CURRENT_SOURCE_DIR}/fonts/")
 
 set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL REQUIRED)
