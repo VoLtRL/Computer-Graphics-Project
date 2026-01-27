@@ -171,6 +171,8 @@ void PhysicObject::ResolveCollision(
 		B->BeforeCollide(A, c, deltaTime);
 	}
 
+	if (!A || !B) return;
+
 	if (doPhysical){
 		float invMassSum = A->InvMass + B->InvMass;
 		if (invMassSum == 0.0f) return;

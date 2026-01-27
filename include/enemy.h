@@ -30,7 +30,7 @@ public:
     int getTier() const { return tier; }
     void setTier(int newTier) { tier = newTier; }
 
-    void OnCollide(PhysicObject* other, CollisionInfo info, float deltaTime) override;
+    void BeforeCollide(PhysicObject* other, CollisionInfo info, float deltaTime) override;
 
 private:
     int health;

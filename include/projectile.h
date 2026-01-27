@@ -1,6 +1,7 @@
 #pragma once
 
 #include "physicShapeObject.h"
+#include "enemy.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -23,6 +24,12 @@ public:
 
 	void deactivate() { active = false; }
 
+	void setPierce(float p);
+	void reducePierce(float amount);
+	float getPierce() const { return pierce; }
+
+	std::vector<Enemy*> getPiercedEnemies() const { return piercedEnemies; }
+	void addPiercedEnemy(Enemy* enemy) { piercedEnemies.push_back(enemy); }
 
 private:
 
@@ -33,5 +40,6 @@ private:
 	float size;
 	float range;
 	float traveledDistance;
-
+	float pierce;
+	std::vector<Enemy*> piercedEnemies;
 };

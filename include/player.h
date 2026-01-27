@@ -6,6 +6,8 @@
 #include <vector>
 
 #include "node.h"
+#include "pickup.h"
+#include <map>
 
 // Forward declaration pour éviter les inclusions circulaires si nécessaire
 class Weapon; 
@@ -61,6 +63,12 @@ public:
 	// Position and velocity register
     glm::vec3 PreviousPosition;
 	glm::vec3 PreviousVelocity;
+
+    // Pickups (items)
+	std::map <std::string, float> temporaryItems;
+    std::vector<std::string> items;
+    void AddPickup(Pickup* pickup, float lifetime=0.0f);
+	void RemovePickup(Pickup* pickup);
 
 private:
     //Model

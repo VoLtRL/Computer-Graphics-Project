@@ -150,9 +150,20 @@ void Player::shoot(glm::vec3 shootDirection){
         float spawnDistance = 0.5f;
         glm::vec3 spawnPos = shootingOrigin + (shootDirection * spawnDistance);
 
-        Projectile* proj = EntityLoader::CreateProjectile(spawnPos, shootDirection, this);
+		bool isLaser = std::find(items.begin(), items.end(), "Laser") != items.end();
+		bool isPierce = std::find(items.begin(), items.end(), "Pierce") != items.end();
+       
+        if (isLaser) {
 
-        activeProjectiles.push_back(proj);
+        }
+        else {
+            Projectile* proj = EntityLoader::CreateProjectile(spawnPos, shootDirection, this);
+            if (isPierce) {
+                proj->setPierce(3.0f);
+			}
+            activeProjectiles.push_back(proj);
+        }
+
         attackCooldown = 1.0f / attackSpeed;
     }
 }
@@ -268,3 +279,25 @@ void Player::deleteActiveProjectile(Projectile* proj){
     PhysicObject::deleteObject(proj);
 }
 
+void Player::AddPickup(Pickup* pickup, float lifetime){
+	if (pickup == nullptr || pickup->name == "PLACEHOLDER") return;
+	if (lifetime > 0.0f) {
+        temporaryItems[pickup->name] = lifetime;
+    }
+    else {
+        items.push_back(pickup->name);
+    }
+}
+
+void Player::RemovePickup(Pickup* pickup){
+    if (pickup == nullptr || pickup->name == "PLACEHOLDER") return;
+    auto it = std::find(items.begin(), items.end(), pickup);
+    if (it != items.end()) {
+        items.erase(it);
+    }
+
+    auto tempIt = std::find(temporaryItems.begin(), temporaryItems.end(), pickup);
+    if (tempIt != temporaryItems.end()) {
+		temporaryItems.erase(tempIt);
+    }
+}

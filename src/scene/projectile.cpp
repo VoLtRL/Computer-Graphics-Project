@@ -35,3 +35,13 @@ void Projectile::update(float deltaTime)
               << Position.z << ")" << std::endl;
 }
 
+void Projectile::setPierce(float p) {
+    pierce = p;
+}
+
+void Projectile::reducePierce(float amount) {
+    pierce -= amount;
+    if (pierce < 0.0f) {
+        pierce = 0.0f;
+    }
+}
