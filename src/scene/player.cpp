@@ -214,6 +214,8 @@ void Player::levelUp()
 
     setExperienceToNextLevel(getExperienceToNextLevel() * 1.25f); //Increase XP needed by 25%
     setExperience(experience - experienceToNextLevel); //Carry over excess XP
+
+    EnemySpawner::updateSpawnProbabilities(level); //Update enemy spawn probabilities
     
 }
 

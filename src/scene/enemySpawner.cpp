@@ -40,6 +40,23 @@ void EnemySpawner::SpawnEnemy() {
     sceneRoot->add(newEnemy);
 }
 
+void EnemySpawner::updateSpawnProbabilities(int playerLevel) {
+    
+    float x = (float)(playerLevel - 1); 
+    float w1 = 1000.0f; 
+    float w2 = 100.0f + (1000.0f * x);
+    float w3 = 50.0f + (400.0f * std::pow(x, 2));
+    float w4 = 10.0f + (100.0f * std::pow(x, 3));
+    float totalWeight = w1 + w2 + w3 + w4;
+
+    if (totalWeight > 0.0f) {
+        spawnProbabilities[0] = w1 / totalWeight;
+        spawnProbabilities[1] = w2 / totalWeight;
+        spawnProbabilities[2] = w3 / totalWeight;
+        spawnProbabilities[3] = w4 / totalWeight;
+    }
+}
+
 void EnemySpawner::Update(float deltaTime) {
     timeSinceLastSpawn += deltaTime;
 
