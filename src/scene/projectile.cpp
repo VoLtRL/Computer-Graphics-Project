@@ -29,9 +29,9 @@ void Projectile::update(float deltaTime)
         active = false;
     }
 
-    std::cout << "Projectile position: (" 
+    /* std::cout << "Projectile position: (" 
               << Position.x << ", " 
               << Position.y << ", " 
-              << Position.z << ")" << std::endl;
+              << Position.z << ")" << std::endl; */
 }
 

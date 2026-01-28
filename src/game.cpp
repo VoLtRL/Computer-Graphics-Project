@@ -62,6 +62,7 @@ void Game::Init() {
     // Load Textures
     gameOverTexture = ResourceManager::LoadTexture(imageDir + "game_over.png", "gameOver");
     healthBarTexture = ResourceManager::LoadTexture(imageDir + "health_bar.png", "healthBar");
+    experienceBarTexture = ResourceManager::LoadTexture(imageDir + "experience_bar.png", "experienceBar");
 
     Shape* camShape = new Sphere(StandardShader, 0.5f);
     viewer->camera->collisionShape = camShape;
@@ -326,15 +327,37 @@ void Game::RenderUI() {
     float barHeight = 0.05f;
         
     float margin = 0.1f;
+    
     float currentWidth = barWidth * healthPct;
     float xPos = -aspectRatio + margin + (currentWidth / 2.0f); 
     float yPos = -0.9f;
 
     float bgXPos = -aspectRatio + margin + (barWidth / 2.0f);
 
+    // front bar (current health)
     spriteRenderer->draw(healthBarTexture, glm::vec2(xPos, yPos), glm::vec2(currentWidth, barHeight), 0.0f, glm::vec3(0.1f, 0.67f, 0.1f));
 
+    // background bar
     spriteRenderer->draw(healthBarTexture, glm::vec2(bgXPos, yPos), glm::vec2(barWidth, barHeight), 0.0f, glm::vec3(0.8f, 0.1f, 0.1f));
+
+    // experience bar
+    float expPct = player->getExperience() / player->getExperienceToNextLevel();
+    expPct = glm::clamp(expPct, 0.0f, 1.0f);
+
+    float expBarWidth = 0.8f;
+    float expBarHeight = 0.02f;
+
+    float expCurrentWidth = expBarWidth * expPct;
+    float expXPos = -aspectRatio + margin + (expCurrentWidth / 2.0f);
+    float expYPos = -0.93f;
+
+    float expBgXPos = -aspectRatio + margin + (expBarWidth / 2.0f);
+
+    // front bar (current experience)
+    spriteRenderer->draw(experienceBarTexture, glm::vec2(expXPos, expYPos), glm::vec2(expCurrentWidth, expBarHeight), 0.0f, glm::vec3(0.78f, 0.87f, 0.89f));
+
+    // background bar
+    spriteRenderer->draw(experienceBarTexture, glm::vec2(expBgXPos, expYPos), glm::vec2(expBarWidth, expBarHeight), 0.0f, glm::vec3(0.2f, 0.2f, 0.2f));
 
     // Restore state
     glDisable(GL_BLEND);

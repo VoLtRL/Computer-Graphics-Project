@@ -84,12 +84,12 @@ void Player::update(float deltaTime)
     }
 
     // debug info
-    std::cout << "Player position: (" 
+    /* std::cout << "Player position: (" 
               << Position.x << ", " 
               << Position.y << ", " 
               << Position.z << ")" << std::endl;
     std::cout << "is Jumping ? " 
-              << isJumping << std::endl;
+              << isJumping << std::endl; */
 
     // projectile handling
     for(Projectile* proj : activeProjectiles){
@@ -220,7 +220,7 @@ void Player::levelUp()
 void Player::die() {
     if (!isDead) {
         isDead = true;
-        std::cout << "GAME OVER" << std::endl;
+        /* std::cout << "GAME OVER" << std::endl; */
     }
 }
 
