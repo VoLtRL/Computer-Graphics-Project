@@ -5,20 +5,31 @@ Pickup::Pickup(Shape* shape, glm::vec3 position)
 	: PhysicShapeObject(shape, position) {
 	this->collisionGroup = CG_PICKUP;
 	this->collisionMask = CG_PRESETS_PICKUP;
-	this->SetMass(1.0f);
-	this->Friction = 0.5f;
-	this->Damping = 0.9f;
+	this->SetMass(0.0f);
+	this->kinematic=true;
 	this->name = "PLACEHOLDER";
-	this->collisionResponse = CollisionResponse::CR_BOTH;
+	this->collisionResponse = CollisionResponse::CR_TRIGGER;
 }
 
 void Pickup::BeforeCollide(PhysicObject* other, CollisionInfo info, float deltaTime)
 {
-	if (!info.hit) return;
+	if (toBeDeleted || !info.hit) return;
 	Player* player = static_cast<Player*>(other);
 	if (player) {
-		player->AddPickup(this, lifetime);
-		PhysicObject::deleteObject(this);
-		delete this;
+		if (name == "HealthPack") {
+			player->heal(25.0f);
+		}
+		else {
+			player->AddPickup(this, lifetime);
+		}
+		toBeDeleted = true;
+	}
+}
+
+void Pickup::AfterCollide(CollisionInfo info, float deltaTime)
+{
+	if (toBeDeleted){
+		markForDeletion();
+		std::cout << "Marked" << std::endl;
 	}
 }

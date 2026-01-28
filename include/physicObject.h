@@ -58,7 +58,7 @@ enum CollisionGroup : uint32_t {
 	CG_PRESETS_PROP = CG_ENVIRONMENT | CG_PLAYER | CG_ENEMY | CG_PLAYER_PROJECTILE | CG_ENEMY_PROJECTILE | CG_PROP,
     CG_PRESETS_PLAYER = CG_ENVIRONMENT | CG_ENEMY | CG_ENEMY_PROJECTILE | CG_PROP | CG_PICKUP,
 	CG_PRESETS_ENEMY = CG_ENVIRONMENT | CG_PLAYER | CG_PLAYER_PROJECTILE | CG_PROP,
-	CG_PRESETS_PICKUP = CG_PLAYER | CG_ENVIRONMENT | CG_PROP,
+	CG_PRESETS_PICKUP = CG_PLAYER,
 };
 
 enum class CollisionResponse {
@@ -143,6 +143,11 @@ public:
 
     // Static list of all PhysicObject instances
     inline static std::vector<PhysicObject*> allPhysicObjects{}; 
+	inline static std::vector<PhysicObject*> physicObjectsToDelete{};
+
+    void markForDeletion() {
+        physicObjectsToDelete.push_back(this);
+	}
 
     inline static void deleteObject(PhysicObject* obj){
         auto it = std::find(allPhysicObjects.begin(), allPhysicObjects.end(), obj);
@@ -153,6 +158,7 @@ public:
 
     virtual void BeforeCollide(PhysicObject* other, CollisionInfo info , float deltaTime);
     virtual void OnCollide(PhysicObject* other, CollisionInfo info, float deltaTime);
+	virtual void AfterCollide(CollisionInfo info, float deltaTime);
 
     static float Length2(const glm::vec3& v);
     static float ProjectOBB(const OBBCollision& box, const glm::vec3& axis);

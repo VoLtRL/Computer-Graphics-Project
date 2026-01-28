@@ -28,6 +28,13 @@ void Node::remove(PhysicShapeObject* pso) {
     }
 }
 
+void Node::recursiveRemove(PhysicShapeObject* pso) {
+    remove(pso);
+    for (auto child : children_) {
+        child->recursiveRemove(pso);
+    }
+}
+
 void Node::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection) {
     glm::mat4 updatedModel = model * transform_;
 

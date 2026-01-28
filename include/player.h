@@ -1,16 +1,15 @@
 #pragma once
 #include "shader.h"
 #include "physicShapeObject.h"
-#include "projectile.h"
 #include <glm/glm.hpp>
 #include <vector>
 
 #include "node.h"
 #include "pickup.h"
+#include "enemy.h"
 #include <map>
 
-// Forward declaration pour éviter les inclusions circulaires si nécessaire
-class Weapon; 
+class Projectile;
 
 class Player : public PhysicShapeObject {
 public:
@@ -65,8 +64,8 @@ public:
 	glm::vec3 PreviousVelocity;
 
     // Pickups (items)
-	std::map <std::string, float> temporaryItems;
-    std::vector<std::string> items;
+	std::map <std::string, float> temporaryItems = {};
+    std::vector<std::string> items = {};
     void AddPickup(Pickup* pickup, float lifetime=0.0f);
 	void RemovePickup(Pickup* pickup);
 

@@ -1,14 +1,15 @@
 #pragma once
 #include "physicShapeObject.h"
-#include "player.h"
 #include "node.h"
+
+class Player;
 
 class Enemy : public PhysicShapeObject { 
 public:
     Enemy(Shape* shape = nullptr, glm::vec3 position = glm::vec3(0.0f), Shader* projectileShader = nullptr);
     ~Enemy();
     void attack(Player* player, float deltaTime);
-    void moveTowardsPlayer(glm::vec3 playerPosition, float deltaTime);
+    void moveTowardsPlayer(glm::vec3 playerPosition, float deltaTime, bool isAffraid=false);
 
     void setModel(Node* modelNode);
     void draw(glm::mat4& view, glm::mat4& projection) override;

@@ -168,10 +168,11 @@ void PhysicObject::ResolveCollision(
 	if (!doPhysical && !doTrigger) return;
 	if (doTrigger){
 		A->BeforeCollide(B, c, deltaTime);
+		if (!A || !B || A == nullptr || B == nullptr) return;
 		B->BeforeCollide(A, c, deltaTime);
 	}
 
-	if (!A || !B) return;
+	if (!A || !B || A == nullptr || B == nullptr) return;
 
 	if (doPhysical){
 		float invMassSum = A->InvMass + B->InvMass;
@@ -234,11 +235,15 @@ void PhysicObject::ResolveCollision(
 			B->Velocity += frictionImpulse * B->InvMass;
 		}
 	}
+	
+	if (!A || !B || A == nullptr || B == nullptr) return;
 
 	if (doTrigger)
 	{
-	A->OnCollide(B, c, deltaTime);
-	B->OnCollide(A, c, deltaTime);
+		A->OnCollide(B, c, deltaTime);
+		B->OnCollide(A, c, deltaTime);
+		A->AfterCollide(c, deltaTime);
+		B->AfterCollide(c, deltaTime);
 	}
 
 }
@@ -254,6 +259,11 @@ void PhysicObject::OnCollide(PhysicObject* other, CollisionInfo info, float delt
 
 void PhysicObject::BeforeCollide(PhysicObject* other, CollisionInfo info, float deltaTime) {
 	// Placeholder for pre-collision logic
+	return;
+}
+
+void PhysicObject::AfterCollide(CollisionInfo info, float deltaTime) {
+	// Placeholder for after-collision response logic
 	return;
 }
 
@@ -645,14 +655,14 @@ CollisionInfo PhysicObject::Capsule2Capsule(PhysicObject* objA, PhysicObject* ob
 CollisionInfo PhysicObject::checkCollision(PhysicObject* objA, PhysicObject* objB) {
 
 	if (!objA || !objB) {
-		std::cout << "One of the PhysicObjects is null." << std::endl;
+		//std::cout << "One of the PhysicObjects is null." << std::endl;
 		CollisionInfo result;
 		return result; // No collision detected
 	}
 
 
 	if (!((objA->collisionMask & objB->collisionGroup) && (objB->collisionMask & objA->collisionGroup))) {
-		std::cout << "These objects can't collide with each others." << std::endl;
+		//std::cout << "These objects can't collide with each others." << std::endl;
 		CollisionInfo result;
 		return result; // No collision detected
 	}
@@ -667,17 +677,17 @@ CollisionInfo PhysicObject::checkCollision(PhysicObject* objA, PhysicObject* obj
 		&& (repB == CollisionResponse::CR_TRIGGER || repB == CollisionResponse::CR_BOTH);
 
 	if (!doPhysical && !doTrigger) {
-		std::cout << "One of the PhysicObjects cannot collide and cannot touch." << std::endl;
+		//std::cout << "One of the PhysicObjects cannot collide and cannot touch." << std::endl;
 		CollisionInfo result;
 		return result; // No collision detected
 	}
 
-	std::cout << "Checking collision between " << objA->name << " and " << objB->name << std::endl;
+	//std::cout << "Checking collision between " << objA->name << " and " << objB->name << std::endl;
 
 	Shape* shapeA = objA->collisionShape;
 	Shape* shapeB = objB->collisionShape;
 	if (!shapeA || !shapeB) {
-		std::cout << "One of the PhysicObjects has a null collision shape." << std::endl;
+		//std::cout << "One of the PhysicObjects has a null collision shape." << std::endl;
 		CollisionInfo result;
 		return result; // No collision detected
 	}
@@ -685,7 +695,7 @@ CollisionInfo PhysicObject::checkCollision(PhysicObject* objA, PhysicObject* obj
 	ShapeType typeA = shapeA->shapeType;
 	ShapeType typeB = shapeB->shapeType;
 	if (typeA == ShapeType::ST_INVALID || typeB == ShapeType::ST_INVALID) {
-		std::cout << "One of the PhysicObjects has an invalid ShapeType." << std::endl;
+		//std::cout << "One of the PhysicObjects has an invalid ShapeType." << std::endl;
 		CollisionInfo result;
 		return result; // No collision detected
 	}

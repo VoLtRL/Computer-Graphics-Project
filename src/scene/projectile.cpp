@@ -1,5 +1,6 @@
 #include "projectile.h"
 #include "sphere.h"
+#include "enemy.h"
 
 Projectile::Projectile(Shape* shape, glm::vec3 position, float speed, float damage, float range)
     : PhysicShapeObject(shape, position),    
@@ -7,7 +8,8 @@ Projectile::Projectile(Shape* shape, glm::vec3 position, float speed, float dama
       damage(damage),
       range(range),
       traveledDistance(0.0f),
-      active(true)
+      active(true),
+      pierce(0)
       {
     // Set initial velocity in the forward direction
     Velocity = GetFrontVector() * projectileSpeed;
@@ -28,20 +30,37 @@ void Projectile::update(float deltaTime)
     if (traveledDistance >= range || (glm::abs(Velocity.y)<0.01f && glm::abs(Velocity.x)<0.01f && glm::abs(Velocity.z)<0.01f)) {
         active = false;
     }
-
+    /*
     std::cout << "Projectile position: (" 
               << Position.x << ", " 
               << Position.y << ", " 
               << Position.z << ")" << std::endl;
+              */
 }
 
-void Projectile::setPierce(float p) {
+void Projectile::setPierce(int p) {
     pierce = p;
 }
 
-void Projectile::reducePierce(float amount) {
+void Projectile::reducePierce(int amount) {
     pierce -= amount;
-    if (pierce < 0.0f) {
-        pierce = 0.0f;
+    if (pierce < 0) {
+        pierce = 0;
     }
 }
+
+int Projectile::getPierce() {
+    return pierce;
+}
+std::vector<Enemy*> Projectile::getPiercedEnemies() {
+    return piercedEnemies;
+}
+
+void Projectile::addPiercedEnemy(Enemy* enemy) {
+	if (!enemy) return;
+	if (std::find(piercedEnemies.begin(), piercedEnemies.end(), enemy) != piercedEnemies.end()) {
+        return; // already pierced
+    }
+    piercedEnemies.push_back(enemy);
+}
+
