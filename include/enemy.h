@@ -34,6 +34,7 @@ public:
     void BeforeCollide(PhysicObject* other, CollisionInfo info, float deltaTime) override;
     void setExperienceReward(float exp) { experienceReward = exp; }
     float getExperienceReward() const { return experienceReward; }
+    float getRarityCoefficient() const { return baseRarityCoeff / ((float)tier); }
 private:
     int health;
     int power;
@@ -43,7 +44,7 @@ private:
     float attackSpeed;
     int tier;
     float experienceReward;
-    
+    float baseRarityCoeff = 1.2f;
     Node* model = nullptr;
 
  };
