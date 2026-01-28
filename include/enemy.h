@@ -34,8 +34,6 @@ public:
     void setExperienceReward(float exp) { experienceReward = exp; }
     float getExperienceReward() const { return experienceReward; }
 
-    void OnCollide(PhysicObject* other, CollisionInfo info, float deltaTime) override;
-
 private:
     int health;
     int power;
