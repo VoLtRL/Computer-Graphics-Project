@@ -94,21 +94,10 @@ void Game::Init() {
     statsMenu = new StatsMenu(textRenderer, player);
 
     // Mobs Spawners
-    EnemySpawner* spawner1 = EntityLoader::CreateEnemySpawner(viewer->scene_root, glm::vec3(-31.0f, 1.5f, 16.0f), enemies);
+    EnemySpawner* spawner1 = EntityLoader::CreateEnemySpawner(viewer->scene_root, player->Position, enemies);
     viewer->scene_root->add(spawner1);
-    enemySpawners.push_back(spawner1);
+	enemySpawner = spawner1;
 
-    EnemySpawner* spawner2 = EntityLoader::CreateEnemySpawner(viewer->scene_root, glm::vec3(65.0f, 2.0f, 61.0f), enemies);
-    viewer->scene_root->add(spawner2);
-    enemySpawners.push_back(spawner2);
-
-    EnemySpawner* spawner3 = EntityLoader::CreateEnemySpawner(viewer->scene_root, glm::vec3(21.0f, 1.5f, -96.0f), enemies);
-    viewer->scene_root->add(spawner3);
-    enemySpawners.push_back(spawner3);
-
-    EnemySpawner* spawner4 = EntityLoader::CreateEnemySpawner(viewer->scene_root, glm::vec3(-74.0f, 1.0f, 56.0f), enemies);
-    viewer->scene_root->add(spawner4);
-    enemySpawners.push_back(spawner4);
 
     crosshair = new Crosshair(0.1f);
     crosshairTexture = ResourceManager::GetTexture("crosshair");
@@ -213,11 +202,8 @@ void Game::ProcessGameOverInput() {
         }
         enemies.clear();
         // reset spawners
-        for(auto spawner : enemySpawners){
-            viewer->scene_root->remove(spawner);
-            delete spawner;
-        }
-        enemySpawners.clear();
+        viewer->scene_root->remove(enemySpawner);
+        delete enemySpawner;
 
         resetGameTime = glfwGetTime();
 
@@ -237,9 +223,8 @@ void Game::Update() {
     ProcessInput(deltaTime);
     player->update(deltaTime);
 
-    for(auto spawner : enemySpawners){
-        spawner->Update(deltaTime);
-    }
+	enemySpawner->Position = player->Position;
+	enemySpawner->Update(deltaTime);
     bool isAffraid = (player->temporaryItems.find("Fear") != player->temporaryItems.end());
     auto it = enemies.begin();
     while (it != enemies.end()) {
