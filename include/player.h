@@ -32,6 +32,7 @@ public:
     void die();
     
     // health getters/setters
+    void setMaxHealth(float newMaxHealth) { maxHealth = newMaxHealth; }
     float getHealth() const { return health; }
     void setHealth(float newHealth) { health = newHealth; }
     float getMaxHealth() const { return maxHealth; }
@@ -57,6 +58,15 @@ public:
     // jump strength getter/setter
     float getJumpStrength() const { return jumpStrength; }
     void setJumpStrength(float strength) { jumpStrength = strength; }
+    //level/xp getters/setters
+    float setExperience(float xp) { experience = xp; }
+    float getExperience() const { return experience; }
+    void addExperience(float xp) { experience += xp; }
+    void setExperienceToNextLevel(float ETNL) { experienceToNextLevel = ETNL; }
+    float getExperienceToNextLevel() const { return experienceToNextLevel; }
+    void setLevel(int lvl) {level = lvl;};
+    int getLevel() const { return level; }
+    void addLevel() { level += 1; }
     
     // internal updates
     void updateAnimation(float deltaTime);
@@ -65,6 +75,8 @@ public:
 	void OnCollide(PhysicObject* other, CollisionInfo info, float deltaTime) override;
 
     void deleteActiveProjectile(Projectile* proj);
+
+    void levelUp();
 
 	// Position and velocity register
     glm::vec3 PreviousPosition;
@@ -102,6 +114,9 @@ private:
     float attackSpeed; 
     float size;
     float projectileSpeed;
+    float experience;
+    float experienceToNextLevel;
+    int level;
 
     // states
     bool isJumping;
@@ -141,7 +156,6 @@ private:
     float combatBlend = 0.0f;
 
     // helper function to find nodes by name
-    // Recursive search for a node by name
     Node* recursiveFind(Node* node, std::string name) {
     if (node->name.find(name) != std::string::npos) return node;
     for (auto child : node->children_) { 

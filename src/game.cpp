@@ -51,7 +51,6 @@ void Game::Init() {
     // load stats menu
     statsMenu = new StatsMenu(textRenderer, player);
 
-
     // Test Cube
     PhysicShapeObject* testBox = EntityLoader::CreateTestBox(glm::vec3(2.0f, 10.0f, 2.0f));
     viewer->scene_root->add(testBox);
@@ -168,6 +167,7 @@ void Game::Update() {
         Enemy* enemy = *it;
         if (!enemy->isAlive()) {
             enemyKilled++;
+            player->addExperience(enemy->getExperienceReward());
             glm::vec3 startColor = glm::vec3(0.2f, 0.2f, 0.2f); // gray
             glm::vec3 endColor   = glm::vec3(0.53f, 0.81f, 0.92f); // blue
 
@@ -288,7 +288,7 @@ void Game::RenderUI() {
     crosshair->draw(crosshairTexture, aspectRatio);
 
     // render level count left bottom corner
-    std::string levelText = "Level : " + std::to_string(enemyKilled);
+    std::string levelText = "Level : " + std::to_string(player->getLevel());
     textRenderer->RenderText(levelText, 50.0f, 85.0f, 1.0f, glm::vec3(1.0f));
 
     // render kill count top right corner
