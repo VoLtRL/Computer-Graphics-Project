@@ -63,6 +63,7 @@ void Game::Init() {
     gameOverTexture = ResourceManager::LoadTexture(imageDir + "game_over.png", "gameOver");
     healthBarTexture = ResourceManager::LoadTexture(imageDir + "health_bar.png", "healthBar");
     experienceBarTexture = ResourceManager::LoadTexture(imageDir + "experience_bar.png", "experienceBar");
+    victoryTexture = ResourceManager::LoadTexture(imageDir + "victory_screen.png", "victory");
 
     Shape* camShape = new Sphere(StandardShader, 0.5f);
     viewer->camera->collisionShape = camShape;
@@ -98,17 +99,16 @@ void Game::ProcessInput(float deltaTime) {
     if (viewer->keymap[GLFW_KEY_SPACE]) player->jump();
 
     if (viewer->keymap[GLFW_MOUSE_BUTTON_LEFT]){
+        float rayLength = 25.0f;
+        glm::vec3 camPos = viewer->camera->Position;
+        glm::vec3 camFront = viewer->camera->Front;
+        
+        glm::vec3 worldTarget = camPos + (camFront * rayLength);
 
-        float aimDistance = 25.0f;
-        glm::vec3 cameraPos = viewer->camera->Position;
-        glm::vec3 cameraFront = viewer->camera->Front;
-        glm::vec3 aimPoint = cameraPos + (cameraFront * aimDistance);
+        glm::vec3 gunSpawnPos = player->Position + glm::vec3(0.3f, 0.5f, -0.2f);
+        glm::vec3 finalShootDir = glm::normalize(worldTarget - gunSpawnPos);
 
-        glm::vec3 playerGunPos = player->Position + glm::vec3(0.3f, 0.5f, -0.2f);
-
-        glm::vec3 shootDirection = glm::normalize(aimPoint - playerGunPos);
-
-        player->shoot(shootDirection);
+        player->shoot(finalShootDir);
     }
     // enable fullscreen toggle
     if (viewer->keymap[GLFW_KEY_F]) {
@@ -146,7 +146,7 @@ void Game::ProcessInput(float deltaTime) {
 }
 
 void Game::Update() {
-    if (!player->isAlive()) {
+    if (!player->isAlive() || hasWon) {
         return;
     }
     float deltaTime = viewer->deltaTime;
@@ -171,6 +171,10 @@ void Game::Update() {
             float ratio = (float)enemyKilled / (float)Config::Game::EnemiesToWin;
             ratio = glm::clamp(ratio, 0.0f, 1.0f);
             glm::vec3 newColor = glm::mix(startColor, endColor, ratio);
+            
+            if(enemyKilled >= Config::Game::EnemiesToWin && !getHasWon()) {
+                setHasWon(true);
+            }
 
             this->fogColor = glm::vec4(newColor, 1.0f);
             viewer->backgroundColor = newColor;
@@ -246,9 +250,9 @@ void Game::Update() {
 }
 
 void Game::RenderDeathUI() {
-    if(!recordedDeathTime) {
-        recordedDeathTime = true;
-        deathTime = glfwGetTime();
+    if(!isTimeRecorded) {
+        isTimeRecorded = true;
+        timeRecorded = glfwGetTime();
     }
     float aspectRatio = static_cast<float>(Config::SCR_WIDTH) / static_cast<float>(Config::SCR_HEIGHT);
     
@@ -265,12 +269,40 @@ void Game::RenderDeathUI() {
     spriteRenderer->draw(gameOverTexture, glm::vec2(0.0f, 0.0f), glm::vec2(1.5f * aspectRatio, 1.5f));
 
     // Time survived
-    int totalSeconds = static_cast<int>(deathTime);
+    int totalSeconds = static_cast<int>(timeRecorded);
     int minutes = totalSeconds / 60;
     int seconds = totalSeconds % 60;
     char timeBuffer[30];
     std::snprintf(timeBuffer, sizeof(timeBuffer), "Time Survived: %02d:%02d", minutes, seconds);
     textRenderer->RenderText(timeBuffer, (Config::SCR_WIDTH / 2) - 150.0f, (Config::SCR_HEIGHT / 2) - 150.0f, 1.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+}
+
+void Game::RenderWinUI() {
+    if(!isTimeRecorded) {
+        isTimeRecorded = true;
+        timeRecorded = glfwGetTime();
+    }
+    float aspectRatio = static_cast<float>(Config::SCR_WIDTH) / static_cast<float>(Config::SCR_HEIGHT);
+    
+    // sprite renderer setup
+    Shader* spriteShader = ResourceManager::GetShader("sprite");
+    // set the sprite shader
+    glUseProgram(spriteShader->get_id());
+
+    glm::mat4 projection = Sprite::getProjection(aspectRatio);
+    glUniformMatrix4fv(glGetUniformLocation(spriteShader->get_id(), "projection"), 1, GL_FALSE, &projection[0][0]);
+    glUniform1i(glGetUniformLocation(spriteShader->get_id(), "image"), 0);
+
+    // You Win screen
+    spriteRenderer->draw(victoryTexture, glm::vec2(0.0f, 0.0f), glm::vec2(1.5f * aspectRatio, 1.5f));
+
+    // display time taken to win
+    int totalSeconds = static_cast<int>(timeRecorded);
+    int minutes = totalSeconds / 60;
+    int seconds = totalSeconds % 60;
+    char timeBuffer[40];
+    std::snprintf(timeBuffer, sizeof(timeBuffer), "Time Taken to Purify: %02d:%02d", minutes, seconds);
+    textRenderer->RenderText(timeBuffer, (Config::SCR_WIDTH / 2) - 180.0f, (Config::SCR_HEIGHT / 2) - 150.0f, 1.0f, glm::vec3(0.0f, 1.0f, 0.0f));
 }
 
 void Game::RenderUI() {

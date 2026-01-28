@@ -50,7 +50,7 @@ Projectile* EntityLoader::CreateProjectile(glm::vec3 pos, glm::vec3 dir, Player*
 
     Projectile* proj = new Projectile(proj_shape, pos, shooter->getProjectileSpeed(), shooter->getAttackDamage(), 100.0f);
     proj->Velocity = shootDirection * shooter->getProjectileSpeed();
-    proj->SetMass(0.2f);
+    proj->SetMass(0.001f);
     proj->kinematic = false;
     proj->collisionShape = proj_shape;
     proj->collisionGroup = CollisionGroup::CG_PLAYER_PROJECTILE;

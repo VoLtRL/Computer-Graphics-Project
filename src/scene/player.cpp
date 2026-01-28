@@ -24,7 +24,7 @@ Player::Player(Shape* shape, glm::vec3 position,Shader* projectileShader)
       canJump(false),
       attackCooldown(0.0f),
       groundDamping(8.0f),
-      projectileSpeed(30.0f),
+      projectileSpeed(60.0f),
       projectileShader(projectileShader),
       PreviousPosition(position)
 
@@ -142,18 +142,18 @@ void Player::jump(){
 }
 
 void Player::shoot(glm::vec3 shootDirection) {
-
     lastShootTime = glfwGetTime();
     recoilForce = 1.0f;
 
     if (attackCooldown <= 0.0f) {
-        
-        // Calculate aim-based orientation vectors
+
+        float maxAimDistance = 25.0f; 
+        glm::vec3 cameraPos = shootDirection;
+
         glm::vec3 aimFlat = glm::normalize(glm::vec3(shootDirection.x, 0.0f, shootDirection.z));
         glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
         glm::vec3 aimRight = glm::normalize(glm::cross(aimFlat, worldUp)); 
 
-        // Projectile spawn offsets
         float rightOffset   = 0.9f;
         float upOffset      = 1.1f;
         float forwardOffset = 0.1f;

@@ -24,6 +24,10 @@ int main()
             game.RenderDeathUI(); // Draw death UI if player is dead
             return;
         }
+        if(game.getHasWon()) {
+            game.RenderWinUI(); // Draw win UI if player has won
+            return;
+        }
         game.RenderUI(); // Draw game UI elements
     };
 
