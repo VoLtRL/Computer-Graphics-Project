@@ -392,9 +392,12 @@ void Game::RenderDeathUI() {
     int minutes = totalSeconds / 60;
     int seconds = totalSeconds % 60;
     char timeBuffer[30];
-    std::snprintf(timeBuffer, sizeof(timeBuffer), "Time Survived: %02d:%02d", minutes, seconds);
+    std::snprintf(timeBuffer, sizeof(timeBuffer), "Time Survived : %02d:%02d", minutes, seconds);
     textRenderer->RenderText(timeBuffer, (Config::SCR_WIDTH / 2) - 150.0f, (Config::SCR_HEIGHT / 2) - 150.0f, 1.0f, glm::vec3(1.0f, 0.0f, 0.0f));
     
+    // Restart
+    std::string restartPrompt = "Press 'R' to Restart";
+    textRenderer->RenderText(restartPrompt, (Config::SCR_WIDTH / 2) - 140.0f, (Config::SCR_HEIGHT / 2) - 200.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
 }
 
 void Game::RenderWinUI() {
@@ -423,6 +426,10 @@ void Game::RenderWinUI() {
     char timeBuffer[40];
     std::snprintf(timeBuffer, sizeof(timeBuffer), "Time Taken to Purify: %02d:%02d", minutes, seconds);
     textRenderer->RenderText(timeBuffer, (Config::SCR_WIDTH / 2) - 180.0f, (Config::SCR_HEIGHT / 2) - 150.0f, 1.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+
+    // Restart
+    std::string restartPrompt = "Press 'R' to Restart";
+    textRenderer->RenderText(restartPrompt, (Config::SCR_WIDTH / 2) - 140.0f, (Config::SCR_HEIGHT / 2) - 200.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
 }
 
 void Game::RenderUI() {
