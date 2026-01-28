@@ -85,7 +85,40 @@ void Mesh::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection) {
     else if (materialName.find("SPECTRAL_T4") != std::string::npos) {
         finalColor = glm::vec3 (0.0f, 0.0f, 0.0f);
     }
-
+    else if (materialName.find("central") != std::string::npos) {
+        finalColor = glm::vec3 (0.253f, 0.261f, 0.274f);
+    }
+    else if (materialName.find("grass") != std::string::npos) {
+        finalColor = glm::vec3 (0.237f, 0.328f, 0.240f);
+    }
+    else if (materialName.find("graves") != std::string::npos) {
+        finalColor = glm::vec3 (0.281f, 0.236f, 0.213f);
+    }
+    else if (materialName.find("grille") != std::string::npos) {
+        finalColor = glm::vec3 (0.431f, 0.428f, 0.403f);
+    }
+    else if (materialName.find("Image") != std::string::npos) {
+        finalColor = glm::vec3 (0.269f, 0.219f, 0.158f);
+    }
+    else if (materialName.find("mansion") != std::string::npos) {
+        finalColor = glm::vec3 (0.318f, 0.326f, 0.305f);
+    }
+    else if (materialName.find("mountains") != std::string::npos) {
+        finalColor = glm::vec3(0.338f, 0.312f, 0.319f);
+    }
+    else if (materialName.find("ocean") != std::string::npos) {
+        finalColor = glm::vec3(0.187f, 0.205f, 0.347f);
+    }
+    else if (materialName.find("pillar") != std::string::npos) {
+        finalColor = glm::vec3(0.269f, 0.219f, 0.158f);
+    }
+    else if (materialName.find("tombstone") != std::string::npos) {
+        finalColor = glm::vec3(0.231f, 0.132f, 0.121f);
+    }
+    else if (materialName.find("tree") != std::string::npos) {
+        finalColor = glm::vec3(0.243f, 0.165f, 0.129f);
+    }
+    
     glUniform3fv(glGetUniformLocation(shader_program_, "objectColor"), 1, glm::value_ptr(finalColor));
     glUniform1i(glGetUniformLocation(shader_program_, "useCheckerboard"), 0);
     glUniform1i(glGetUniformLocation(shader_program_, "isEmissive"), 0);
