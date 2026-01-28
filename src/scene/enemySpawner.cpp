@@ -28,7 +28,7 @@ void EnemySpawner::SpawnEnemy() {
     // random position within radius around spawner position
     float angle = static_cast<float>(std::rand()) / RAND_MAX * 2.0f * 3.14159265f;
     float random01 = static_cast<float>(std::rand()) / RAND_MAX;
-    float distance = std::sqrt(random01) * radius;
+    float distance = std::sqrt(random01) * (radius-noSpawnRadius) + noSpawnRadius;
 
     glm::vec3 offset = glm::vec3(std::cos(angle) * distance, 0.0f, std::sin(angle) * distance);
 

@@ -19,6 +19,7 @@ class EnemySpawner : public PhysicShapeObject {
         float timeSinceLastSpawn;
         Node* sceneRoot;
         std::vector<Enemy*>& enemyList;
-        float radius = 2.0f;
+        float radius = 40.0f;
+		float noSpawnRadius = 20.0f;
                 
 };

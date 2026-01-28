@@ -54,7 +54,7 @@ namespace Config {
     }
 
     namespace EnemySpawner {
-        constexpr float SPAWN_INTERVAL = 3.5f;
+        constexpr float SPAWN_INTERVAL = 2.0f;
         constexpr float SPAWN_RADIUS = 15.0f;
 
         constexpr int MAX_ENEMIES = 40;

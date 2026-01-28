@@ -43,7 +43,7 @@ private:
     Player* player = nullptr;
     StatsMenu* statsMenu;
     std::vector<Enemy*> enemies;
-    std::vector<EnemySpawner*> enemySpawners;
+    EnemySpawner* enemySpawner;
     Map* map;
     Crosshair* crosshair;
     HandlePhysics* handlePhysics;
