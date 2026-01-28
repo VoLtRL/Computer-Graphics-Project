@@ -11,6 +11,8 @@
 #include "sprite.h"
 #include "enemySpawner.h"
 #include "constants.h"
+#include "textRenderer.h"
+#include "statsMenu.h"
 
 class Game {
 public:
@@ -21,20 +23,27 @@ public:
     
     void Update();
     void RenderUI();
+    void RenderDeathUI();
+    
+    Player* getPlayer() const { return player; }
 
     void ProcessInput(float deltaTime);
 
 private:
     Viewer* viewer;
     Sprite* spriteRenderer;
-
+    TextRenderer* textRenderer;
 
     Player* player;
+    StatsMenu* statsMenu;
     std::vector<Enemy*> enemies;
     std::vector<EnemySpawner*> enemySpawners;
     Map* map;
     Crosshair* crosshair;
     HandlePhysics* handlePhysics;
+
+    bool recordedDeathTime = false;
+    double deathTime = 0.0;
 
     unsigned int gameOverTexture;
     unsigned int healthBarTexture;
