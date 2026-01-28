@@ -211,7 +211,7 @@ void Player::move(glm::vec3 direction)
         localSpeed *= 0.8f; // Reduce speed while in air
     }
 	if (temporaryItems.find("SpeedBoost") != temporaryItems.end()) {
-        localSpeed *= 4.0f; // Increase speed if SpeedBoost item is active
+        localSpeed *= 2.0f; // Increase speed if SpeedBoost item is active
     }
     glm::vec3 normDir = glm::normalize(direction);
     // Update velocity
