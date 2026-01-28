@@ -97,6 +97,10 @@ void Game::Init() {
     viewer->camera->collisionGroup = CG_PLAYER;
     viewer->camera->collisionMask = CG_ENVIRONMENT;
     viewer->camera->SetMass(1.0f);
+
+    // set a damage boost item for testing
+
+
 }
 
 void Game::ProcessInput(float deltaTime) {
@@ -322,6 +326,13 @@ void Game::Update() {
             lightColors.push_back(1.0f);
             lightColors.push_back(0.8f);
             lightColors.push_back(0.6f);
+
+            if (proj->shape) {
+                glm::vec3 c = proj->shape->color;
+                lightColors.push_back(c.x);
+                lightColors.push_back(c.y);
+                lightColors.push_back(c.z);
+            }
 
             lightIntensities.push_back(0.6f);
 

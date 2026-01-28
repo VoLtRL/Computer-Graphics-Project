@@ -51,6 +51,7 @@ Projectile* EntityLoader::CreateProjectile(glm::vec3 pos, glm::vec3 dir, Player*
 	float dmg = shooter->getAttackDamage();
 	if (shooter->temporaryItems.find("DamageBoost") != shooter->temporaryItems.end()) {
 		dmg *= 2.0f;
+        proj_shape->color = glm::vec3(1.0f,0.0f,0.0f);
     }
     Projectile* proj = new Projectile(proj_shape, pos, shooter->getProjectileSpeed(), dmg, 40.0f);
     proj->Velocity = shootDirection * shooter->getProjectileSpeed();
