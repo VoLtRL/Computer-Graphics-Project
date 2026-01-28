@@ -9,6 +9,7 @@ Pickup::Pickup(Shape* shape, glm::vec3 position)
 	this->kinematic=true;
 	this->name = "PLACEHOLDER";
 	this->collisionResponse = CollisionResponse::CR_TRIGGER;
+	this->deleteOnReset = true;
 }
 
 void Pickup::BeforeCollide(PhysicObject* other, CollisionInfo info, float deltaTime)

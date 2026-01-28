@@ -52,7 +52,7 @@ Projectile* EntityLoader::CreateProjectile(glm::vec3 pos, glm::vec3 dir, Player*
 	if (shooter->temporaryItems.find("DamageBoost") != shooter->temporaryItems.end()) {
 		dmg *= 2.0f;
     }
-    Projectile* proj = new Projectile(proj_shape, pos, shooter->getProjectileSpeed(), dmg, 100.0f);
+    Projectile* proj = new Projectile(proj_shape, pos, shooter->getProjectileSpeed(), dmg, 40.0f);
     proj->Velocity = shootDirection * shooter->getProjectileSpeed();
     proj->SetMass(0.001f);
     proj->kinematic = false;

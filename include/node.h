@@ -28,6 +28,7 @@ public:
     Node* clone() const;
     ~Node();
     void setAlpha(float alpha);
+    void recursiveReset();
     
 
 private:

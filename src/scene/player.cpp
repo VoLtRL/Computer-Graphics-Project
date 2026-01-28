@@ -97,13 +97,17 @@ void Player::update(float deltaTime)
               */
 
     // projectile handling
-    for(Projectile* proj : activeProjectiles){
-        if(proj->isActive()){
-            proj->update(deltaTime);
-        } else {
-            deleteActiveProjectile(proj);
-        }
+    auto it = activeProjectiles.begin();
+    while (it != activeProjectiles.end()) {
+    Projectile* proj = *it;
+    if (proj->isActive()) {
+        proj->update(deltaTime);
+        ++it;
+    } else {
+        proj->markForDeletion(); 
+        it = activeProjectiles.erase(it); 
     }
+}
 
     //level-up check
     if(experience >= experienceToNextLevel){

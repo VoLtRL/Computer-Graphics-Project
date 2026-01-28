@@ -115,3 +115,14 @@ void Node::setAlpha(float alpha) {
 const std::vector<Shape*>& Node::getShapes() const {
     return children_shape_;
 }
+
+void Node::recursiveReset() {
+    for (auto pso : children_physic_shape_) {
+        if (pso->deleteOnReset) {
+            pso->markForDeletion();
+        }
+    }
+    for (auto child : children_) {
+        child->recursiveReset();
+    }
+}

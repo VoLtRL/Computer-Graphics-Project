@@ -95,7 +95,7 @@ void Mesh::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection) {
         finalColor = glm::vec3 (0.281f, 0.236f, 0.213f);
     }
     else if (materialName.find("grille") != std::string::npos) {
-        finalColor = glm::vec3 (0.431f, 0.428f, 0.403f);
+        finalColor = glm::vec3(0.070f, 0.070f, 0.070f);
     }
     else if (materialName.find("Image") != std::string::npos) {
         finalColor = glm::vec3 (0.269f, 0.219f, 0.158f);
@@ -118,6 +118,10 @@ void Mesh::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection) {
     else if (materialName.find("tree") != std::string::npos) {
         finalColor = glm::vec3(0.243f, 0.165f, 0.129f);
     }
+    else if (materialName.find("pillars_mini") != std::string::npos) {
+        finalColor = glm::vec3(0.101f, 0.101f, 0.101f);
+    }
+        
     
     glUniform3fv(glGetUniformLocation(shader_program_, "objectColor"), 1, glm::value_ptr(finalColor));
     glUniform1i(glGetUniformLocation(shader_program_, "useCheckerboard"), 0);

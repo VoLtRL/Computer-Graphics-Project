@@ -103,6 +103,7 @@ public:
     float Restitution;
     uint32_t  collisionGroup = CG_NONE;
     uint32_t  collisionMask = CG_NONE;
+    bool deleteOnReset = false;
 
     // Update physics state (Integration only)
     virtual void UpdatePhysics(float deltaTime);

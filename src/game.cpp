@@ -37,6 +37,8 @@ void Game::Init() {
         ResourceManager::LoadShader(shaderDir + "text.vert", shaderDir + "text.frag", "text");
     }
 
+    viewer->scene_root->recursiveReset();
+
     // load font
     textRenderer = new TextRenderer(Config::SCR_WIDTH, Config::SCR_HEIGHT);
     textRenderer->Load(fontDir + "JetBrains-Mono-Nerd-Font-Complete.ttf", 24);
@@ -228,8 +230,8 @@ void Game::Update() {
             this->fogColor = glm::vec4(newColor, 1.0f);
             viewer->backgroundColor = newColor;
 
-            fogStart += 1.0f;
-            fogEnd += 2.0f;
+            fogStart += 0.5f;
+            fogEnd += 1.0f;
 
 			float dropChance = static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * 100.0f;
 			std::map<std::string, double> lootProbabilities = getLootTableProbabilities(enemy->getRarityCoefficient());
