@@ -30,7 +30,9 @@ public:
     int getTier() const { return tier; }
     void setTier(int newTier) { tier = newTier; }
 
-    void OnCollide(PhysicObject* other, CollisionInfo info, float deltaTime) override;
+    void BeforeCollide(PhysicObject* other, CollisionInfo info, float deltaTime) override;
+    void setExperienceReward(float exp) { experienceReward = exp; }
+    float getExperienceReward() const { return experienceReward; }
 
 private:
     int health;
@@ -40,8 +42,8 @@ private:
     float attackCooldown;
     float attackSpeed;
     int tier;
+    float experienceReward;
     
     Node* model = nullptr;
-
 
  };

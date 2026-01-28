@@ -6,6 +6,7 @@
 #include "entityLoader.h"
 #include <vector>
 #include <GLFW/glfw3.h>
+#include <algorithm>
 
 Player::Player(Shape* shape, glm::vec3 position,Shader* projectileShader)
     : PhysicShapeObject(shape, position),
@@ -13,8 +14,11 @@ Player::Player(Shape* shape, glm::vec3 position,Shader* projectileShader)
       maxHealth(100.0f),
       movementSpeed(5.0f),
       jumpStrength(10.0f),
-      attackDamage(20.0f),
+      attackDamage(10.0f),
       attackSpeed(2.0f),
+      level(1),
+      experience(0.0f),
+      experienceToNextLevel(100.0f),
       size(1.0f),
       isJumping(false),
       canJump(false),
@@ -24,12 +28,7 @@ Player::Player(Shape* shape, glm::vec3 position,Shader* projectileShader)
       projectileShader(projectileShader),
       PreviousPosition(position)
 
-{
-    std::cout << "Player created at position: (" 
-              << position.x << ", " 
-              << position.y << ", " 
-              << position.z << ")" << std::endl;
-}
+{}
 
 void Player::BeforeCollide(PhysicObject* other, CollisionInfo info, float deltaTime)
 {
@@ -85,12 +84,12 @@ void Player::update(float deltaTime)
     }
 
     // debug info
-    std::cout << "Player position: (" 
+    /* std::cout << "Player position: (" 
               << Position.x << ", " 
               << Position.y << ", " 
               << Position.z << ")" << std::endl;
     std::cout << "is Jumping ? " 
-              << isJumping << std::endl;
+              << isJumping << std::endl; */
 
     // projectile handling
     for(Projectile* proj : activeProjectiles){
@@ -99,6 +98,11 @@ void Player::update(float deltaTime)
         } else {
             deleteActiveProjectile(proj);
         }
+    }
+
+    //level-up check
+    if(experience >= experienceToNextLevel){
+        levelUp();
     }
 
     // handle animations
@@ -199,10 +203,24 @@ void Player::heal(float amount)
     }
 }
 
+void Player::levelUp()
+{
+    addLevel(); //Level up
+
+    setMaxHealth(getMaxHealth()*1.10); //Increase max health by 10%
+    setHealth(getHealth()*1.1); //Heal 10% of current health
+    setAttackDamage(getAttackDamage()*1.15); //Increase attack damage by 15%
+    setSpeed(getSpeed()*(1.0f + std::min(0.5f, getLevel()*0.002f))); //Increase speed by 2% per level, max 50%
+
+    setExperienceToNextLevel(getExperienceToNextLevel() * 1.25f); //Increase XP needed by 25%
+    setExperience(experience - experienceToNextLevel); //Carry over excess XP
+    
+}
+
 void Player::die() {
     if (!isDead) {
         isDead = true;
-        std::cout << "GAME OVER" << std::endl;
+        /* std::cout << "GAME OVER" << std::endl; */
     }
 }
 

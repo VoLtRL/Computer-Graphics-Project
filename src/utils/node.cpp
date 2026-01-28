@@ -92,6 +92,10 @@ Node::~Node() {
     children_physic_shape_.clear();
 }
 
+const std::vector<Node*>& Node::getChildren() const 
+{
+    return children_;
+}
 void Node::setAlpha(float alpha) {
     for (auto shape : children_shape_) {
         shape->alpha = alpha;
@@ -99,4 +103,8 @@ void Node::setAlpha(float alpha) {
     for (auto child : children_) {
         child->setAlpha(alpha);
     }
+}
+
+const std::vector<Shape*>& Node::getShapes() const {
+    return children_shape_;
 }

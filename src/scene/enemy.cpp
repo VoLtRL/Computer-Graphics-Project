@@ -13,7 +13,7 @@ Enemy::~Enemy() {
     }
 }
 
-void Enemy::OnCollide(PhysicObject* other, CollisionInfo info, float deltaTime)
+void Enemy::BeforeCollide(PhysicObject* other, CollisionInfo info, float deltaTime)
 {
 
     Projectile* proj = dynamic_cast<Projectile*>(other);

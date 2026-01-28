@@ -87,7 +87,8 @@ Enemy* EntityLoader::CreateEnemy(glm::vec3 position,int tier){
         enemy->setAttackSpeed(1.0f);
         enemy->setPower(10);
         enemy->setTier(1);
-        enemy->setHealth(100);
+        enemy->setHealth(20);
+        enemy->setExperienceReward(10.0f);
 
         Model* ghostT1 = ResourceManager::GetModel("ghostT1");
 
@@ -111,7 +112,8 @@ Enemy* EntityLoader::CreateEnemy(glm::vec3 position,int tier){
         enemy->setAttackSpeed(1.5f);
         enemy->setPower(20);
         enemy->setTier(2);
-        enemy->setHealth(150);
+        enemy->setHealth(45);
+        enemy->setExperienceReward(25.0f);
 
         Model* ghostT2 = ResourceManager::GetModel("ghostT2");
         if(ghostT2 == nullptr){
@@ -129,11 +131,12 @@ Enemy* EntityLoader::CreateEnemy(glm::vec3 position,int tier){
     }
     case 3:
         {
-        enemy->setSpeed(4.0f);
+        enemy->setSpeed(3.75f);
         enemy->setAttackSpeed(2.0f);
         enemy->setPower(30);
         enemy->setTier(3);
-        enemy->setHealth(200);
+        enemy->setHealth(120);
+        enemy->setExperienceReward(75.0f);
 
         Model* ghostT3 = ResourceManager::GetModel("ghostT3");
         if(ghostT3 == nullptr){
@@ -149,11 +152,12 @@ Enemy* EntityLoader::CreateEnemy(glm::vec3 position,int tier){
     }
     case 4:
         {
-        enemy->setSpeed(4.5f);
+        enemy->setSpeed(4.25f);
         enemy->setAttackSpeed(2.5f);
         enemy->setPower(40);
         enemy->setTier(4);
-        enemy->setHealth(300);
+        enemy->setHealth(400);
+        enemy->setExperienceReward(300.0f);
 
         Model* ghostT4 = ResourceManager::GetModel("ghostT4");
         if(ghostT4 == nullptr){

@@ -45,16 +45,11 @@ void Game::Init() {
     Map* map = new Map(StandardShader, viewer->scene_root);
     
     //Load player
-    player = EntityLoader::CreatePlayer(glm::vec3(0.0f, 5.0f, 0.0f));
+    player = EntityLoader::CreatePlayer(glm::vec3(0.0f, 10.0f, 0.0f));
     viewer->scene_root->add(player);
 
     // load stats menu
     statsMenu = new StatsMenu(textRenderer, player);
-
-
-    // Test Cube
-    PhysicShapeObject* testBox = EntityLoader::CreateTestBox(glm::vec3(2.0f, 10.0f, 2.0f));
-    viewer->scene_root->add(testBox);
 
     // Mob Spawner
     EnemySpawner* spawner = EntityLoader::CreateEnemySpawner(viewer->scene_root, glm::vec3(0.0f, 1.0f, 0.0f), enemies);
@@ -67,6 +62,7 @@ void Game::Init() {
     // Load Textures
     gameOverTexture = ResourceManager::LoadTexture(imageDir + "game_over.png", "gameOver");
     healthBarTexture = ResourceManager::LoadTexture(imageDir + "health_bar.png", "healthBar");
+    experienceBarTexture = ResourceManager::LoadTexture(imageDir + "experience_bar.png", "experienceBar");
     victoryTexture = ResourceManager::LoadTexture(imageDir + "victory_screen.png", "victory");
 
     Shape* camShape = new Sphere(StandardShader, 0.5f);
@@ -168,6 +164,7 @@ void Game::Update() {
         Enemy* enemy = *it;
         if (!enemy->isAlive()) {
             enemyKilled++;
+            player->addExperience(enemy->getExperienceReward());
             glm::vec3 startColor = glm::vec3(0.2f, 0.2f, 0.2f); // gray
             glm::vec3 endColor   = glm::vec3(0.53f, 0.81f, 0.92f); // blue
 
@@ -320,7 +317,7 @@ void Game::RenderUI() {
     crosshair->draw(crosshairTexture, aspectRatio);
 
     // render level count left bottom corner
-    std::string levelText = "Level : " + std::to_string(enemyKilled);
+    std::string levelText = "Level : " + std::to_string(player->getLevel());
     textRenderer->RenderText(levelText, 50.0f, 85.0f, 1.0f, glm::vec3(1.0f));
 
     // render kill count top right corner
@@ -362,15 +359,37 @@ void Game::RenderUI() {
     float barHeight = 0.05f;
         
     float margin = 0.1f;
+    
     float currentWidth = barWidth * healthPct;
     float xPos = -aspectRatio + margin + (currentWidth / 2.0f); 
     float yPos = -0.9f;
 
     float bgXPos = -aspectRatio + margin + (barWidth / 2.0f);
 
+    // front bar (current health)
     spriteRenderer->draw(healthBarTexture, glm::vec2(xPos, yPos), glm::vec2(currentWidth, barHeight), 0.0f, glm::vec3(0.1f, 0.67f, 0.1f));
 
+    // background bar
     spriteRenderer->draw(healthBarTexture, glm::vec2(bgXPos, yPos), glm::vec2(barWidth, barHeight), 0.0f, glm::vec3(0.8f, 0.1f, 0.1f));
+
+    // experience bar
+    float expPct = player->getExperience() / player->getExperienceToNextLevel();
+    expPct = glm::clamp(expPct, 0.0f, 1.0f);
+
+    float expBarWidth = 0.8f;
+    float expBarHeight = 0.02f;
+
+    float expCurrentWidth = expBarWidth * expPct;
+    float expXPos = -aspectRatio + margin + (expCurrentWidth / 2.0f);
+    float expYPos = -0.93f;
+
+    float expBgXPos = -aspectRatio + margin + (expBarWidth / 2.0f);
+
+    // front bar (current experience)
+    spriteRenderer->draw(experienceBarTexture, glm::vec2(expXPos, expYPos), glm::vec2(expCurrentWidth, expBarHeight), 0.0f, glm::vec3(0.78f, 0.87f, 0.89f));
+
+    // background bar
+    spriteRenderer->draw(experienceBarTexture, glm::vec2(expBgXPos, expYPos), glm::vec2(expBarWidth, expBarHeight), 0.0f, glm::vec3(0.2f, 0.2f, 0.2f));
 
     // Restore state
     glDisable(GL_BLEND);

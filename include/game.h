@@ -52,6 +52,7 @@ private:
     unsigned int victoryTexture;
     unsigned int healthBarTexture;
     unsigned int crosshairTexture;
+    unsigned int experienceBarTexture;
 
     glm::vec4 fogColor = Config::Game::fogColor;
     float fogStart = Config::Game::fogStartDistance;
