@@ -104,3 +104,7 @@ void Node::setAlpha(float alpha) {
         child->setAlpha(alpha);
     }
 }
+
+const std::vector<Shape*>& Node::getShapes() const {
+    return children_shape_;
+}
