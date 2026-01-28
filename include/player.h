@@ -7,9 +7,6 @@
 
 #include "node.h"
 
-// Forward declaration pour éviter les inclusions circulaires si nécessaire
-class Weapon; 
-
 class Player : public PhysicShapeObject {
 public:
     Player(Shape* shape = nullptr, glm::vec3 position = glm::vec3(0.0f), Shader* projectileShader = nullptr);
@@ -59,7 +56,7 @@ public:
     float getJumpStrength() const { return jumpStrength; }
     void setJumpStrength(float strength) { jumpStrength = strength; }
     //level/xp getters/setters
-    float setExperience(float xp) { experience = xp; }
+    void setExperience(float xp) { experience = xp; }
     float getExperience() const { return experience; }
     void addExperience(float xp) { experience += xp; }
     void setExperienceToNextLevel(float ETNL) { experienceToNextLevel = ETNL; }

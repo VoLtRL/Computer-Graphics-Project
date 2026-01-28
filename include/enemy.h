@@ -30,7 +30,7 @@ public:
     int getTier() const { return tier; }
     void setTier(int newTier) { tier = newTier; }
 
-    float setExperienceReward(float exp) { experienceReward = exp; }
+    void setExperienceReward(float exp) { experienceReward = exp; }
     float getExperienceReward() const { return experienceReward; }
 
     void OnCollide(PhysicObject* other, CollisionInfo info, float deltaTime) override;
