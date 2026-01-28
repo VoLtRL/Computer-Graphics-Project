@@ -482,11 +482,11 @@ void Game::RenderUI() {
 
     float expBgXPos = -aspectRatio + margin + (expBarWidth / 2.0f);
 
-    // background bar
-    spriteRenderer->draw(experienceBarTexture, glm::vec2(expBgXPos, expYPos), glm::vec2(expBarWidth, expBarHeight), 0.0f, glm::vec3(0.2f, 0.2f, 0.2f));
-
     // front bar (current experience)
     spriteRenderer->draw(experienceBarTexture, glm::vec2(expXPos, expYPos), glm::vec2(expCurrentWidth, expBarHeight), 0.0f, glm::vec3(0.78f, 0.87f, 0.89f));
+
+    // background bar
+    spriteRenderer->draw(experienceBarTexture, glm::vec2(expBgXPos, expYPos), glm::vec2(expBarWidth, expBarHeight), 0.0f, glm::vec3(0.2f, 0.2f, 0.2f));
 
     // Restore state
     glDisable(GL_BLEND);
