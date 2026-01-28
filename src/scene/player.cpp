@@ -208,10 +208,10 @@ void Player::move(glm::vec3 direction)
 {
 	float localSpeed = movementSpeed;
 	if (isJumping) {
-        localSpeed *= 0.5f; // Reduce speed while in air
+        localSpeed *= 0.8f; // Reduce speed while in air
     }
 	if (temporaryItems.find("SpeedBoost") != temporaryItems.end()) {
-        localSpeed *= 2.0f; // Increase speed if SpeedBoost item is active
+        localSpeed *= 4.0f; // Increase speed if SpeedBoost item is active
     }
     glm::vec3 normDir = glm::normalize(direction);
     // Update velocity
@@ -250,13 +250,16 @@ void Player::levelUp()
     setMaxHealth(getMaxHealth()*1.10); //Increase max health by 10%
     setHealth(getHealth()*1.1); //Heal 10% of current health
     setAttackDamage(getAttackDamage()*1.15); //Increase attack damage by 15%
-    setSpeed(getSpeed()*(1.0f + std::min(0.5f, getLevel()*0.002f))); //Increase speed by 2% per level, max 50%
+    setSpeed(getSpeed()*(1.0f + std::min(0.5f, getLevel()*0.002f))); 
 
-    setExperienceToNextLevel(getExperienceToNextLevel() * 1.25f); //Increase XP needed by 25%
-    setExperience(experience - experienceToNextLevel); //Carry over excess XP
+    float overflowExperience = experience - experienceToNextLevel;
+
+    setExperienceToNextLevel(getExperienceToNextLevel() * 1.25f); 
+    
+    // Set experience to the calculated overflow
+    setExperience(overflowExperience); 
 
     EnemySpawner::updateSpawnProbabilities(level); //Update enemy spawn probabilities
-    
 }
 
 void Player::die() {

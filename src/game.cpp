@@ -88,8 +88,8 @@ void Game::Init() {
 
     // Load Textures
     gameOverTexture = ResourceManager::LoadTexture(imageDir + "game_over.png", "gameOver");
-    healthBarTexture = ResourceManager::LoadTexture(imageDir + "health_bar.png", "healthBar");
-    experienceBarTexture = ResourceManager::LoadTexture(imageDir + "experience_bar.png", "experienceBar");
+    healthBarTexture = ResourceManager::LoadTexture(imageDir + "white_dot.png", "healthBar");
+    experienceBarTexture = ResourceManager::LoadTexture(imageDir + "white_dot.png", "experienceBar");
     victoryTexture = ResourceManager::LoadTexture(imageDir + "victory_screen.png", "victory");
 
     Shape* camShape = new Sphere(StandardShader, 0.5f);
@@ -482,11 +482,11 @@ void Game::RenderUI() {
 
     float expBgXPos = -aspectRatio + margin + (expBarWidth / 2.0f);
 
-    // front bar (current experience)
-    spriteRenderer->draw(experienceBarTexture, glm::vec2(expXPos, expYPos), glm::vec2(expCurrentWidth, expBarHeight), 0.0f, glm::vec3(0.78f, 0.87f, 0.89f));
-
     // background bar
     spriteRenderer->draw(experienceBarTexture, glm::vec2(expBgXPos, expYPos), glm::vec2(expBarWidth, expBarHeight), 0.0f, glm::vec3(0.2f, 0.2f, 0.2f));
+
+    // front bar (current experience)
+    spriteRenderer->draw(experienceBarTexture, glm::vec2(expXPos, expYPos), glm::vec2(expCurrentWidth, expBarHeight), 0.0f, glm::vec3(0.78f, 0.87f, 0.89f));
 
     // Restore state
     glDisable(GL_BLEND);
