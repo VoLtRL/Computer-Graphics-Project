@@ -194,6 +194,24 @@ void Game::ProcessGameOverInput() {
             delete enemy;
         }
         enemies.clear();
+
+        // delete boulders
+        auto& allObjects = PhysicObject::allPhysicObjects;
+        for (auto it = allObjects.begin(); it != allObjects.end(); ) {
+            PhysicObject* obj = *it;
+            // Check if the object is named "Boulder" (case sensitive)
+            if (obj->name.find("Boulder") != std::string::npos) {
+                if (PhysicShapeObject* pso = dynamic_cast<PhysicShapeObject*>(obj)) {
+                    viewer->scene_root->recursiveRemove(pso);
+                }
+                delete obj;
+                // Reset iterator because 'allObjects' is modified by delete
+                it = allObjects.begin(); 
+            } else {
+                ++it;
+            }
+        }
+
         // reset spawners
         viewer->scene_root->remove(enemySpawner);
         delete enemySpawner;

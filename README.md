@@ -5,15 +5,15 @@
 Develop a roguelike game using C++ and OpenGL.
 Core Features :
 
--   Implementation of a moving character and map exploration.
--   Stretch Goals: Add a combat system with various monsters and an inventory system to enhance player statistics.
+- Implementation of a moving character and map exploration.
+- Stretch Goals: Add a combat system with various monsters and an inventory system to enhance player statistics.
 
 ---
 
 ## Contribution Guidelines
 
--   **No direct pushes to `main`**: All changes must be submitted via a Pull Request.
--   **Conventions**: Pull Request titles must follow the [Conventional Commits](https://www.conventionalcommits.org/) format (e.g., `feat:`, `fix:`, `docs:`), otherwise the merge will be automatically blocked.
+- **No direct pushes to `main`**: All changes must be submitted via a Pull Request.
+- **Conventions**: Pull Request titles must follow the [Conventional Commits](https://www.conventionalcommits.org/) format (e.g., `feat:`, `fix:`, `docs:`), otherwise the merge will be automatically blocked.
 
 ---
 
