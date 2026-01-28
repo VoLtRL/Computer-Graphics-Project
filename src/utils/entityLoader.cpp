@@ -78,7 +78,7 @@ Enemy* EntityLoader::CreateEnemy(glm::vec3 position,int tier){
 
     Enemy *enemy = new Enemy(enemyShape, position, StandardShader);
     enemy->kinematic = true;
-    enemy->SetMass(50.0f);
+    enemy->SetMass(5000.0f);
     enemy->Damping = 3.0f;
     enemy->Friction = 1.0f;
     enemy->collisionShape = enemyShape;
