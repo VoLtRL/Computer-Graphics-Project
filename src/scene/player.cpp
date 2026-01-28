@@ -4,27 +4,28 @@
 #include "sphere.h"
 #include "enemy.h"
 #include "entityLoader.h"
+#include "constants.h"
 #include <vector>
 #include <GLFW/glfw3.h>
 #include <algorithm>
 
 Player::Player(Shape* shape, glm::vec3 position,Shader* projectileShader)
     : PhysicShapeObject(shape, position),
-      health(100.0f),
-      maxHealth(100.0f),
-      movementSpeed(5.0f),
-      jumpStrength(10.0f),
-      attackDamage(10.0f),
-      attackSpeed(2.0f),
+      health(Config::Player::MAX_HEALTH),
+      maxHealth(Config::Player::MAX_HEALTH),
+      movementSpeed(Config::Player::SPEED),
+      jumpStrength(Config::Player::JUMP_STRENGTH),
+      attackDamage(Config::Player::ATTACK_DAMAGE),
+      attackSpeed(Config::Player::ATTACK_SPEED),
       level(1),
       experience(0.0f),
-      experienceToNextLevel(100.0f),
-      size(1.0f),
+      experienceToNextLevel(Config::Player::EXPERIENCE_TO_NEXT_LEVEL),
+      size(Config::Player::SIZE),
       isJumping(false),
       canJump(false),
       attackCooldown(0.0f),
       groundDamping(8.0f),
-      projectileSpeed(60.0f),
+      projectileSpeed(Config::Player::PROJECTILE_SPEED),
       projectileShader(projectileShader),
       PreviousPosition(position)
 
@@ -492,5 +493,44 @@ void Player::deleteActiveProjectile(Projectile* proj){
         activeProjectiles.erase(it);
     }
     PhysicObject::deleteObject(proj);
+}
+
+void Player::resetPlayerState(glm::vec3 startPosition) {
+    // Reset position and movement
+    Position = startPosition;
+    Velocity = glm::vec3(0.0f);
+    Acceleration = glm::vec3(0.0f);
+
+    // Reset Stats and level
+    level = 1;
+    experience = 0.0f;
+    experienceToNextLevel = 100.0f;
+    attackCooldown = 0.0f;   
+    maxHealth = Config::Player::MAX_HEALTH;
+    health = maxHealth;
+    movementSpeed = Config::Player::SPEED;
+    attackDamage = Config::Player::ATTACK_DAMAGE;
+    jumpStrength = Config::Player::JUMP_STRENGTH;
+    attackSpeed = Config::Player::ATTACK_SPEED;
+    size = Config::Player::SIZE;
+    projectileSpeed = Config::Player::PROJECTILE_SPEED;
+
+    // Reset health and status
+    health = maxHealth;
+    isDead = false;
+    deathTimer = 0.0f;
+
+    // Clear projectiles
+    for (auto proj : activeProjectiles) {
+        PhysicObject::deleteObject(proj);
+    }
+    activeProjectiles.clear();
+
+    // Reset animation state
+    isJumping = false;
+    canJump = false;
+    animTime = 0.0f;
+    landingImpact = 0.0f;
+    wasInAir = false;
 }
 

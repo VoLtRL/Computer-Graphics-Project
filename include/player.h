@@ -75,6 +75,8 @@ public:
 
     void levelUp();
 
+    void resetPlayerState(glm::vec3 startPosition);
+
 	// Position and velocity register
     glm::vec3 PreviousPosition;
 	glm::vec3 PreviousVelocity;
