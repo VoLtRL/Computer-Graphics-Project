@@ -23,10 +23,18 @@ void Game::Init() {
     std::string imageDir = IMAGE_DIR;
     std::string fontDir = FONT_DIR;
 
-    ResourceManager::LoadShader(shaderDir + "standard.vert", shaderDir + "standard.frag", "standard");
-    ResourceManager::LoadTexture(imageDir + "crosshair.png", "crosshair");
-    ResourceManager::LoadShader(shaderDir + "sprite.vert", shaderDir + "sprite.frag", "sprite");
-    ResourceManager::LoadShader(shaderDir + "text.vert", shaderDir + "text.frag", "text");
+    if (ResourceManager::GetShader("standard") == nullptr) {
+        ResourceManager::LoadShader(shaderDir + "standard.vert", shaderDir + "standard.frag", "standard");
+    }
+        if (ResourceManager::GetTexture("crosshair") == 0) {
+        ResourceManager::LoadTexture(imageDir + "crosshair.png", "crosshair");
+    }
+    if (ResourceManager::GetShader("sprite") == nullptr) {
+        ResourceManager::LoadShader(shaderDir + "sprite.vert", shaderDir + "sprite.frag", "sprite");
+    }
+    if (ResourceManager::GetShader("text") == nullptr) {
+        ResourceManager::LoadShader(shaderDir + "text.vert", shaderDir + "text.frag", "text");
+    }
 
     // load font
     textRenderer = new TextRenderer(Config::SCR_WIDTH, Config::SCR_HEIGHT);
@@ -36,6 +44,19 @@ void Game::Init() {
 
     spriteRenderer = new Sprite(ResourceManager::GetShader("sprite"));
 
+    // Set fog uniforms
+    fogColor = Config::Game::fogColor;
+    fogStart = Config::Game::fogStartDistance;
+    fogEnd = Config::Game::fogEndDistance;
+    // Set sky color
+    skyColor = glm::vec3(0.2f, 0.2f, 0.2f);
+    viewer->backgroundColor = skyColor;
+
+    enemyKilled = 0;
+    hasWon = false;
+    isTimeRecorded = false;
+    timeRecorded = 0.0;
+
     glUseProgram(StandardShader->get_id());
     this->fogColorLocation = glGetUniformLocation(StandardShader->get_id(), "fogColor");
     this->fogStartLocation = glGetUniformLocation(StandardShader->get_id(), "fogStart");
@@ -44,9 +65,12 @@ void Game::Init() {
     //Load map
     Map* map = new Map(StandardShader, viewer->scene_root);
     
-    //Load player
-    player = EntityLoader::CreatePlayer(glm::vec3(0.0f, 10.0f, 0.0f));
-    viewer->scene_root->add(player);
+    if(!player){
+            //Load player
+            player = EntityLoader::CreatePlayer(glm::vec3(0.0f, 10.0f, 0.0f));
+            viewer->scene_root->add(player);
+    }
+
 
     // load stats menu
     statsMenu = new StatsMenu(textRenderer, player);
@@ -157,6 +181,34 @@ void Game::ProcessInput(float deltaTime) {
     }
 }
 
+void Game::ProcessGameOverInput() {
+    GLFWwindow* window = glfwGetCurrentContext();
+    if (viewer->keymap[GLFW_KEY_ESCAPE]) {
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
+    }
+    if(viewer->keymap[GLFW_KEY_R]) {
+        viewer->keymap[GLFW_KEY_R] = false;
+        // delete enemies
+        for(auto enemy : enemies){
+            viewer->scene_root->remove(enemy);
+            delete enemy;
+        }
+        enemies.clear();
+        // reset spawners
+        for(auto spawner : enemySpawners){
+            viewer->scene_root->remove(spawner);
+            delete spawner;
+        }
+        enemySpawners.clear();
+
+        resetGameTime = glfwGetTime();
+
+        player->resetPlayerState(glm::vec3(0.0f, 10.0f, 0.0f));
+
+        this->Init();
+    }
+}
+
 void Game::Update() {
     if (!player->isAlive() || hasWon) {
         return;
@@ -264,7 +316,7 @@ void Game::Update() {
 void Game::RenderDeathUI() {
     if(!isTimeRecorded) {
         isTimeRecorded = true;
-        timeRecorded = glfwGetTime();
+        timeRecorded = glfwGetTime() - resetGameTime;
     }
     float aspectRatio = static_cast<float>(Config::SCR_WIDTH) / static_cast<float>(Config::SCR_HEIGHT);
     
@@ -287,12 +339,13 @@ void Game::RenderDeathUI() {
     char timeBuffer[30];
     std::snprintf(timeBuffer, sizeof(timeBuffer), "Time Survived: %02d:%02d", minutes, seconds);
     textRenderer->RenderText(timeBuffer, (Config::SCR_WIDTH / 2) - 150.0f, (Config::SCR_HEIGHT / 2) - 150.0f, 1.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+    
 }
 
 void Game::RenderWinUI() {
     if(!isTimeRecorded) {
         isTimeRecorded = true;
-        timeRecorded = glfwGetTime();
+        timeRecorded = glfwGetTime() - resetGameTime;
     }
     float aspectRatio = static_cast<float>(Config::SCR_WIDTH) / static_cast<float>(Config::SCR_HEIGHT);
     
@@ -344,7 +397,7 @@ void Game::RenderUI() {
     textRenderer->RenderText(pctText, Config::SCR_WIDTH - 500.0f, Config::SCR_HEIGHT - 20.0f , 1.0f, glm::vec3(1.0f));
 
     // render in-game timer center top
-    int totalSeconds = static_cast<int>(glfwGetTime());
+    int totalSeconds = static_cast<int>(glfwGetTime() - resetGameTime);
     int minutes = totalSeconds / 60;
     int seconds = totalSeconds % 60;
     char timeBuffer[6];
