@@ -13,11 +13,10 @@ class EnemySpawner : public PhysicShapeObject {
 
     private:
         inline static int enemyCount = 0;
-        inline static std::vector<float> spawnProbabilities = {0.6f, 0.3f, 0.075f, 0.025f};
+        inline static std::vector<float> spawnProbabilities = {1.0f, 0.0f, 0.00f, 0.0f};
         float timeSinceLastSpawn;
         Node* sceneRoot;
         std::vector<Enemy*>& enemyList;
         float radius = 2.0f;
                 
-
 };
