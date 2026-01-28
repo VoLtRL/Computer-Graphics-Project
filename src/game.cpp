@@ -72,24 +72,6 @@ void Game::Init() {
             viewer->scene_root->add(player);
     }
 
-    // Test Pickup : pierce
-	Sphere* pickupShape = new Sphere(StandardShader, 0.3f);
-	pickupShape->color = glm::vec3(1.0f, 0.84f, 0.0f); // Gold color
-	Pickup* testPickup = new Pickup(pickupShape, glm::vec3(4.0f, 4.0f, 4.0f)); 
-    testPickup->name = "Pierce";
-	testPickup->collisionShape = pickupShape;
-	viewer->scene_root->add(testPickup);
-
-
-    // Test Pickup : fear
-    Sphere* pickupShape2 = new Sphere(StandardShader, 0.3f);
-    pickupShape2->color = glm::vec3(0.7f, 0.0f, 0.7f); // Gold color
-    Pickup* testPickup2 = new Pickup(pickupShape2, glm::vec3(4.0f, 4.0f, -4.0f));
-    testPickup2->name = "Fear";
-    testPickup2->lifetime = 5.0f;
-    testPickup2->collisionShape = pickupShape2;
-    viewer->scene_root->add(testPickup2);
-
     // load stats menu
     statsMenu = new StatsMenu(textRenderer, player);
 
@@ -250,8 +232,9 @@ void Game::Update() {
             fogEnd += 2.0f;
 
 			float dropChance = static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * 100.0f;
+			std::map<std::string, double> lootProbabilities = getLootTableProbabilities(enemy->getRarityCoefficient());
 			float cumulativeProbability = 0.0f;
-			for (const auto& item : lootTable) {
+			for (const auto& item : lootProbabilities) {
 				if ( dropChance <= item.second + cumulativeProbability) {
 					if (item.first == "") {
                         break; // No item dropped
@@ -506,4 +489,20 @@ void Game::RenderUI() {
     // Restore state
     glDisable(GL_BLEND);
     glEnable(GL_DEPTH_TEST);
+}
+
+std::map<std::string, double> Game::getLootTableProbabilities(float alpha) {
+    std::map<std::string, double> adjustedProbabilities;
+    
+	double total = 0.0f;
+    for (const auto& item : lootTable) {
+        double adjustedProb = glm::exp(-1*alpha*item.second);
+        adjustedProbabilities[item.first] = adjustedProb;
+        total += adjustedProb;
+	}
+
+    for (auto& item : adjustedProbabilities) {
+        item.second *= 100.0f / total;
+    }
+	return adjustedProbabilities;
 }
