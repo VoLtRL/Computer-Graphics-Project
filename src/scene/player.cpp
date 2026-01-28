@@ -3,6 +3,7 @@
 #include "projectile.h"
 #include "sphere.h"
 #include "enemy.h"
+#include "projectile.h"
 #include "entityLoader.h"
 #include "constants.h"
 #include <vector>
@@ -50,6 +51,7 @@ void Player::BeforeCollide(PhysicObject* other, CollisionInfo info, float deltaT
 
 void Player::OnCollide(PhysicObject* other, CollisionInfo info, float deltaTime)
 {
+    if (!other || other==nullptr){return;}
     bool isGround = glm::dot(this->GetUpVector(), info.normal) > 0.7f;
     if (isJumping && info.hit && isGround && PhysicObject::Length2(PreviousPosition-Position) < 0.05f) {
         isJumping = false; // Reset jumping state when colliding with ground
@@ -85,12 +87,14 @@ void Player::update(float deltaTime)
     }
 
     // debug info
+
     /* std::cout << "Player position: (" 
               << Position.x << ", " 
               << Position.y << ", " 
               << Position.z << ")" << std::endl;
     std::cout << "is Jumping ? " 
-              << isJumping << std::endl; */
+              << isJumping << std::endl;
+              */
 
     // projectile handling
     for(Projectile* proj : activeProjectiles){
@@ -108,6 +112,17 @@ void Player::update(float deltaTime)
 
     // handle animations
     updateAnimation(deltaTime);
+
+    // items
+	for (auto it = temporaryItems.begin(); it != temporaryItems.end(); ) {
+        it->second -= deltaTime;
+        if (it->second <= 0.0f) {
+            std::cout << "Temporary item expired: " << it->first << std::endl;
+            it = temporaryItems.erase(it);
+        } else {
+            ++it;
+        }
+    }
 }
 
 void Player::draw(glm::mat4& view, glm::mat4& projection){
@@ -164,9 +179,22 @@ void Player::shoot(glm::vec3 shootDirection) {
                            + (worldUp * upOffset) 
                            + (aimFlat * forwardOffset);
 
-        Projectile* proj = EntityLoader::CreateProjectile(spawnPos, shootDirection, this);
+		bool isLaser = std::find(items.begin(), items.end(), "Laser") != items.end();
+		bool isPierce = std::find(items.begin(), items.end(), "Pierce") != items.end();
+		bool isBounce = std::find(items.begin(), items.end(), "Bounce") != items.end();
+       
+        if (isLaser) {
 
-        activeProjectiles.push_back(proj);
+        }
+        else {
+            Projectile* proj = EntityLoader::CreateProjectile(spawnPos, shootDirection, this);
+            if (isPierce) {
+                proj->setPierce(3);
+				std::cout << "Projectile pierce set to 3." << std::endl;
+			}
+            activeProjectiles.push_back(proj);
+        }
+
         attackCooldown = 1.0f / attackSpeed;
     }
 }
@@ -174,10 +202,17 @@ void Player::shoot(glm::vec3 shootDirection) {
 
 void Player::move(glm::vec3 direction)
 {
+	float localSpeed = movementSpeed;
+	if (isJumping) {
+        localSpeed *= 0.5f; // Reduce speed while in air
+    }
+	if (temporaryItems.find("SpeedBoost") != temporaryItems.end()) {
+        localSpeed *= 2.0f; // Increase speed if SpeedBoost item is active
+    }
     glm::vec3 normDir = glm::normalize(direction);
     // Update velocity
-    Velocity.x = normDir.x * movementSpeed;
-    Velocity.z = normDir.z * movementSpeed;
+    Velocity.x = normDir.x * localSpeed;
+    Velocity.z = normDir.z * localSpeed;
     // Update orientation vectors
     glm::vec3 FrontVector = glm::normalize(glm::vec3(normDir.x, 0.0f, normDir.z));
     glm::vec3 RightVector = glm::normalize(glm::cross(FrontVector, WorldUpVector));
@@ -494,9 +529,31 @@ void Player::deleteActiveProjectile(Projectile* proj){
     if (it != activeProjectiles.end()) {
         activeProjectiles.erase(it);
     }
-    PhysicObject::deleteObject(proj);
+	proj->markForDeletion();
 }
 
+void Player::AddPickup(Pickup* pickup, float lifetime){
+	if (pickup == nullptr || pickup->name == "PLACEHOLDER") return;
+	if (lifetime >= 0.0f) {
+        temporaryItems[pickup->name] = lifetime;
+    }
+    else {
+        items.push_back(pickup->name);
+    }
+}
+
+void Player::RemovePickup(Pickup* pickup){
+    if (pickup == nullptr || pickup->name == "PLACEHOLDER") return;
+    auto it = std::find(items.begin(), items.end(), pickup->name);
+    if (it != items.end()) {
+        items.erase(it);
+    }
+
+    auto tempIt = temporaryItems.find(pickup->name);
+    if (tempIt != temporaryItems.end()) {
+		temporaryItems.erase(tempIt);
+    }
+}
 void Player::resetPlayerState(glm::vec3 startPosition) {
     // Reset position and movement
     Position = startPosition;

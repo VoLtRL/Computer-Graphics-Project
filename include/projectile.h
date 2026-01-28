@@ -6,11 +6,14 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
 
+class Enemy;
+
 class Projectile : public PhysicShapeObject {
 
 public:
 	Projectile(Shape* shape = nullptr, glm::vec3 position = glm::vec3(0.0f), float speed = 20.0f, float damage = 10.0f, float range = 50.0f);
 
+	~Projectile() {};
 	void update(float deltaTime);
 
 	bool isActive() const { return active; }
@@ -23,6 +26,12 @@ public:
 
 	void deactivate() { active = false; }
 
+	void setPierce(int p);
+	void reducePierce(int amount);
+	int getPierce();
+
+	std::vector<Enemy*> getPiercedEnemies();
+	void addPiercedEnemy(Enemy* enemy);
 
 private:
 
@@ -33,5 +42,6 @@ private:
 	float size;
 	float range;
 	float traveledDistance;
-
+	int pierce;
+	std::vector<Enemy*> piercedEnemies;
 };

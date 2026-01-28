@@ -17,6 +17,7 @@ public:
     void add(Shape* shape);
     void add(PhysicShapeObject* pso);
     void remove(PhysicShapeObject* pso);
+	void recursiveRemove(PhysicShapeObject* pso);
     void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection);
     void set_transform(const glm::mat4 &transform); // sets local transform
     std::vector<Node *> children_;

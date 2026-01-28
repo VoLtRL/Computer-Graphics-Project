@@ -8,9 +8,10 @@
 #include "model.h"
 #include "entityLoader.h"
 #include "constants.h"
+#include "projectile.h"
 
 Game::Game(Viewer* v) : viewer(v) {
-    handlePhysics = new HandlePhysics();
+    handlePhysics = new HandlePhysics(v->scene_root);
 }
 
 Game::~Game() {
@@ -71,6 +72,23 @@ void Game::Init() {
             viewer->scene_root->add(player);
     }
 
+    // Test Pickup : pierce
+	Sphere* pickupShape = new Sphere(StandardShader, 0.3f);
+	pickupShape->color = glm::vec3(1.0f, 0.84f, 0.0f); // Gold color
+	Pickup* testPickup = new Pickup(pickupShape, glm::vec3(4.0f, 4.0f, 4.0f)); 
+    testPickup->name = "Pierce";
+	testPickup->collisionShape = pickupShape;
+	viewer->scene_root->add(testPickup);
+
+
+    // Test Pickup : fear
+    Sphere* pickupShape2 = new Sphere(StandardShader, 0.3f);
+    pickupShape2->color = glm::vec3(0.7f, 0.0f, 0.7f); // Gold color
+    Pickup* testPickup2 = new Pickup(pickupShape2, glm::vec3(4.0f, 4.0f, -4.0f));
+    testPickup2->name = "Fear";
+    testPickup2->lifetime = 5.0f;
+    testPickup2->collisionShape = pickupShape2;
+    viewer->scene_root->add(testPickup2);
 
     // load stats menu
     statsMenu = new StatsMenu(textRenderer, player);
@@ -222,7 +240,7 @@ void Game::Update() {
     for(auto spawner : enemySpawners){
         spawner->Update(deltaTime);
     }
-
+    bool isAffraid = (player->temporaryItems.find("Fear") != player->temporaryItems.end());
     auto it = enemies.begin();
     while (it != enemies.end()) {
         Enemy* enemy = *it;
@@ -246,11 +264,45 @@ void Game::Update() {
             fogStart += 1.0f;
             fogEnd += 2.0f;
 
+			float dropChance = static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * 100.0f;
+			float cumulativeProbability = 0.0f;
+			for (const auto& item : lootTable) {
+				if ( dropChance <= item.second + cumulativeProbability) {
+					if (item.first == "") {
+                        break; // No item dropped
+                    }
+                    Sphere* pshape = new Sphere(ResourceManager::GetShader("standard"), 0.3f);
+                    float lifetime = 0.0f;
+					if (item.first == "DamageBoost") {
+                        pshape->color = glm::vec3(1.0f, 0.0f, 0.0f);
+						lifetime = 10.0f;
+                    } else if (item.first == "SpeedBoost") {
+                        pshape->color = glm::vec3(1.0f, 1.0f, 0.0f);
+						lifetime = 10.0f;
+                    } else if (item.first == "HealthPack") {
+                        pshape->color = glm::vec3(0.0f, 1.0f, 0.0f);
+					} else if (item.first == "Fear") {
+                        pshape->color = glm::vec3(1.0f, 0.0f, 0.0f);
+						lifetime = 5.0f;
+                    }
+
+					std::cout << "Dropping item: " << item.first << " | Probability : " << dropChance << std::endl;
+
+                    Pickup* drop = new Pickup(pshape, enemy->Position);
+                    drop->name = item.first;
+                    drop->collisionShape = pshape;
+                    viewer->scene_root->add(drop);
+					break;
+                }
+                cumulativeProbability += item.second;
+            }
+
+
             viewer->scene_root->remove(enemy);
             delete enemy;
             it = enemies.erase(it);
         } else {
-            enemy->moveTowardsPlayer(player->Position, deltaTime);
+            enemy->moveTowardsPlayer(player->Position, deltaTime, isAffraid);
             it++;
         }
     }
@@ -265,6 +317,9 @@ void Game::Update() {
     player->setFrontVector(camFront);
     for(auto enemy : enemies){
         glm::vec3 directionToPlayer = -glm::normalize(player->Position - enemy->Position);
+		if (isAffraid) {
+            directionToPlayer = -directionToPlayer;
+        }
         enemy->setFrontVector(directionToPlayer);
     }
     

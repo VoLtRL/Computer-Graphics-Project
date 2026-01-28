@@ -168,8 +168,11 @@ void PhysicObject::ResolveCollision(
 	if (!doPhysical && !doTrigger) return;
 	if (doTrigger){
 		A->BeforeCollide(B, c, deltaTime);
+		if (!A || !B || A == nullptr || B == nullptr) return;
 		B->BeforeCollide(A, c, deltaTime);
 	}
+
+	if (!A || !B || A == nullptr || B == nullptr) return;
 
 	if (doPhysical){
 		float invMassSum = A->InvMass + B->InvMass;
@@ -232,11 +235,15 @@ void PhysicObject::ResolveCollision(
 			B->Velocity += frictionImpulse * B->InvMass;
 		}
 	}
+	
+	if (!A || !B || A == nullptr || B == nullptr) return;
 
 	if (doTrigger)
 	{
-	A->OnCollide(B, c, deltaTime);
-	B->OnCollide(A, c, deltaTime);
+		A->OnCollide(B, c, deltaTime);
+		B->OnCollide(A, c, deltaTime);
+		A->AfterCollide(c, deltaTime);
+		B->AfterCollide(c, deltaTime);
 	}
 
 }
@@ -252,6 +259,11 @@ void PhysicObject::OnCollide(PhysicObject* other, CollisionInfo info, float delt
 
 void PhysicObject::BeforeCollide(PhysicObject* other, CollisionInfo info, float deltaTime) {
 	// Placeholder for pre-collision logic
+	return;
+}
+
+void PhysicObject::AfterCollide(CollisionInfo info, float deltaTime) {
+	// Placeholder for after-collision response logic
 	return;
 }
 

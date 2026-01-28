@@ -33,6 +33,8 @@ public:
     void ProcessInput(float deltaTime);
     void ProcessGameOverInput();
 
+    std::map<std::string, float> lootTable{ {"", 50.0f}, {"DamageBoost", 10.0f }, {"SpeedBoost", 10.0f}, {"HealthPack", 20.0f},{"Fear", 10.0f}};
+
 private:
     Viewer* viewer;
     Sprite* spriteRenderer;

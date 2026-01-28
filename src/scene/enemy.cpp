@@ -1,6 +1,7 @@
 #include "enemy.h"
 #include "player.h"
 #include "projectile.h"
+#include "sphere.h"
 
 Enemy::Enemy(Shape* shape, glm::vec3 position, Shader* projectileShader)
     : PhysicShapeObject(shape, position), health(100), power(10) {
@@ -19,12 +20,26 @@ void Enemy::BeforeCollide(PhysicObject* other, CollisionInfo info, float deltaTi
     Projectile* proj = dynamic_cast<Projectile*>(other);
     if (proj && info.hit) {
         this->takeDamage(proj->getDamage()); // call attack on enemy
-        proj->deactivate();
+
+		float pierces = proj->getPierce();
+		if (pierces <= 0) {
+            proj->deactivate();
+            return;
+        }
+		std::vector<Enemy*> piercedEnemies = proj->getPiercedEnemies();
+		if (std::find(piercedEnemies.begin(), piercedEnemies.end(), this) == piercedEnemies.end()) {
+            proj->addPiercedEnemy(this);
+			proj->reducePierce(1);
+        }
     }
 }
 
-void Enemy::moveTowardsPlayer(glm::vec3 playerPosition, float deltaTime) {
+
+void Enemy::moveTowardsPlayer(glm::vec3 playerPosition, float deltaTime, bool isAffraid) {
     glm::vec3 direction = glm::normalize(playerPosition+glm::vec3(0.0f, 0.35f, 0.0f) - this->Position);
+    if (isAffraid) {
+        direction = -direction;
+    }
     this->Position += direction * speed * deltaTime; 
 }
 

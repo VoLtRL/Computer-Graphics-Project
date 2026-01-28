@@ -1,9 +1,26 @@
 #include "handlePhysics.h"
+#include "node.h"
 
-HandlePhysics::HandlePhysics() {}
+HandlePhysics::HandlePhysics(Node* root) : root(root){}
 HandlePhysics::~HandlePhysics() {}
 
 void HandlePhysics::Update(float deltaTime) {
+	
+    auto it = PhysicObject::physicObjectsToDelete.begin();
+    while (PhysicObject::physicObjectsToDelete.size() > 0 &&  it != PhysicObject::physicObjectsToDelete.end()) {
+        PhysicObject* po = *it;
+
+        PhysicObject::physicObjectsToDelete.erase(it);
+		
+		PhysicShapeObject* pso = dynamic_cast<PhysicShapeObject*>(po);
+        if (pso) {
+            root->recursiveRemove(pso);
+        }
+        delete po;
+		it = PhysicObject::physicObjectsToDelete.begin();
+    }
+
+
     for (auto obj : PhysicObject::allPhysicObjects) {
         obj->UpdatePhysics(deltaTime);
     }
