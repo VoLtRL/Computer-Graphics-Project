@@ -11,6 +11,8 @@
 #include "sprite.h"
 #include "enemySpawner.h"
 #include "constants.h"
+#include "textRenderer.h"
+#include "statsMenu.h"
 
 class Game {
 public:
@@ -21,37 +23,53 @@ public:
     
     void Update();
     void RenderUI();
+    void RenderDeathUI();
+    void RenderWinUI();
+    
+    Player* getPlayer() const { return player; }
+    bool getHasWon() const { return hasWon; }
+    void setHasWon(bool won) { hasWon = won; }
 
     void ProcessInput(float deltaTime);
+    void ProcessGameOverInput();
 
     std::map<std::string, float> lootTable{ {"", 50.0f}, {"DamageBoost", 10.0f }, {"SpeedBoost", 10.0f}, {"HealthPack", 20.0f},{"Fear", 10.0f}};
 
 private:
     Viewer* viewer;
     Sprite* spriteRenderer;
+    TextRenderer* textRenderer;
 
-
-    Player* player;
+    Player* player = nullptr;
+    StatsMenu* statsMenu;
     std::vector<Enemy*> enemies;
     std::vector<EnemySpawner*> enemySpawners;
     Map* map;
     Crosshair* crosshair;
     HandlePhysics* handlePhysics;
 
+    bool isTimeRecorded;
+    double timeRecorded;
+
     unsigned int gameOverTexture;
+    unsigned int victoryTexture;
     unsigned int healthBarTexture;
     unsigned int crosshairTexture;
+    unsigned int experienceBarTexture;
 
-    glm::vec4 fogColor = Config::Game::fogColor;
-    float fogStart = Config::Game::fogStartDistance;
-    float fogEnd = Config::Game::fogEndDistance;
+    glm::vec4 fogColor;
+    float fogStart;
+    float fogEnd;
 
     GLint fogColorLocation;
     GLint fogStartLocation;
     GLint fogEndLocation;
 
-    glm::vec3 skyColor = glm::vec3(0.5f, 0.5f, 0.5f);
+    glm::vec3 skyColor;
 
-    int enemyKilled = 0;
+    int enemyKilled;
+    bool hasWon;
+
+    double resetGameTime = 0.0;
 
 };

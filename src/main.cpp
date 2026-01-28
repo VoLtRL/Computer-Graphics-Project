@@ -20,6 +20,16 @@ int main()
     };
 
     viewer.draw_ui_callback = [&]() {
+        if(!game.getPlayer()->isAlive()) {
+            game.RenderDeathUI(); // Draw death UI if player is dead
+            game.ProcessGameOverInput();
+            return;
+        }
+        if(game.getHasWon()) {
+            game.RenderWinUI(); // Draw win UI if player has won
+            game.ProcessGameOverInput();
+            return;
+        }
         game.RenderUI(); // Draw game UI elements
     };
 

@@ -56,9 +56,9 @@ Viewer::Viewer(int width, int height)
     glfwSetInputMode(win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // useful message to check OpenGL renderer characteristics
-    std::cout << glGetString(GL_VERSION) << ", GLSL "
+    /* std::cout << glGetString(GL_VERSION) << ", GLSL "
               << glGetString(GL_SHADING_LANGUAGE_VERSION) << ", Renderer "
-              << glGetString(GL_RENDERER) << std::endl;
+              << glGetString(GL_RENDERER) << std::endl; */
 
 
     /* tell GL to only draw onto a pixel if the shape is closer to the viewer

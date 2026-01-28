@@ -22,14 +22,41 @@ Game::~Game() {
 void Game::Init() {
     std::string shaderDir = SHADER_DIR;
     std::string imageDir = IMAGE_DIR;
+    std::string fontDir = FONT_DIR;
 
-    ResourceManager::LoadShader(shaderDir + "standard.vert", shaderDir + "standard.frag", "standard");
-    ResourceManager::LoadTexture(imageDir + "crosshair.png", "crosshair");
-    ResourceManager::LoadShader(shaderDir + "sprite.vert", shaderDir + "sprite.frag", "sprite");
+    if (ResourceManager::GetShader("standard") == nullptr) {
+        ResourceManager::LoadShader(shaderDir + "standard.vert", shaderDir + "standard.frag", "standard");
+    }
+        if (ResourceManager::GetTexture("crosshair") == 0) {
+        ResourceManager::LoadTexture(imageDir + "crosshair.png", "crosshair");
+    }
+    if (ResourceManager::GetShader("sprite") == nullptr) {
+        ResourceManager::LoadShader(shaderDir + "sprite.vert", shaderDir + "sprite.frag", "sprite");
+    }
+    if (ResourceManager::GetShader("text") == nullptr) {
+        ResourceManager::LoadShader(shaderDir + "text.vert", shaderDir + "text.frag", "text");
+    }
+
+    // load font
+    textRenderer = new TextRenderer(Config::SCR_WIDTH, Config::SCR_HEIGHT);
+    textRenderer->Load(fontDir + "JetBrains-Mono-Nerd-Font-Complete.ttf", 24);
 
     Shader* StandardShader = ResourceManager::GetShader("standard");
 
     spriteRenderer = new Sprite(ResourceManager::GetShader("sprite"));
+
+    // Set fog uniforms
+    fogColor = Config::Game::fogColor;
+    fogStart = Config::Game::fogStartDistance;
+    fogEnd = Config::Game::fogEndDistance;
+    // Set sky color
+    skyColor = glm::vec3(0.2f, 0.2f, 0.2f);
+    viewer->backgroundColor = skyColor;
+
+    enemyKilled = 0;
+    hasWon = false;
+    isTimeRecorded = false;
+    timeRecorded = 0.0;
 
     glUseProgram(StandardShader->get_id());
     this->fogColorLocation = glGetUniformLocation(StandardShader->get_id(), "fogColor");
@@ -39,9 +66,11 @@ void Game::Init() {
     //Load map
     Map* map = new Map(StandardShader, viewer->scene_root);
     
-    //Load player
-    player = EntityLoader::CreatePlayer(glm::vec3(0.0f, 5.0f, 0.0f));
-    viewer->scene_root->add(player);
+    if(!player){
+            //Load player
+            player = EntityLoader::CreatePlayer(glm::vec3(0.0f, 10.0f, 0.0f));
+            viewer->scene_root->add(player);
+    }
 
     // Test Pickup : pierce
 	Sphere* pickupShape = new Sphere(StandardShader, 0.3f);
@@ -61,14 +90,25 @@ void Game::Init() {
     testPickup2->collisionShape = pickupShape2;
     viewer->scene_root->add(testPickup2);
 
-    // Test Cube
-    PhysicShapeObject* testBox = EntityLoader::CreateTestBox(glm::vec3(2.0f, 10.0f, 2.0f));
-    viewer->scene_root->add(testBox);
+    // load stats menu
+    statsMenu = new StatsMenu(textRenderer, player);
 
-    // Mob Spawner
-    EnemySpawner* spawner = EntityLoader::CreateEnemySpawner(viewer->scene_root, glm::vec3(0.0f, 1.0f, 0.0f), enemies);
-    viewer->scene_root->add(spawner);
-    enemySpawners.push_back(spawner);
+    // Mobs Spawners
+    EnemySpawner* spawner1 = EntityLoader::CreateEnemySpawner(viewer->scene_root, glm::vec3(-31.0f, 1.5f, 16.0f), enemies);
+    viewer->scene_root->add(spawner1);
+    enemySpawners.push_back(spawner1);
+
+    EnemySpawner* spawner2 = EntityLoader::CreateEnemySpawner(viewer->scene_root, glm::vec3(65.0f, 2.0f, 61.0f), enemies);
+    viewer->scene_root->add(spawner2);
+    enemySpawners.push_back(spawner2);
+
+    EnemySpawner* spawner3 = EntityLoader::CreateEnemySpawner(viewer->scene_root, glm::vec3(21.0f, 1.5f, -96.0f), enemies);
+    viewer->scene_root->add(spawner3);
+    enemySpawners.push_back(spawner3);
+
+    EnemySpawner* spawner4 = EntityLoader::CreateEnemySpawner(viewer->scene_root, glm::vec3(-74.0f, 1.0f, 56.0f), enemies);
+    viewer->scene_root->add(spawner4);
+    enemySpawners.push_back(spawner4);
 
     crosshair = new Crosshair(0.1f);
     crosshairTexture = ResourceManager::GetTexture("crosshair");
@@ -76,6 +116,8 @@ void Game::Init() {
     // Load Textures
     gameOverTexture = ResourceManager::LoadTexture(imageDir + "game_over.png", "gameOver");
     healthBarTexture = ResourceManager::LoadTexture(imageDir + "health_bar.png", "healthBar");
+    experienceBarTexture = ResourceManager::LoadTexture(imageDir + "experience_bar.png", "experienceBar");
+    victoryTexture = ResourceManager::LoadTexture(imageDir + "victory_screen.png", "victory");
 
     Shape* camShape = new Sphere(StandardShader, 0.5f);
     viewer->camera->collisionShape = camShape;
@@ -111,17 +153,16 @@ void Game::ProcessInput(float deltaTime) {
     if (viewer->keymap[GLFW_KEY_SPACE]) player->jump();
 
     if (viewer->keymap[GLFW_MOUSE_BUTTON_LEFT]){
+        float rayLength = 25.0f;
+        glm::vec3 camPos = viewer->camera->Position;
+        glm::vec3 camFront = viewer->camera->Front;
+        
+        glm::vec3 worldTarget = camPos + (camFront * rayLength);
 
-        float aimDistance = 25.0f;
-        glm::vec3 cameraPos = viewer->camera->Position;
-        glm::vec3 cameraFront = viewer->camera->Front;
-        glm::vec3 aimPoint = cameraPos + (cameraFront * aimDistance);
+        glm::vec3 gunSpawnPos = player->Position + glm::vec3(0.3f, 0.5f, -0.2f);
+        glm::vec3 finalShootDir = glm::normalize(worldTarget - gunSpawnPos);
 
-        glm::vec3 playerGunPos = player->Position + glm::vec3(0.3f, 0.5f, -0.2f);
-
-        glm::vec3 shootDirection = glm::normalize(aimPoint - playerGunPos);
-
-        player->shoot(shootDirection);
+        player->shoot(finalShootDir);
     }
     // enable fullscreen toggle
     if (viewer->keymap[GLFW_KEY_F]) {
@@ -150,9 +191,46 @@ void Game::ProcessInput(float deltaTime) {
 
         viewer->keymap[GLFW_KEY_F] = false;
     }
+
+    // display stats menu
+    if (viewer->keymap[GLFW_KEY_V]) {
+        statsMenu->setVisible(!statsMenu->getIsVisible());
+        viewer->keymap[GLFW_KEY_V] = false;
+    }
+}
+
+void Game::ProcessGameOverInput() {
+    GLFWwindow* window = glfwGetCurrentContext();
+    if (viewer->keymap[GLFW_KEY_ESCAPE]) {
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
+    }
+    if(viewer->keymap[GLFW_KEY_R]) {
+        viewer->keymap[GLFW_KEY_R] = false;
+        // delete enemies
+        for(auto enemy : enemies){
+            viewer->scene_root->remove(enemy);
+            delete enemy;
+        }
+        enemies.clear();
+        // reset spawners
+        for(auto spawner : enemySpawners){
+            viewer->scene_root->remove(spawner);
+            delete spawner;
+        }
+        enemySpawners.clear();
+
+        resetGameTime = glfwGetTime();
+
+        player->resetPlayerState(glm::vec3(0.0f, 10.0f, 0.0f));
+
+        this->Init();
+    }
 }
 
 void Game::Update() {
+    if (!player->isAlive() || hasWon) {
+        return;
+    }
     float deltaTime = viewer->deltaTime;
 
     // Process inputs
@@ -168,12 +246,17 @@ void Game::Update() {
         Enemy* enemy = *it;
         if (!enemy->isAlive()) {
             enemyKilled++;
+            player->addExperience(enemy->getExperienceReward());
             glm::vec3 startColor = glm::vec3(0.2f, 0.2f, 0.2f); // gray
             glm::vec3 endColor   = glm::vec3(0.53f, 0.81f, 0.92f); // blue
 
             float ratio = (float)enemyKilled / (float)Config::Game::EnemiesToWin;
             ratio = glm::clamp(ratio, 0.0f, 1.0f);
             glm::vec3 newColor = glm::mix(startColor, endColor, ratio);
+            
+            if(enemyKilled >= Config::Game::EnemiesToWin && !getHasWon()) {
+                setHasWon(true);
+            }
 
             this->fogColor = glm::vec4(newColor, 1.0f);
             viewer->backgroundColor = newColor;
@@ -285,6 +368,63 @@ void Game::Update() {
     }
 }
 
+void Game::RenderDeathUI() {
+    if(!isTimeRecorded) {
+        isTimeRecorded = true;
+        timeRecorded = glfwGetTime() - resetGameTime;
+    }
+    float aspectRatio = static_cast<float>(Config::SCR_WIDTH) / static_cast<float>(Config::SCR_HEIGHT);
+    
+    // sprite renderer setup
+    Shader* spriteShader = ResourceManager::GetShader("sprite");
+    // set the sprite shader
+    glUseProgram(spriteShader->get_id());
+
+    glm::mat4 projection = Sprite::getProjection(aspectRatio);
+    glUniformMatrix4fv(glGetUniformLocation(spriteShader->get_id(), "projection"), 1, GL_FALSE, &projection[0][0]);
+    glUniform1i(glGetUniformLocation(spriteShader->get_id(), "image"), 0);
+
+    // game over screen
+    spriteRenderer->draw(gameOverTexture, glm::vec2(0.0f, 0.0f), glm::vec2(1.5f * aspectRatio, 1.5f));
+
+    // Time survived
+    int totalSeconds = static_cast<int>(timeRecorded);
+    int minutes = totalSeconds / 60;
+    int seconds = totalSeconds % 60;
+    char timeBuffer[30];
+    std::snprintf(timeBuffer, sizeof(timeBuffer), "Time Survived: %02d:%02d", minutes, seconds);
+    textRenderer->RenderText(timeBuffer, (Config::SCR_WIDTH / 2) - 150.0f, (Config::SCR_HEIGHT / 2) - 150.0f, 1.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+    
+}
+
+void Game::RenderWinUI() {
+    if(!isTimeRecorded) {
+        isTimeRecorded = true;
+        timeRecorded = glfwGetTime() - resetGameTime;
+    }
+    float aspectRatio = static_cast<float>(Config::SCR_WIDTH) / static_cast<float>(Config::SCR_HEIGHT);
+    
+    // sprite renderer setup
+    Shader* spriteShader = ResourceManager::GetShader("sprite");
+    // set the sprite shader
+    glUseProgram(spriteShader->get_id());
+
+    glm::mat4 projection = Sprite::getProjection(aspectRatio);
+    glUniformMatrix4fv(glGetUniformLocation(spriteShader->get_id(), "projection"), 1, GL_FALSE, &projection[0][0]);
+    glUniform1i(glGetUniformLocation(spriteShader->get_id(), "image"), 0);
+
+    // You Win screen
+    spriteRenderer->draw(victoryTexture, glm::vec2(0.0f, 0.0f), glm::vec2(1.5f * aspectRatio, 1.5f));
+
+    // display time taken to win
+    int totalSeconds = static_cast<int>(timeRecorded);
+    int minutes = totalSeconds / 60;
+    int seconds = totalSeconds % 60;
+    char timeBuffer[40];
+    std::snprintf(timeBuffer, sizeof(timeBuffer), "Time Taken to Purify: %02d:%02d", minutes, seconds);
+    textRenderer->RenderText(timeBuffer, (Config::SCR_WIDTH / 2) - 180.0f, (Config::SCR_HEIGHT / 2) - 150.0f, 1.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+}
+
 void Game::RenderUI() {
     float aspectRatio = static_cast<float>(Config::SCR_WIDTH) / static_cast<float>(Config::SCR_HEIGHT);
     
@@ -296,6 +436,32 @@ void Game::RenderUI() {
     // crosshair
     crosshair->draw(crosshairTexture, aspectRatio);
 
+    // render level count left bottom corner
+    std::string levelText = "Level : " + std::to_string(player->getLevel());
+    textRenderer->RenderText(levelText, 50.0f, 85.0f, 1.0f, glm::vec3(1.0f));
+
+    // render kill count top right corner
+    std::string killText = "Kills: " + std::to_string(enemyKilled);
+    textRenderer->RenderText(killText, Config::SCR_WIDTH - 500.0f, Config::SCR_HEIGHT - 50.0f, 1.0f, glm::vec3(1.0f));
+
+    // render purification progress right top corner
+    float purificationPct = static_cast<float>(enemyKilled) / static_cast<float>(Config::Game::EnemiesToWin);
+    purificationPct = glm::clamp(purificationPct, 0.0f, 1.0f);
+    int pctDisplay = static_cast<int>(purificationPct * 100.0f);
+    std::string pctText = "Purification of the world : " + std::to_string(pctDisplay) + "%";
+    textRenderer->RenderText(pctText, Config::SCR_WIDTH - 500.0f, Config::SCR_HEIGHT - 20.0f , 1.0f, glm::vec3(1.0f));
+
+    // render in-game timer center top
+    int totalSeconds = static_cast<int>(glfwGetTime() - resetGameTime);
+    int minutes = totalSeconds / 60;
+    int seconds = totalSeconds % 60;
+    char timeBuffer[6];
+    std::snprintf(timeBuffer, sizeof(timeBuffer), "%02d:%02d", minutes, seconds);
+    textRenderer->RenderText(timeBuffer, (Config::SCR_WIDTH / 2) - 50.0f, Config::SCR_HEIGHT - 20.0f, 1.0f, glm::vec3(1.0f));
+
+    // render stats menu
+    statsMenu->renderMenu();
+
     // sprite renderer setup
     Shader* spriteShader = ResourceManager::GetShader("sprite");
     // set the sprite shader
@@ -304,32 +470,46 @@ void Game::RenderUI() {
     glm::mat4 projection = Sprite::getProjection(aspectRatio);
     glUniformMatrix4fv(glGetUniformLocation(spriteShader->get_id(), "projection"), 1, GL_FALSE, &projection[0][0]);
     glUniform1i(glGetUniformLocation(spriteShader->get_id(), "image"), 0);
-
-    // game over screen
-    if (player->getHealth() <= 0.0f) {
-        spriteRenderer->draw(gameOverTexture, glm::vec2(0.0f, 0.0f), glm::vec2(1.5f * aspectRatio, 1.5f));
-    }
     
     // health bar
-    else {
-        float healthPct = player->getHealth() / player->getMaxHealth();
-        healthPct = glm::clamp(healthPct, 0.0f, 1.0f);
+    float healthPct = player->getHealth() / player->getMaxHealth();
+    healthPct = glm::clamp(healthPct, 0.0f, 1.0f);
 
-        float barWidth = 0.8f;
-        float barHeight = 0.05f;
+    float barWidth = 0.8f;
+    float barHeight = 0.05f;
         
-        float margin = 0.1f;
-        float currentWidth = barWidth * healthPct;
-        float xPos = -aspectRatio + margin + (currentWidth / 2.0f); 
-        float yPos = -0.9f;
+    float margin = 0.1f;
+    
+    float currentWidth = barWidth * healthPct;
+    float xPos = -aspectRatio + margin + (currentWidth / 2.0f); 
+    float yPos = -0.9f;
 
-        float bgXPos = -aspectRatio + margin + (barWidth / 2.0f);
+    float bgXPos = -aspectRatio + margin + (barWidth / 2.0f);
 
-        spriteRenderer->draw(healthBarTexture, glm::vec2(xPos, yPos), glm::vec2(currentWidth, barHeight), 0.0f, glm::vec3(0.1f, 0.67f, 0.1f));
+    // front bar (current health)
+    spriteRenderer->draw(healthBarTexture, glm::vec2(xPos, yPos), glm::vec2(currentWidth, barHeight), 0.0f, glm::vec3(0.1f, 0.67f, 0.1f));
 
-        spriteRenderer->draw(healthBarTexture, glm::vec2(bgXPos, yPos), glm::vec2(barWidth, barHeight), 0.0f, glm::vec3(0.8f, 0.1f, 0.1f));
+    // background bar
+    spriteRenderer->draw(healthBarTexture, glm::vec2(bgXPos, yPos), glm::vec2(barWidth, barHeight), 0.0f, glm::vec3(0.8f, 0.1f, 0.1f));
 
-    }
+    // experience bar
+    float expPct = player->getExperience() / player->getExperienceToNextLevel();
+    expPct = glm::clamp(expPct, 0.0f, 1.0f);
+
+    float expBarWidth = 0.8f;
+    float expBarHeight = 0.02f;
+
+    float expCurrentWidth = expBarWidth * expPct;
+    float expXPos = -aspectRatio + margin + (expCurrentWidth / 2.0f);
+    float expYPos = -0.93f;
+
+    float expBgXPos = -aspectRatio + margin + (expBarWidth / 2.0f);
+
+    // front bar (current experience)
+    spriteRenderer->draw(experienceBarTexture, glm::vec2(expXPos, expYPos), glm::vec2(expCurrentWidth, expBarHeight), 0.0f, glm::vec3(0.78f, 0.87f, 0.89f));
+
+    // background bar
+    spriteRenderer->draw(experienceBarTexture, glm::vec2(expBgXPos, expYPos), glm::vec2(expBarWidth, expBarHeight), 0.0f, glm::vec3(0.2f, 0.2f, 0.2f));
 
     // Restore state
     glDisable(GL_BLEND);
