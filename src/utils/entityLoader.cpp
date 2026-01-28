@@ -72,6 +72,7 @@ Enemy* EntityLoader::CreateEnemy(glm::vec3 position,int tier){
     Shape* enemyShape = new Capsule(StandardShader, Config::Enemy::RADIUS, Config::Enemy::HEIGHT);
 
     Enemy *enemy = new Enemy(enemyShape, position, StandardShader);
+    enemy->kinematic = true;
     enemy->SetMass(50.0f);
     enemy->Damping = 3.0f;
     enemy->Friction = 1.0f;
@@ -79,6 +80,9 @@ Enemy* EntityLoader::CreateEnemy(glm::vec3 position,int tier){
     enemy->collisionGroup = CollisionGroup::CG_ENEMY;
     enemy->collisionMask = CollisionGroup::CG_PRESETS_ENEMY;
     enemy->name = "Enemy1";
+
+    glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+
     switch (tier)
     {
     case 1:
@@ -99,6 +103,7 @@ Enemy* EntityLoader::CreateEnemy(glm::vec3 position,int tier){
         if (ghostT1->rootNode) {
             Node* ghostT1ModelNode = ghostT1->rootNode->clone();
 
+            ghostT1ModelNode->set_transform(translationMatrix);
             ghostT1ModelNode->setAlpha(0.2f);
 
             enemy->setModel(ghostT1ModelNode);
@@ -122,6 +127,7 @@ Enemy* EntityLoader::CreateEnemy(glm::vec3 position,int tier){
         if (ghostT2->rootNode) {
             Node* ghostT2ModelNode = ghostT2->rootNode->clone();
 
+            ghostT2ModelNode->set_transform(translationMatrix);
             ghostT2ModelNode->setAlpha(0.2f);
 
             enemy->setModel(ghostT2ModelNode);
@@ -144,7 +150,10 @@ Enemy* EntityLoader::CreateEnemy(glm::vec3 position,int tier){
         }
         if (ghostT3->rootNode) {
             Node* ghostT3ModelNode = ghostT3->rootNode->clone();
+
+            ghostT3ModelNode->set_transform(translationMatrix);
             ghostT3ModelNode->setAlpha(0.2f);
+
             enemy->setModel(ghostT3ModelNode);
         }
 
@@ -165,7 +174,10 @@ Enemy* EntityLoader::CreateEnemy(glm::vec3 position,int tier){
         }
         if (ghostT4->rootNode) {
             Node* ghostT4ModelNode = ghostT4->rootNode->clone();
+
+            ghostT4ModelNode->set_transform(translationMatrix);
             ghostT4ModelNode->setAlpha(0.2f);
+
             enemy->setModel(ghostT4ModelNode);
         }
 

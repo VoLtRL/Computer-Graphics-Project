@@ -24,7 +24,7 @@ void Enemy::BeforeCollide(PhysicObject* other, CollisionInfo info, float deltaTi
 }
 
 void Enemy::moveTowardsPlayer(glm::vec3 playerPosition, float deltaTime) {
-    glm::vec3 direction = glm::normalize(playerPosition - this->Position);
+    glm::vec3 direction = glm::normalize(playerPosition+glm::vec3(0.0f, 0.35f, 0.0f) - this->Position);
     this->Position += direction * speed * deltaTime; 
 }
 

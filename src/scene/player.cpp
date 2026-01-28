@@ -214,6 +214,8 @@ void Player::levelUp()
 
     setExperienceToNextLevel(getExperienceToNextLevel() * 1.25f); //Increase XP needed by 25%
     setExperience(experience - experienceToNextLevel); //Carry over excess XP
+
+    EnemySpawner::updateSpawnProbabilities(level); //Update enemy spawn probabilities
     
 }
 
@@ -335,9 +337,9 @@ void Player::updateAnimation(float deltaTime) {
         targetArmRightX = animWalk * 0.8f; 
         targetElbowLeft = targetElbowRight = -0.8f; 
 
-        targetLean = -speedFwd * 0.05f; 
+        targetLean = -speedFwd * 0.025f; 
         targetLean = glm::clamp(targetLean, -0.3f, 0.3f);
-        targetTilt = speedSide * 0.08f; 
+        targetTilt = speedSide * 0.025f;
         targetTilt = glm::clamp(targetTilt, -0.2f, 0.2f);
         targetKnee = 0.1f;
     }

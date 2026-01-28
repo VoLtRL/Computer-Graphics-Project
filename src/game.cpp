@@ -51,10 +51,22 @@ void Game::Init() {
     // load stats menu
     statsMenu = new StatsMenu(textRenderer, player);
 
-    // Mob Spawner
-    EnemySpawner* spawner = EntityLoader::CreateEnemySpawner(viewer->scene_root, glm::vec3(0.0f, 1.0f, 0.0f), enemies);
-    viewer->scene_root->add(spawner);
-    enemySpawners.push_back(spawner);
+    // Mobs Spawners
+    EnemySpawner* spawner1 = EntityLoader::CreateEnemySpawner(viewer->scene_root, glm::vec3(-31.0f, 1.5f, 16.0f), enemies);
+    viewer->scene_root->add(spawner1);
+    enemySpawners.push_back(spawner1);
+
+    EnemySpawner* spawner2 = EntityLoader::CreateEnemySpawner(viewer->scene_root, glm::vec3(65.0f, 2.0f, 61.0f), enemies);
+    viewer->scene_root->add(spawner2);
+    enemySpawners.push_back(spawner2);
+
+    EnemySpawner* spawner3 = EntityLoader::CreateEnemySpawner(viewer->scene_root, glm::vec3(21.0f, 1.5f, -96.0f), enemies);
+    viewer->scene_root->add(spawner3);
+    enemySpawners.push_back(spawner3);
+
+    EnemySpawner* spawner4 = EntityLoader::CreateEnemySpawner(viewer->scene_root, glm::vec3(-74.0f, 1.0f, 56.0f), enemies);
+    viewer->scene_root->add(spawner4);
+    enemySpawners.push_back(spawner4);
 
     crosshair = new Crosshair(0.1f);
     crosshairTexture = ResourceManager::GetTexture("crosshair");
