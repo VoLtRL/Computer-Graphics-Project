@@ -45,15 +45,11 @@ void Game::Init() {
     Map* map = new Map(StandardShader, viewer->scene_root);
     
     //Load player
-    player = EntityLoader::CreatePlayer(glm::vec3(0.0f, 5.0f, 0.0f));
+    player = EntityLoader::CreatePlayer(glm::vec3(0.0f, 10.0f, 0.0f));
     viewer->scene_root->add(player);
 
     // load stats menu
     statsMenu = new StatsMenu(textRenderer, player);
-
-    // Test Cube
-    PhysicShapeObject* testBox = EntityLoader::CreateTestBox(glm::vec3(2.0f, 10.0f, 2.0f));
-    viewer->scene_root->add(testBox);
 
     // Mob Spawner
     EnemySpawner* spawner = EntityLoader::CreateEnemySpawner(viewer->scene_root, glm::vec3(0.0f, 1.0f, 0.0f), enemies);
