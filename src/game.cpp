@@ -82,7 +82,15 @@ void Game::Init() {
     viewer->scene_root->add(spawner1);
 	enemySpawner = spawner1;
 
+    // Add a boulder prop
+    PhysicShapeObject* boulder = EntityLoader::Boulder(glm::vec3(10.0f, 5.0f, 10.0f), 2.0f, 200.0f);
+    viewer->scene_root->add(boulder);
 
+    PhysicShapeObject* boulder2 = EntityLoader::Boulder(glm::vec3(8.0f, 5.0f, 12.0f), 0.5f, 15.0f);
+    viewer->scene_root->add(boulder2);
+
+
+    // crosshair setup
     crosshair = new Crosshair(0.1f);
     crosshairTexture = ResourceManager::GetTexture("crosshair");
 
@@ -97,9 +105,6 @@ void Game::Init() {
     viewer->camera->collisionGroup = CG_PLAYER;
     viewer->camera->collisionMask = CG_ENVIRONMENT;
     viewer->camera->SetMass(1.0f);
-
-    // set a damage boost item for testing
-
 
 }
 
@@ -265,6 +270,7 @@ void Game::Update() {
                     Pickup* drop = new Pickup(pshape, enemy->Position);
                     drop->name = item.first;
                     drop->collisionShape = pshape;
+                    drop->lifetime = lifetime;
                     viewer->scene_root->add(drop);
 					break;
                 }

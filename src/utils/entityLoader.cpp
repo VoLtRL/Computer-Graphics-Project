@@ -55,12 +55,12 @@ Projectile* EntityLoader::CreateProjectile(glm::vec3 pos, glm::vec3 dir, Player*
     }
     Projectile* proj = new Projectile(proj_shape, pos, shooter->getProjectileSpeed(), dmg, 40.0f);
     proj->Velocity = shootDirection * shooter->getProjectileSpeed();
-    proj->SetMass(0.001f);
+    proj->SetMass(0.2f);
     proj->kinematic = false;
     proj->collisionShape = proj_shape;
     proj->collisionGroup = CollisionGroup::CG_PLAYER_PROJECTILE;
     proj->collisionGroup = CG_PLAYER_PROJECTILE;
-	proj->collisionMask = CG_ENEMY | CG_ENVIRONMENT;
+	proj->collisionMask = CG_ENEMY | CG_ENVIRONMENT | CG_PROP;
     proj->Restitution = 0.5f;
 
     proj->setFrontVector(shootDirection);
@@ -223,4 +223,21 @@ EnemySpawner* EntityLoader::CreateEnemySpawner(Node* sceneRoot, glm::vec3 positi
     spawner->SetMass(0.0f); // Immovable
     spawner->kinematic = true;
     return spawner;
+}
+
+PhysicShapeObject* EntityLoader::Boulder(glm::vec3 position, float scale, float mass){
+    Shader* StandardShader = ResourceManager::GetShader("standard");
+
+    Shape* boulderShape = new Sphere(StandardShader, 2.0f * scale, 30);
+    boulderShape->color = glm::vec3(0.4f, 0.4f, 0.4f);
+    PhysicShapeObject* boulder = new PhysicShapeObject(boulderShape, position);
+    boulder->SetMass(mass);
+    boulder->Damping = 0.5f;
+    boulder->Friction = 1.0f;
+    boulder->collisionShape = boulderShape;
+    boulder->collisionGroup = CollisionGroup::CG_PROP;
+    boulder->collisionMask = CollisionGroup::CG_PRESETS_PROP;
+    boulder->name = "Boulder";
+
+    return boulder;
 }

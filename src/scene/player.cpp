@@ -542,7 +542,7 @@ void Player::deleteActiveProjectile(Projectile* proj){
 void Player::AddPickup(Pickup* pickup, float lifetime){
 	if (pickup == nullptr || pickup->name == "PLACEHOLDER") return;
 	if (lifetime >= 0.0f) {
-        temporaryItems[pickup->name] = lifetime;
+        temporaryItems.insert({pickup->name, lifetime});
     }
     else {
         items.push_back(pickup->name);

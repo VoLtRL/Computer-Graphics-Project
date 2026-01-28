@@ -15,4 +15,5 @@ public:
     static Enemy* CreateEnemy(glm::vec3 position,int tier);
     static PhysicShapeObject* CreateTestBox(glm::vec3 position);
     static EnemySpawner* CreateEnemySpawner(Node* sceneRoot, glm::vec3 position, std::vector<Enemy*>& enemyList);
+    static PhysicShapeObject* Boulder(glm::vec3 position, float scale, float mass);
 };
