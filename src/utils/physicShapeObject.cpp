@@ -22,7 +22,7 @@ PhysicShapeObject::~PhysicShapeObject() {
 void PhysicShapeObject::draw(glm::mat4& view,glm::mat4& projection)
 {
     if (!shape) {
-        std::cerr << "Warning: PhysicShapeObject has no shape assigned!\n";
+        // std::cerr << "Warning: PhysicShapeObject has no shape assigned!\n";
         return;
     }
 

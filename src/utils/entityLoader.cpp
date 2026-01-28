@@ -48,7 +48,7 @@ Projectile* EntityLoader::CreateProjectile(glm::vec3 pos, glm::vec3 dir, Player*
     proj_shape->color = glm::vec3(1.0f, 0.96f, 0.86f);
     proj_shape->isEmissive = true;
 
-    Projectile* proj = new Projectile(proj_shape, pos, shooter->getProjectileSpeed(), shooter->getAttackDamage(), 100.0f);
+    Projectile* proj = new Projectile(proj_shape, pos, shooter->getProjectileSpeed(), shooter->getAttackDamage(), 50.0f);
     proj->Velocity = shootDirection * shooter->getProjectileSpeed();
     proj->SetMass(0.001f);
     proj->kinematic = false;
