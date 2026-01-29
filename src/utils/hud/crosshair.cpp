@@ -46,13 +46,13 @@ void Crosshair::draw(unsigned int textureID, float aspectRatio) {
     glUseProgram(id);
 
 
-    // 1. Create orthographic projection matrix
+    // projection matrix
     glm::mat4 projection = glm::ortho(-aspectRatio, aspectRatio, -1.0f, 1.0f, -1.0f, 1.0f);
-    // 2. Set uniforms
+    // uniforms
     glUniformMatrix4fv(glGetUniformLocation(id, "projection"), 1, GL_FALSE, &projection[0][0]);
     // set texture uniform
     glUniform1i(glGetUniformLocation(id, "crosshairTexture"), 0);
-    // 3. Bind texture
+    // bind texture
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureID);
 

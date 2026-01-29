@@ -31,6 +31,6 @@ void Pickup::AfterCollide(CollisionInfo info, float deltaTime)
 {
 	if (toBeDeleted){
 		markForDeletion();
-		std::cout << "Marked" << std::endl;
+		// std::cout << "Marked" << std::endl;
 	}
 }

@@ -27,12 +27,12 @@ void PhysicShapeObject::draw(glm::mat4& view,glm::mat4& projection)
     }
 
     // Create a model matrix based on PhysicObject's Position
-    glm::mat4 model = glm::mat4(1.0f);          // Identity
-    model = glm::translate(model, Position);    // Move to object's position
+    glm::mat4 model = glm::mat4(1.0f); // Identity
+    model = glm::translate(model, Position); // Move to object's position
 
 	// Create rotation matrix from orientation vectors
 
-	model *= RotationMatrix;            // Apply rotation
+	model *= RotationMatrix; // Apply rotation
 
     // Draw the shape with model/view/projection
     shape->draw(model, view, projection);

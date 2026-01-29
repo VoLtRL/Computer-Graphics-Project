@@ -178,13 +178,13 @@ void PhysicObject::ResolveCollision(
 		float invMassSum = A->InvMass + B->InvMass;
 		if (invMassSum == 0.0f) return;
 
-		// --- S�curiser la normale ---
+		// Secure normal direction
 		glm::vec3 normal = c.normal;
 		glm::vec3 AB = B->Position - A->Position;
 		if (glm::dot(normal, AB) < 0.0f)
 			normal = -normal;
 
-		// --- Correction de position ---
+		// postion correction
 		float percent = 0.8f;
 		float slop = 0.01f;
 
@@ -197,7 +197,7 @@ void PhysicObject::ResolveCollision(
 		A->Position -= correction * A->InvMass;
 		B->Position += correction * B->InvMass;
 
-		// --- V�locit� relative ---
+		// velocity correction
 		glm::vec3 rv = B->Velocity - A->Velocity;
 		float velAlongNormal = glm::dot(rv, normal);
 
@@ -210,11 +210,11 @@ void PhysicObject::ResolveCollision(
 
 		glm::vec3 impulse = j * normal;
 
-		// IMPULSION CORRECTE
+		// Apply impulse
 		A->Velocity -= impulse * A->InvMass;
 		B->Velocity += impulse * B->InvMass;
 
-		// --- FRICTION ---
+		// friction impulse
 		glm::vec3 tangent =
 			rv - glm::dot(rv, normal) * normal;
 
@@ -350,7 +350,7 @@ CollisionInfo PhysicObject::Box2Box(PhysicObject* objA, PhysicObject* objB) {
 
 		float overlap = rA + rB - dist;
 		if (overlap < 0) {
-			return result; // séparation
+			return result; // separating axis found
 		}
 
 		if (overlap < minPenetration) {
@@ -383,20 +383,20 @@ CollisionInfo PhysicObject::Box2Sphere(PhysicObject* boxObj, PhysicObject* spher
 
 	CollisionInfo result;
 
-	// 1. Matrice inverse de rotation
+	// Inverse rotation matrix (transpose for pure rotation)
 	glm::mat4 invRot = glm::inverse(box.rotation);
 
-	// 2. Centre de la sph�re en espace local de la bo�te
+	// center sphere in local box space
 	glm::vec3 localCenter =
 		glm::vec3(invRot * glm::vec4(sphere.center - box.center, 1.0f));
 
-	// 3. Point le plus proche sur l'AABB locale
+	// closest point on the box to the sphere center
 	glm::vec3 closestPoint;
 	closestPoint.x = glm::clamp(localCenter.x, -box.halfExtents.x, box.halfExtents.x);
 	closestPoint.y = glm::clamp(localCenter.y, -box.halfExtents.y, box.halfExtents.y);
 	closestPoint.z = glm::clamp(localCenter.z, -box.halfExtents.z, box.halfExtents.z);
 
-	// 4. Vecteur entre la sph�re et la bo�te
+	// distance squared from sphere center to closest point
 	glm::vec3 delta = localCenter - closestPoint;
 	float distanceSq = glm::dot(delta, delta);
 
@@ -413,9 +413,8 @@ CollisionInfo PhysicObject::Box2Sphere(PhysicObject* boxObj, PhysicObject* spher
 	float distance = sqrt(distanceSq);
 	result.penetration = sphere.radius - distance;
 
-	// 5. Handle case when sphere center is inside the box
+	// handle case when sphere center is inside the box
 	if (distance < 0.0001f) {
-		// Trouver la face la plus proche
 		glm::vec3 absLocal = glm::abs(localCenter);
 		glm::vec3 d = box.halfExtents - absLocal;
 
@@ -429,14 +428,14 @@ CollisionInfo PhysicObject::Box2Sphere(PhysicObject* boxObj, PhysicObject* spher
 		distance = 0.0f;
 	}
 
-	// 6. Normale en espace local
+	// local normal
 	glm::vec3 localNormal = glm::normalize(delta);
 
-	// 7. Repasser la normale en espace monde
+	// world normal
 	result.normal =
 		glm::normalize(glm::vec3(box.rotation * glm::vec4(localNormal, 0.0f)));
 
-	// 8. Pénétration
+	// penetration
 	result.penetration = sphere.radius - distance;
 
 	return result;
@@ -459,44 +458,44 @@ CollisionInfo PhysicObject::Box2Capsule(PhysicObject* objA, PhysicObject* objB) 
 	cap.radius = capShape->radius;
 
 
-	// 1️⃣ Rotation pure (plus stable que inverse(mat4))
+	// pure rotation matrix and its inverse
 	glm::mat3 rot = glm::mat3(box.rotation);
 	glm::mat3 invRot = glm::transpose(rot);
 
-	// 2️⃣ Capsule en espace local de la boîte
+	// capsule endpoints in box local space
 	glm::vec3 localA = invRot * (cap.A - box.center);
 	glm::vec3 localB = invRot * (cap.B - box.center);
 
 	glm::vec3 boxMin = -box.halfExtents;
 	glm::vec3 boxMax = box.halfExtents;
 
-	// 3️⃣ Point du segment le plus proche de la boîte
+	// closest point on capsule segment to box
 	glm::vec3 closest = ClosestPointSegmentAABB(
 		localA, localB, boxMin, boxMax
 	);
 
-	// 4️⃣ Point le plus proche SUR la boîte
+	// closest point on box to capsule segment
 	glm::vec3 boxPoint = ClosestPointAABB(
 		closest, boxMin, boxMax
 	);
 
-	// 5️⃣ Distance capsule ↔ boîte
+	// distance squared between closest points
 	glm::vec3 delta = closest - boxPoint;
 	float distSq = glm::dot(delta, delta);
 
 	if (distSq > cap.radius * cap.radius)
-		return result; // pas collision 🌱
+		return result; // no collision
 
-	// 6️⃣ Collision confirmée
+	// compute collision info
 	float distance = std::sqrt(distSq);
 
 	result.hit = true;
 	result.penetration = cap.radius - distance;
 
-	// Normale locale
+	// local normal
 	glm::vec3 localNormal;
 	if (distance < 1e-6f) {
-		// Capsule au cœur de la boîte → on pousse vers la sortie
+		// capsule axis is inside box, choose normal based on closest face
 		glm::vec3 d = glm::abs(closest) - box.halfExtents;
 
 		if (d.x > d.y && d.x > d.z)
@@ -510,7 +509,7 @@ CollisionInfo PhysicObject::Box2Capsule(PhysicObject* objA, PhysicObject* objB) 
 		localNormal = glm::normalize(delta);
 	}
 
-	// 7️⃣ Normale en espace monde
+	// world normal
 	result.normal = glm::normalize(rot * localNormal);
 
 	return result;
@@ -521,6 +520,7 @@ CollisionInfo PhysicObject::Sphere2Sphere(PhysicObject* objA, PhysicObject* objB
 	Sphere* a = static_cast<Sphere*>(objA->collisionShape);
 	Sphere* b = static_cast<Sphere*>(objB->collisionShape);
 
+	// establish sphere collision structures
 	SphereCollision A;
 	A.center = objA->Position;
 	A.radius = a->radius;
@@ -531,6 +531,7 @@ CollisionInfo PhysicObject::Sphere2Sphere(PhysicObject* objA, PhysicObject* objB
 
 	CollisionInfo result;
 
+	// compute vector between sphere centers
 	glm::vec3 delta = B.center - A.center;
 	float dist2 = glm::dot(delta, delta);
 	float r = A.radius + B.radius;
@@ -539,6 +540,7 @@ CollisionInfo PhysicObject::Sphere2Sphere(PhysicObject* objA, PhysicObject* objB
 
 	float dist = sqrt(dist2);
 
+	// compute collision info
 	result.hit = true;
 	result.normal = dist > 0.0f ? delta / dist : glm::vec3(0, 1, 0);
 	result.penetration = r - dist;
@@ -562,7 +564,7 @@ CollisionInfo PhysicObject::Sphere2Capsule(PhysicObject* objA, PhysicObject* obj
 	cap.radius = capShape->radius;
 
 
-	// 1️⃣ Projection du centre de la sphère sur le segment
+	// closest point on capsule segment to sphere center
 	glm::vec3 AB = cap.B - cap.A;
 	float abLenSq = glm::dot(AB, AB);
 
@@ -574,24 +576,24 @@ CollisionInfo PhysicObject::Sphere2Capsule(PhysicObject* objA, PhysicObject* obj
 
 	glm::vec3 closest = cap.A + t * AB;
 
-	// 2️⃣ Distance entre la sphère et la capsule
+	// sphere to closest point distance squared
 	glm::vec3 delta = sph.center - closest;
 	float distSq = glm::dot(delta, delta);
 
 	float radiusSum = cap.radius + sph.radius;
 
 	if (distSq > radiusSum * radiusSum)
-		return result; // pas collision 
+		return result; // no collision🌿
 
-	// 3️⃣ Collision confirmée
+	// collision confirmed
 	float distance = std::sqrt(distSq);
 
 	result.hit = true;
 	result.penetration = radiusSum - distance;
 
-	// 4️⃣ Normale
+	// handle case when sphere center is exactly on capsule axis
 	if (distance < 1e-6f) {
-		// centre pile sur l'axe → normale arbitraire
+		// degenerate case: choose normal along capsule axis
 		glm::vec3 axis = cap.B - cap.A;
 		result.normal = glm::normalize(axis);
 	}
@@ -617,28 +619,28 @@ CollisionInfo PhysicObject::Capsule2Capsule(PhysicObject* objA, PhysicObject* ob
 	glm::vec3 capB_end = objB->Position - objB->GetUpVector() * (capShapeB->height / 2.0f);
 
 
-	// 1️⃣ Points les plus proches entre les deux segments
+	// closest points between capsule segments
 	ClosestPointsSegmentSegment(
 		capA_start, capA_end,
 		capB_start, capB_end,
 		cA, cB
 	);
 
-	// 2️⃣ Distance entre ces points
+	// point-to-point distance squared
 	glm::vec3 delta = cB - cA;
 	float distSq = glm::dot(delta, delta);
 
 	float radiusSum = capShapeA->radius + capShapeB->radius;
 
 	if (distSq > radiusSum * radiusSum)
-		return result; // pas de collision 🌿
+		return result; // no collision
 
-	// 3️⃣ Collision confirmée
+	// collision confirmed
 	float distance = std::sqrt(distSq);
 
 	result.hit = true;
 
-	// Cas dégénéré : segments parfaitement alignés
+	// degenerate case: closest points are the same
 	if (distance < 1e-6f) {
 		glm::vec3 axis = capA_end - capA_start;
 		result.normal = glm::normalize(axis);

@@ -121,7 +121,7 @@ void Player::update(float deltaTime)
 	for (auto it = temporaryItems.begin(); it != temporaryItems.end(); ) {
         it->second -= deltaTime;
         if (it->second <= 0.0f) {
-            std::cout << "Temporary item expired: " << it->first << std::endl;
+            // std::cout << "Temporary item expired: " << it->first << std::endl;
             it = temporaryItems.erase(it);
         } else {
             ++it;
@@ -194,7 +194,7 @@ void Player::shoot(glm::vec3 shootDirection) {
             Projectile* proj = EntityLoader::CreateProjectile(spawnPos, shootDirection, this);
             if (isPierce) {
                 proj->setPierce(3);
-				std::cout << "Projectile pierce set to 3." << std::endl;
+				// std::cout << "Projectile pierce set to 3." << std::endl;
 			}
             activeProjectiles.push_back(proj);
         }

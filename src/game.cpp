@@ -285,7 +285,7 @@ void Game::Update() {
 						lifetime = 5.0f;
                     }
 
-					std::cout << "Dropping item: " << item.first << " | Probability : " << dropChance << std::endl;
+					// std::cout << "Dropping item: " << item.first << " | Probability : " << dropChance << std::endl;
 
                     Pickup* drop = new Pickup(pshape, enemy->Position);
                     drop->name = item.first;
@@ -349,15 +349,17 @@ void Game::Update() {
             lightPos.push_back(proj->Position.y);
             lightPos.push_back(proj->Position.z);
 
-            lightColors.push_back(1.0f);
-            lightColors.push_back(0.8f);
-            lightColors.push_back(0.6f);
+
 
             if (proj->shape) {
                 glm::vec3 c = proj->shape->color;
                 lightColors.push_back(c.x);
                 lightColors.push_back(c.y);
                 lightColors.push_back(c.z);
+            } else {
+                lightColors.push_back(1.0f);
+                lightColors.push_back(0.8f);
+                lightColors.push_back(0.6f);
             }
 
             lightIntensities.push_back(0.6f);
