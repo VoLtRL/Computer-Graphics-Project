@@ -87,7 +87,6 @@ The rendering engine utilizes modern OpenGL (Core Profile) with custom shaders t
 - **Lighting System:**
     - **Blinn-Phong Reflection Model:** Implements Ambient, Diffuse (Lambertian), and Specular (Blinn-Phong) lighting components.
     - **Dynamic Lighting:** Supports a Directional Light (Sun) and up to **100 Dynamic Point Lights** simultaneously. Point lights are attached to projectiles, creating dynamic illumination as they travel through the scene.
-    - **Attenuation:** Point lights feature quadratic distance attenuation for realistic falloff.
     - **Emissive Materials:** Support for emissive objects (like projectiles) that ignore lighting calculations to appear bright.
 
 - **Advanced Shader Effects:**
@@ -119,7 +118,7 @@ A custom-built physics engine handles object interactions without relying on ext
 A custom Third-Person Orbit Camera tightly integrated with the physics engine.
 
 - **Orbit Controls:** Locks onto and orbits the player, calculating position using spherical coordinates (Yaw/Pitch) while maintaining a fixed distance.
-- **Input Handling:** Supports mouse look for rotation (with pitch constraints) and dynamic FOV zooming.
+- **Input Handling:** Supports mouse look for rotation (with pitch constraints).
 
 ### 4. Game Mechanics
 
@@ -143,7 +142,7 @@ A custom Third-Person Orbit Camera tightly integrated with the physics engine.
 
 - **Asset Management:** Custom `EntityLoader` and `ResourceManager` to handle loading and cloning of assets.
 - **Blender Integration:** Imports `.glb` models including the Player (Knight), Enemies (Ghosts T1-T4), and map segments (Visuals/Collisions).
-- **Build System:** Uses CMake to manage the build process, handling dependencies (GLFW, GLEW, GLM) and compilation.
+- **Build System:** Uses CMake to manage the build process, handling dependencies (GLFW, GLAD, GLM) and compilation.
 
 ---
 

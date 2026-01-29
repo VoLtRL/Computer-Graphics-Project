@@ -81,6 +81,8 @@ void Game::Init() {
     EnemySpawner* spawner1 = EntityLoader::CreateEnemySpawner(viewer->scene_root, player->Position, enemies);
     viewer->scene_root->add(spawner1);
 	enemySpawner = spawner1;
+    // reset spawn probabilities
+    EnemySpawner::updateSpawnProbabilities(1);
 
     // Add a boulder prop
     PhysicShapeObject* boulder = EntityLoader::Boulder(glm::vec3(10.0f, 5.0f, 10.0f), 2.0f, 200.0f);

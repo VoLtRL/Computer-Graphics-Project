@@ -13,6 +13,8 @@ class EnemySpawner : public PhysicShapeObject {
 
         void static updateSpawnProbabilities(int playerLevel);
 
+        std::vector<float> static getSpawnProbabilities() { return spawnProbabilities;}
+
     private:
         inline static int enemyCount = 0;
         inline static std::vector<float> spawnProbabilities = {1.0f, 0.0f, 0.00f, 0.0f};
