@@ -2,7 +2,7 @@
 
 ## Project Goal
 
-Develop a roguelike game using C++ and OpenGL.
+Develop a 3D shooter game using C++ and OpenGL.
 Core Features :
 
 - Implementation of a moving character and map exploration.
@@ -69,6 +69,7 @@ Once the compilation is finished, you can run the executable from the `build` di
 ### 5. Controls
 
 - **ZQSD**: Move the player character.
+- **Space**: Jump.
 - **Mouse**: Look around.
 - **Left Click**: Shoot a projectile.
 - **R**: Reset the game after death.
@@ -110,8 +111,8 @@ A custom-built physics engine handles object interactions without relying on ext
     - The system uses **Collision Groups** and **Collision Masks** (e.g., `CG_PLAYER`, `CG_ENEMY`, `CG_PROJECTILE`) to efficiently filter interactions.
 
 - **Object Dynamics:**
-    - **Kinematic Objects:** Immovable objects (like Spawners) that affect others but are not moved by forces.
-    - **Dynamic Objects:** Objects (Player, Projectiles) affected by mass, velocity, and acceleration.
+    - **Kinematic Objects:** Objects (like Spawners) that affect others but are not moved by forces.
+    - **Dynamic Objects:** Objects (Player, Projectiles) affected by mass, velocity, and acceleration also affected by external forces (gravity, collisions, ...)
 
 ### 3. Camera System
 
@@ -123,9 +124,9 @@ A custom Third-Person Orbit Camera tightly integrated with the physics engine.
 ### 4. Game Mechanics
 
 - **Player Controller:**
-    - **Movement:** WASD movement with acceleration physics, jumping mechanics, and air control.
+    - **Movement:** ZQSD movement with acceleration physics, jumping mechanics, and air control.
     - **Procedural Animation:** A custom hierarchical animation system procedurally rotates the player model's limbs (Torso, Arms, Legs) based on movement speed, state (jumping/idle), and combat actions.
-    - **RPG Stats:** System for Leveling, Experience (XP), Health, and Attack Speed. Leveling up heals the player and scales difficulty.
+    - **RPG Stats** : System for Leveling, Experience (XP), Damage, Health and Attack Speed. Leveling up increases the stats of the player and scales difficulty (spawn probability of higher-tier mobs).
 
 - **Combat System:**
     - **Projectiles:** Physics-based projectiles with properties for speed, damage, range, and **piercing** capabilities.
@@ -138,10 +139,16 @@ A custom Third-Person Orbit Camera tightly integrated with the physics engine.
 - **Game Reset:**
     - On player death pressing 'R' resets the game state, clearing enemies, projectiles, and resetting player stats and map state.
 
-### 5. Assets & Tools
+### 5. 3D Asset Pipeline (Blender)
+
+- **Hierarchical Segmentation:** Meshes are split into parent-child nodes (Torso $\rightarrow$ Upper Arm $\rightarrow$ Forearm) to allow independent kinematic control via C++.
+- **Pivot Point Calibration:** Object origins were manually aligned with anatomical joints (shoulders, elbows) to ensure accurate rotation matrices application.
+- **Technical Compliance:** Rigorous validation of Face Normals (for back-face culling), UV Unwrapping, Triangulation to convert all faces into a mesh and Transform freezing (Scale 1.0, Rotation 0.0).
+- **Map Design:** The game map was designed in Blender, with modular assets (walls, floors, props) exported and assembled in the game. It has two parts: a collision mesh (invisible) and a visual mesh (textured). The collision `glb` file is added to the game but doesn't appear once the game is launched. To make the collisions box shaped like the visuals, we use **AABB** (Axis Align Bounding Box) to make the hitbox implemention easier like the player, the two parts are exported in `glb` format.
+
+### 6. Assets & Tools
 
 - **Asset Management:** Custom `EntityLoader` and `ResourceManager` to handle loading and cloning of assets.
-- **Blender Integration:** Imports `.glb` models including the Player (Knight), Enemies (Ghosts T1-T4), and map segments (Visuals/Collisions).
 - **Build System:** Uses CMake to manage the build process, handling dependencies (GLFW, GLAD, GLM) and compilation.
 
 ---
