@@ -36,7 +36,7 @@ sudo apt-get install build-essential cmake libgl1-mesa-dev libx11-dev libxi-dev 
 Clone the repository to your local machine:
 
 ```bash
-git clone --recurse-submodules <repository_url>
+git clone --recurse-submodules https://github.com/VoLtRL/Computer-Graphics-Project.git
 cd Computer-Graphics-Project
 ```
 
