@@ -281,7 +281,7 @@ void Game::Update() {
                     } else if (item.first == "HealthPack") {
                         pshape->color = glm::vec3(0.0f, 1.0f, 0.0f);
 					} else if (item.first == "Fear") {
-                        pshape->color = glm::vec3(1.0f, 0.0f, 0.0f);
+                        pshape->color = glm::vec3(0.33f, 0.1f, 0.47f);
 						lifetime = 5.0f;
                     }
 
@@ -456,14 +456,14 @@ void Game::RenderUI() {
 
     // render kill count top right corner
     std::string killText = "Kills: " + std::to_string(enemyKilled);
-    textRenderer->RenderText(killText, Config::SCR_WIDTH - 500.0f, Config::SCR_HEIGHT - 50.0f, 1.0f, glm::vec3(1.0f));
+    textRenderer->RenderText(killText, Config::SCR_WIDTH - 500.0f, Config::SCR_HEIGHT - 80.0f, 1.0f, glm::vec3(1.0f));
 
     // render purification progress right top corner
     float purificationPct = static_cast<float>(enemyKilled) / static_cast<float>(Config::Game::EnemiesToWin);
     purificationPct = glm::clamp(purificationPct, 0.0f, 1.0f);
     int pctDisplay = static_cast<int>(purificationPct * 100.0f);
     std::string pctText = "Purification of the world : " + std::to_string(pctDisplay) + "%";
-    textRenderer->RenderText(pctText, Config::SCR_WIDTH - 500.0f, Config::SCR_HEIGHT - 20.0f , 1.0f, glm::vec3(1.0f));
+    textRenderer->RenderText(pctText, Config::SCR_WIDTH - 500.0f, Config::SCR_HEIGHT - 50.0f , 1.0f, glm::vec3(1.0f));
 
     // render in-game timer center top
     int totalSeconds = static_cast<int>(glfwGetTime() - resetGameTime);
@@ -471,7 +471,7 @@ void Game::RenderUI() {
     int seconds = totalSeconds % 60;
     char timeBuffer[6];
     std::snprintf(timeBuffer, sizeof(timeBuffer), "%02d:%02d", minutes, seconds);
-    textRenderer->RenderText(timeBuffer, (Config::SCR_WIDTH / 2) - 50.0f, Config::SCR_HEIGHT - 20.0f, 1.0f, glm::vec3(1.0f));
+    textRenderer->RenderText(timeBuffer, (Config::SCR_WIDTH / 2) - 50.0f, Config::SCR_HEIGHT - 50.0f, 1.0f, glm::vec3(1.0f));
 
     // render stats menu
     statsMenu->renderMenu();
